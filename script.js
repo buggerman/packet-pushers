@@ -712,7 +712,7 @@ class MobileModalManager {
     static getSellItemData(drugName) {
         const amount = gameState.player.inventory[drugName];
         const price = gameState.currentPrices[drugName];
-        const drugData = gameState.drugs.find(d => d.name === drugName);
+        const drugData = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
         const basePrice = drugData ? drugData.basePrice : price;
         const priceRatio = price / basePrice;
         
@@ -4664,11 +4664,30 @@ function showMobileQuantitySelector(itemName, price) {
                 <strong>Total: $${price * mobileState.quantity}</strong>
             </div>
             
-            <button class="mobile-confirm-btn" onclick="confirmMobileAction()">
+            <button class="mobile-confirm-btn" id="mobileConfirmBtn" style="cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0);">
                 ${action} ${itemName}
             </button>
         </div>
     `;
+    
+    // Add event listener for iOS compatibility
+    setTimeout(() => {
+        const confirmBtn = document.getElementById('mobileConfirmBtn');
+        if (confirmBtn) {
+            // Remove any existing listeners
+            confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+            const newConfirmBtn = document.getElementById('mobileConfirmBtn');
+            
+            // Add both click and touchend for iOS compatibility
+            newConfirmBtn.addEventListener('click', confirmMobileAction, { passive: false });
+            newConfirmBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                confirmMobileAction();
+            }, { passive: false });
+            
+            console.log('Added mobile confirm button listeners');
+        }
+    }, 100);
 }
 
 function increaseMobileQuantity() {
@@ -4758,9 +4777,8 @@ function updateMobileQuantityDisplay() {
 function confirmMobileAction() {
     console.log('confirmMobileAction called', mobileState);
     
-    // Extract the drug name part after the emoji (same logic as in buy function)
-    const fullName = mobileState.selectedItem;
-    const itemName = fullName.split(' ').slice(-1)[0].toLowerCase();
+    // selectedItem should already be the plain drug name (e.g., "Acid")
+    const itemName = mobileState.selectedItem.toLowerCase();
     
     console.log('Processing mobile action:', mobileState.currentAction, 'for item:', itemName, 'quantity:', mobileState.quantity);
     
