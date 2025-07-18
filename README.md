@@ -4,7 +4,7 @@ A retro terminal-style drug dealing game inspired by classic 80s games like Dope
 
 ## 🎮 Play Now
 
-**[Play Packet Pushers](https://buggerman.github.io/packet-pushers/)**
+**[Play Packet Pushers](https://packetpushers.app)**
 
 ## 📖 Game Overview
 
@@ -90,7 +90,7 @@ The game features a retro terminal aesthetic with:
 
 ## 🚀 Getting Started
 
-1. Visit the [game page](https://buggerman.github.io/packet-pushers/)
+1. Visit **[packetpushers.app](https://packetpushers.app)**
 2. Click "New Game" to start
 3. Read the in-game tutorial
 4. Start trading and making money!
