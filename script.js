@@ -825,6 +825,7 @@ class NotificationSystem {
 
 // Game state object
 let gameState = {
+    drugs: GAME_CONSTANTS.DRUGS, // Reference to available drugs
     player: {
         cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
         debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
@@ -4417,7 +4418,7 @@ function showQuickCharts() {
 }
 
 function showMobileBuyModal() {
-    MobileModalManager.show('buy', gameState.drugs, drug => gameState.currentPrices[drug.name]);
+    MobileModalManager.show('buy', GAME_CONSTANTS.DRUGS, drug => gameState.currentPrices[drug.name]);
 }
 
 function showMobileSellModal() {
@@ -4490,7 +4491,7 @@ function showMobileTravelModal() {
 }
 
 function showMobileChartsModal() {
-    MobileModalManager.show('charts', gameState.drugs, drug => gameState.currentPrices[drug.name]);
+    MobileModalManager.show('charts', GAME_CONSTANTS.DRUGS, drug => gameState.currentPrices[drug.name]);
 }
 
 function showMobileChart(drugName) {
