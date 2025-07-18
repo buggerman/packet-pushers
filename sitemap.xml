@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Main Game Page -->
+  <url>
+    <loc>https://packetpushers.app/</loc>
+    <lastmod>2024-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://packetpushers.app/og-image.jpg</image:loc>
+      <image:title>Packet Pushers - Retro Terminal Drug Trading Game</image:title>
+      <image:caption>Screenshot of the main game interface showing the retro terminal-style drug trading gameplay</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- Game Instructions/Help -->
+  <url>
+    <loc>https://packetpushers.app/#instructions</loc>
+    <lastmod>2024-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- High Scores -->
+  <url>
+    <loc>https://packetpushers.app/#leaderboard</loc>
+    <lastmod>2024-07-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Game Menu -->
+  <url>
+    <loc>https://packetpushers.app/#menu</loc>
+    <lastmod>2024-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Manifest for PWA -->
+  <url>
+    <loc>https://packetpushers.app/manifest.json</loc>
+    <lastmod>2024-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+</urlset>

@@ -1,6 +1,58 @@
 // Packet Pushers Game Logic
 // Complete implementation of the classic drug dealing game
 
+// SEO and Performance Optimization
+document.addEventListener('DOMContentLoaded', function() {
+    // Set page title dynamically
+    document.title = "Packet Pushers - Play the Ultimate Retro Terminal Drug Trading Game Online";
+    
+    // Add meta description if not present
+    if (!document.querySelector('meta[name="description"]')) {
+        const metaDescription = document.createElement('meta');
+        metaDescription.name = 'description';
+        metaDescription.content = 'Play Packet Pushers, the ultimate retro terminal-style drug trading game. Make money, pay off debt, avoid cops, and build your criminal empire in this addictive browser game.';
+        document.head.appendChild(metaDescription);
+    }
+    
+    // Add canonical link if not present
+    if (!document.querySelector('link[rel="canonical"]')) {
+        const canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        canonical.href = 'https://packetpushers.app/';
+        document.head.appendChild(canonical);
+    }
+    
+    // Preload critical game assets
+    const audioFiles = [
+        'sound/touchsound.wav',
+        'sound/cashreg.wav',
+        'sound/headlines.wav',
+        'sound/uhoh.wav'
+    ];
+    
+    audioFiles.forEach(file => {
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = file;
+    });
+});
+
+// Performance tracking for SEO
+const performanceMetrics = {
+    gameStartTime: null,
+    firstInteraction: null,
+    
+    recordGameStart: function() {
+        this.gameStartTime = performance.now();
+    },
+    
+    recordFirstInteraction: function() {
+        if (!this.firstInteraction) {
+            this.firstInteraction = performance.now();
+        }
+    }
+};
+
 // === CONSOLIDATED UTILITY FUNCTIONS ===
 
 // Location service validation consolidation
