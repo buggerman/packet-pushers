@@ -4756,19 +4756,30 @@ function updateMobileQuantityDisplay() {
 }
 
 function confirmMobileAction() {
+    console.log('confirmMobileAction called', mobileState);
+    
     // Extract the drug name part after the emoji (same logic as in buy function)
     const fullName = mobileState.selectedItem;
     const itemName = fullName.split(' ').slice(-1)[0].toLowerCase();
     
+    console.log('Processing mobile action:', mobileState.currentAction, 'for item:', itemName, 'quantity:', mobileState.quantity);
+    
     // Execute the action directly instead of using processCommand
     if (mobileState.currentAction === 'buy') {
+        console.log('Looking for drug with itemName:', itemName);
         const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
+        console.log('Found drug:', drug);
+        
         if (drug) {
             const price = gameState.currentPrices[drug.name];
             const totalCost = price * mobileState.quantity;
             
+            console.log('Price:', price, 'Total cost:', totalCost, 'Player cash:', gameState.player.cash);
+            
             if (validateAffordability(totalCost, `${mobileState.quantity} ${drug.name}`) &&
                 validateInventorySpace(mobileState.quantity, drug.name)) {
+                
+                console.log('Validation passed, showing confirmation dialog');
                 
                 showConfirmationDialog(
                     `Buy ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}?`,
@@ -4787,7 +4798,11 @@ function confirmMobileAction() {
                         });
                     }
                 );
+            } else {
+                console.log('Validation failed for mobile buy');
             }
+        } else {
+            console.log('Drug not found for itemName:', itemName);
         }
     } else if (mobileState.currentAction === 'sell') {
         const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
@@ -4806,6 +4821,7 @@ function confirmMobileAction() {
         }
     }
     
+    console.log('Closing mobile modal');
     closeMobileModal();
 }
 
