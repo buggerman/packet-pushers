@@ -606,14 +606,14 @@ class MobileModalManager {
         
         let itemsHtml = '<div class="mobile-item-list">';
         
-        items.forEach(item => {
+        items.forEach((item, index) => {
             const price = priceGetter(item);
             const indicators = this.getPriceIndicators(item, price, action);
             const itemData = this.getItemData(item, action);
             
             itemsHtml += `
                 <div class="mobile-item ${itemData.disabled ? 'disabled' : ''}" 
-                     onclick="${itemData.disabled ? '' : itemData.clickHandler}">
+                     data-item-index="${index}" data-price="${price}" data-action="${action}">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${itemData.name}</div>
                         <div class="mobile-item-price">${itemData.priceText}</div>
@@ -627,6 +627,25 @@ class MobileModalManager {
         
         itemsHtml += '</div>';
         modalBody.innerHTML = itemsHtml;
+        
+        // Add click event listeners to mobile items
+        modalBody.querySelectorAll('.mobile-item:not(.disabled)').forEach(itemEl => {
+            itemEl.addEventListener('click', () => {
+                const itemIndex = parseInt(itemEl.dataset.itemIndex);
+                const price = parseFloat(itemEl.dataset.price);
+                const action = itemEl.dataset.action;
+                const item = items[itemIndex];
+                
+                if (action === 'buy' || action === 'sell') {
+                    const itemName = typeof item === 'string' ? item : item.name;
+                    selectMobileItem(itemName, price);
+                } else if (action === 'charts') {
+                    const itemName = typeof item === 'string' ? item : item.name;
+                    showMobileChart(itemName);
+                }
+            });
+        });
+        
         modal.style.display = 'flex';
     }
     
@@ -658,7 +677,7 @@ class MobileModalManager {
             case 'travel':
                 return this.getTravelItemData(item);
             default:
-                return { name: item, priceText: '', actionText: '', disabled: false, clickHandler: '' };
+                return { name: item, priceText: '', actionText: '', disabled: false };
         }
     }
     
@@ -678,8 +697,7 @@ class MobileModalManager {
             name: drug.name,
             priceText: `${this.getPriceIndicators(drug, price, 'buy')} $${price} ${extremeIcon}`,
             actionText: '💰 BUY',
-            disabled: false,
-            clickHandler: `selectMobileItem('${drug.name}', ${price})`
+            disabled: false
         };
     }
     
@@ -701,8 +719,7 @@ class MobileModalManager {
             name: drugName,
             priceText: `${this.getPriceIndicators(drugName, price, 'sell')} $${price} ${extremeIcon} (${amount} owned)`,
             actionText: '💸 SELL',
-            disabled: false,
-            clickHandler: `selectMobileItem('${drugName}', ${price})`
+            disabled: false
         };
     }
     
@@ -715,8 +732,7 @@ class MobileModalManager {
             name: drug.name,
             priceText: hasHistory ? `Current: $${currentPrice} | ${history.length} days` : 'No price history',
             actionText: hasHistory ? '📈 VIEW' : '❌ N/A',
-            disabled: !hasHistory,
-            clickHandler: hasHistory ? `showMobileChart('${drug.name}')` : ''
+            disabled: !hasHistory
         };
     }
     
