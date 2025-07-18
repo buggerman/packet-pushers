@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Pushers</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>PACKET PUSHERS</h1>
+            <div class="subtitle">Terminal Market v2.5.1</div>
+        </header>
+
+        <div class="start-screen" id="startScreen">
+            <div class="start-content">
+                <div class="game-title">
+                    <h1>PACKET PUSHERS</h1>
+                    <div class="game-subtitle">Terminal Market Simulator</div>
+                    <div class="game-description">
+                        Pay off your $5,000 debt and build your fortune in 30 days.<br>
+                        Navigate the dangerous world of street commerce.
+                    </div>
+                </div>
+                
+                <div class="start-actions">
+                    <button class="start-btn primary" onclick="startNewGame()">
+                        🎮 NEW GAME
+                    </button>
+                    <button class="start-btn secondary" id="continueBtn" onclick="continueGame()" style="display: none;">
+                        ⏯️ CONTINUE
+                    </button>
+                    <button class="start-btn secondary" onclick="showStartLeaderboard()">
+                        🏆 HIGH SCORES
+                    </button>
+                </div>
+                
+                <div class="start-leaderboard" id="startLeaderboard">
+                    <h3>TOP DEALERS</h3>
+                    <div class="start-leaderboard-list" id="startLeaderboardList">
+                        <div class="no-scores">No scores yet - be the first!</div>
+                    </div>
+                </div>
+                
+                <div class="start-footer">
+                    <div class="controls-info">
+                        <span><strong>Desktop:</strong> Use mouse clicks or keyboard shortcuts (B/S/T)</span><br>
+                        <span><strong>Mobile:</strong> Tap the quick action buttons</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-layout" id="gameLayout" style="display: none;">
+            <div class="main-panel">
+                <div class="game-output" id="gameOutput">
+                    <div class="welcome-message">
+                        <p>Welcome to Packet Pushers!</p>
+                        <p>You owe the loan shark $5,000 with daily interest.</p>
+                        <p>You have 30 days to pay off your debt and make your fortune.</p>
+                        <p>Type 'help' for commands.</p>
+                    </div>
+                </div>
+                
+                
+                <div class="desktop-controls" id="desktopControls">
+                    <div class="desktop-actions">
+                        <button class="desktop-btn" onclick="enterBuyMode()">
+                            <span class="hotkey">B</span>UY
+                        </button>
+                        <button class="desktop-btn" onclick="enterSellMode()">
+                            <span class="hotkey">S</span>ELL
+                        </button>
+                        <button class="desktop-btn" onclick="enterTravelMode()">
+                            <span class="hotkey">T</span>RAVEL
+                        </button>
+                        <button class="desktop-btn" onclick="enterChartsMode()">
+                            <span class="hotkey">C</span>HARTS
+                        </button>
+                        <button class="desktop-btn" onclick="enterHistoryMode()">
+                            <span class="hotkey">H</span>ISTORY
+                        </button>
+                        <button class="desktop-btn" onclick="showDebtManagement()">
+                            <span class="hotkey">D</span>EBT
+                        </button>
+                        <button class="desktop-btn" onclick="showStatus()">
+                            STATUS
+                        </button>
+                        <button class="desktop-btn" onclick="toggleMenu()">
+                            MENU
+                        </button>
+                    </div>
+                    
+                    <!-- Location-specific service buttons -->
+                    <div class="location-services" id="locationServices">
+                        <button class="service-btn" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;">
+                            🔫 WEAPONS
+                        </button>
+                        <button class="service-btn" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;">
+                            🧥 CLOTHES
+                        </button>
+                        <button class="service-btn" id="bankBtn" onclick="showBankInterface()" style="display: none;">
+                            🏦 BANK
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mobile-controls" id="mobileControls">
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="showQuickBuy()">📱 BUY</button>
+                        <button class="quick-btn" onclick="showQuickSell()">💰 SELL</button>
+                        <button class="quick-btn" onclick="showQuickTravel()">🚗 TRAVEL</button>
+                        <button class="quick-btn" onclick="showQuickCharts()">📊 CHARTS</button>
+                        <button class="quick-btn" onclick="showDebtManagement()">💳 DEBT</button>
+                        <button class="quick-btn" onclick="showQuickMenu()">⚙️ MENU</button>
+                    </div>
+                    
+                    <!-- Mobile location-specific service buttons -->
+                    <div class="mobile-location-services" id="mobileLocationServices">
+                        <button class="quick-btn" id="mobileWeaponShopBtn" onclick="visitWeaponShop()" style="display: none;">
+                            🔫 WEAPONS
+                        </button>
+                        <button class="quick-btn" id="mobileClothesShopBtn" onclick="visitCoatShop()" style="display: none;">
+                            🧥 CLOTHES
+                        </button>
+                        <button class="quick-btn" id="mobileBankBtn" onclick="showBankInterface()" style="display: none;">
+                            🏦 BANK
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <div class="stats-panel">
+                    <h3>PLAYER STATUS</h3>
+                    <div class="stat-line">
+                        <span class="stat-label">Name:</span>
+                        <span class="stat-value" id="playerName">Anonymous Dealer</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Cash:</span>
+                        <span class="stat-value" id="playerCash">$500</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Bank:</span>
+                        <span class="stat-value" id="playerBank">$0</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Debt:</span>
+                        <span class="stat-value debt" id="playerDebt">$5,000</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Net Worth:</span>
+                        <span class="stat-value" id="playerNetWorth">-$4,500</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Day:</span>
+                        <span class="stat-value" id="currentDay">1</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">City:</span>
+                        <span class="stat-value" id="currentCity">New York</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Location:</span>
+                        <span class="stat-value" id="currentLocation">Brooklyn Docks</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Inventory:</span>
+                        <span class="stat-value" id="inventorySpace">0/100</span>
+                    </div>
+                </div>
+
+                <div class="market-panel">
+                    <h3>MARKET PRICES</h3>
+                    <div class="market-list" id="marketPrices">
+                        <!-- Market prices will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="inventory-panel">
+                    <h3>INVENTORY</h3>
+                    <div class="inventory-list" id="inventoryList">
+                        <div class="empty-inventory">No items</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-menu" id="gameMenu" style="display: none;">
+            <div class="menu-content">
+                <h2>GAME MENU</h2>
+                <button class="menu-btn" onclick="newGame()">New Game</button>
+                <button class="menu-btn" onclick="saveGame()">Save Game</button>
+                <button class="menu-btn" onclick="loadGame()">Load Game</button>
+                <button class="menu-btn" onclick="showLeaderboard()">Leaderboard</button>
+                <button class="menu-btn" onclick="closeMenu()">Resume</button>
+            </div>
+        </div>
+
+        <div class="leaderboard" id="leaderboard" style="display: none;">
+            <div class="leaderboard-content">
+                <h2>HIGH SCORES</h2>
+                <div class="leaderboard-note">
+                    (Local scores stored in your browser)
+                </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- Leaderboard will be populated by JavaScript -->
+                </div>
+                <button class="menu-btn" onclick="closeLeaderboard()">Close</button>
+            </div>
+        </div>
+
+        <div class="mobile-modal" id="mobileModal" style="display: none;">
+            <div class="mobile-modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">SELECT ITEM</h3>
+                    <button class="modal-close" onclick="closeMobileModal()">✕</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
