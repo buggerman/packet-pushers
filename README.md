@@ -13,12 +13,16 @@ You are a drug dealer with 30 days to make as much money as possible. Start with
 ## 🎯 Features
 
 - **Fully Clickable Interface**: Modern UI with retro terminal aesthetic
+- **13 Different Drugs**: Trade Acid, Cocaine, Hash, Heroin, Molly, Ice, Opium, Crack, Peyote, Mushrooms, Speed, Weed, and Special K
+- **6 Major Cities**: Travel between New York, Los Angeles, Chicago, Miami, Detroit, and Boston
+- **24 Unique Locations**: Each with distinct pricing and opportunities
 - **Dynamic Market**: Prices fluctuate based on supply, demand, and random events
-- **Weapons Shop**: Buy weapons for protection against cops and muggers
-- **Clothes Shop**: Purchase coats to increase your carrying capacity
-- **Banking System**: Manage your money and pay off debts
-- **Travel System**: Move between different city locations
-- **Random Events**: Encounter police raids, market surges, and other surprises
+- **Weapons Shop**: 6 unique weapons from Pea Shooter to the legendary Rubber Chicken
+- **Clothes Shop**: 5 different coats to expand your carrying capacity (120-200 units)
+- **Banking System**: Manage your money and pay off debts with loan sharks
+- **Travel System**: Local travel (free) and intercity flights ($20 + 1 day)
+- **Random Events**: Police raids, market surges, crashes, muggings, and more
+- **Combat System**: Fight cops and muggers with weapons or psychological warfare
 - **Mobile Responsive**: Play on desktop or mobile devices
 - **Audio Effects**: Retro sound effects enhance the gaming experience
 - **Purchase Confirmations**: Prevent accidental clicks with confirmation dialogs
@@ -47,13 +51,42 @@ You are a drug dealer with 30 days to make as much money as possible. Start with
 - **T** - Travel mode (arrow keys to navigate)
 - **ESC** - Cancel/Menu
 
-### Locations
-- **Subway**: Basic drug market
-- **Central Park**: Often has good deals
-- **Brooklyn Bridge**: High-risk, high-reward area
-- **Coney Island**: Tourist area with unique opportunities
-- **Ghetto**: Dangerous but profitable
-- **Bronx**: Industrial area with bulk opportunities
+### Cities & Locations
+**New York:**
+- **JFK Airport**: Travel hub to other cities
+- **Brooklyn Docks**: Weapons shop, grittier prices
+- **Times Square**: Tourist area with unique opportunities
+- **Central Park**: Good deals on psychedelics
+
+**Los Angeles:**
+- **LAX Airport**: Travel hub to other cities
+- **Hollywood Hills**: Upscale area with premium prices
+- **Venice Beach**: Beachside market opportunities
+- **Compton**: Street-level trading
+
+**Chicago:**
+- **O'Hare Airport**: Travel hub to other cities
+- **The Loop**: Business district trading
+- **Wicker Park**: Hipster area with unique markets
+- **South Side**: High-risk, high-reward area
+
+**Miami:**
+- **Miami Airport**: Travel hub to other cities
+- **South Beach**: Party scene with high demand
+- **Little Havana**: Cultural district trading
+- **Biscayne Bay**: Waterfront opportunities
+
+**Detroit:**
+- **Detroit Airport**: Travel hub to other cities
+- **Corktown**: Industrial area opportunities
+- **Greektown**: Cultural district
+- **Belle Isle**: Island location with unique prices
+
+**Boston:**
+- **Logan Airport**: Travel hub to other cities
+- **Back Bay**: Upscale area
+- **North End**: Historic district
+- **Fenway**: Sports district opportunities
 
 ## 🎲 Tips for Success
 
@@ -74,11 +107,15 @@ You are a drug dealer with 30 days to make as much money as possible. Start with
 ## 📊 Game Statistics
 
 Track your performance with detailed statistics:
-- Daily profit/loss calculations
-- Purchase history with profit margins
-- Location-based trading analytics
-- Combat success rates
-- Debt management tracking
+- **Daily profit/loss calculations** with purchase history
+- **13 different drugs** with individual price tracking
+- **6 cities, 24 locations** with location-based pricing
+- **6 weapons** including the legendary Rubber Chicken
+- **5 coats** with capacity from 120-200 units
+- **Combat encounters** with cops and muggers
+- **Random events** affecting market prices
+- **Debt management** with loan shark encounters
+- **30-day time limit** to build your empire
 
 ## 🎨 Game Aesthetic
 
