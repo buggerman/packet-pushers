@@ -4092,7 +4092,19 @@ function executeTravel(fullLocationName) {
         command = `travel ${selectedDestination.name}`;
     }
     
-    processCommand(command);
+    // Use direct travel function instead of processCommand
+    if (selectedDestination.type === 'local') {
+        const fullLocation = `${gameState.player.location.split(' - ')[0]} - ${selectedDestination.name}`;
+        travelToDirect(fullLocation);
+    } else {
+        // Find the first location in the destination city
+        const destLocations = GAME_CONSTANTS.LOCATIONS.filter(loc => 
+            loc.fullName.startsWith(selectedDestination.name + ' - ')
+        );
+        if (destLocations.length > 0) {
+            travelToDirect(destLocations[0].fullName);
+        }
+    }
     exitNavigation();
 }
 
@@ -4583,16 +4595,8 @@ function selectMobileItem(itemName, price) {
 
 function selectMobileCity(location) {
     closeMobileModal();
-    // Parse the location to extract city and district
-    const [city, district] = location.split(' - ');
-    
-    // For local travel, just use the district name
-    if (city === gameState.player.location.split(' - ')[0]) {
-        processCommand(`travel ${district}`);
-    } else {
-        // For inter-city travel, use the full city name
-        processCommand(`travel ${city}`);
-    }
+    // Use the direct travel function instead of processCommand
+    travelToDirect(location);
 }
 
 function showMobileQuantitySelector(itemName, price) {
@@ -4730,9 +4734,53 @@ function confirmMobileAction() {
     // Extract the drug name part after the emoji (same logic as in buy function)
     const fullName = mobileState.selectedItem;
     const itemName = fullName.split(' ').slice(-1)[0].toLowerCase();
-    const command = `${mobileState.currentAction} ${itemName} ${mobileState.quantity}`;
     
-    processCommand(command);
+    // Execute the action directly instead of using processCommand
+    if (mobileState.currentAction === 'buy') {
+        const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
+        if (drug) {
+            const price = gameState.currentPrices[drug.name];
+            const totalCost = price * mobileState.quantity;
+            
+            if (validateAffordability(totalCost, `${mobileState.quantity} ${drug.name}`) &&
+                validateInventorySpace(mobileState.quantity, drug.name)) {
+                
+                showConfirmationDialog(
+                    `Buy ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}?`,
+                    () => {
+                        processPurchase(totalCost, `${mobileState.quantity} ${drug.name}`,
+                            `💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
+                        
+                        // Add to purchase history
+                        gameState.purchaseHistory.push({
+                            item: drug.name,
+                            action: 'buy',
+                            quantity: mobileState.quantity,
+                            price: price,
+                            day: gameState.player.day,
+                            location: gameState.player.location
+                        });
+                    }
+                );
+            }
+        }
+    } else if (mobileState.currentAction === 'sell') {
+        const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
+        if (drug) {
+            const currentAmount = gameState.player.inventory[drug.name] || 0;
+            
+            if (currentAmount >= mobileState.quantity) {
+                const price = gameState.currentPrices[drug.name];
+                const totalValue = price * mobileState.quantity;
+                
+                processSale(totalValue, `${mobileState.quantity} ${drug.name}`,
+                    `💰 Sold ${mobileState.quantity} ${drug.name} for $${totalValue.toLocaleString()}!`);
+            } else {
+                errorMessage(`You only have ${currentAmount} ${drug.name}!`);
+            }
+        }
+    }
+    
     closeMobileModal();
 }
 
