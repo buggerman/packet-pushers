@@ -372,7 +372,7 @@ function showClickableTravelInterface() {
             }).join('');
             
             travelHtml += `
-                <button class="desktop-btn" onclick="travelToDirect('${dest.fullName}')">
+                <button class="desktop-btn" data-destination="${dest.fullName}">
                     ${dest.name} ${serviceIcons}
                 </button>
             `;
@@ -403,7 +403,7 @@ function showClickableTravelInterface() {
             }).join('');
             
             travelHtml += `
-                <button class="desktop-btn" onclick="travelToDirect('${dest.fullName}')">
+                <button class="desktop-btn" data-destination="${dest.fullName}">
                     ${dest.name} ${serviceIcons}
                 </button>
             `;
@@ -430,6 +430,14 @@ function showClickableTravelInterface() {
     `;
     
     gameOutput.innerHTML = travelHtml;
+    
+    // Add event listeners to travel buttons
+    gameOutput.querySelectorAll('.desktop-btn[data-destination]').forEach(button => {
+        button.addEventListener('click', () => {
+            const destination = button.dataset.destination;
+            travelToDirect(destination);
+        });
+    });
 }
 
 function getLocationServices(city, district) {
