@@ -116,6 +116,40 @@ function dismissError() {
     window.lastRetryAction = null;
 }
 
+// Modal utility functions for better mobile experience
+function showMobileModalWithUtility(modal) {
+    if (modal) {
+        // Prevent body scrolling
+        document.body.classList.add('modal-open');
+        modal.style.display = 'flex';
+        
+        // Force scroll to top of modal
+        const modalContent = modal.querySelector('.mobile-modal-content');
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+        }
+        
+        // Focus management
+        setTimeout(() => {
+            const firstFocusable = modal.querySelector('input, button, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }, 100);
+    }
+}
+
+function hideMobileModalWithUtility(modal) {
+    if (modal) {
+        // Re-enable body scrolling
+        document.body.classList.remove('modal-open');
+        modal.style.display = 'none';
+        
+        // Remove escape key handler
+        document.removeEventListener('keydown', mobileModalEscapeHandler);
+    }
+}
+
 // Performance tracking for SEO
 const performanceMetrics = {
     gameStartTime: null,
@@ -741,7 +775,7 @@ class MobileModalManager {
             });
         });
         
-        modal.style.display = 'flex';
+        showMobileModalWithUtility(modal);
         
         // Add escape key handler and focus management
         document.addEventListener('keydown', mobileModalEscapeHandler);
@@ -3685,6 +3719,13 @@ function showTravelModal() {
 }
 
 function enterChartsMode() {
+    // Toggle charts mode if already active
+    if (navigationState.currentMode === 'charts') {
+        exitNavigation();
+        addMessage('Charts mode deactivated.', 'info');
+        return;
+    }
+    
     navigationState.isNavigating = true;
     navigationState.currentMode = 'charts';
     navigationState.selectedIndex = 0;
@@ -4937,10 +4978,9 @@ function confirmMobileAction() {
 
 function closeMobileModal() {
     const modal = document.getElementById('mobileModal');
-    modal.style.display = 'none';
     
-    // Remove escape key handler
-    document.removeEventListener('keydown', mobileModalEscapeHandler);
+    // Use the new utility function for better modal handling
+    hideMobileModalWithUtility(modal);
     
     // Reset mobile state
     mobileState.currentAction = null;
