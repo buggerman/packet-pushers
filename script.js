@@ -4054,8 +4054,9 @@ function executeAction() {
             gameState.player.purchaseHistory[drug.name] = [];
         }
         gameState.player.purchaseHistory[drug.name].push({
-            quantity: quantity,
+            amount: quantity,
             price: price,
+            total: totalCost,
             day: gameState.player.day,
             location: gameState.player.location
         });
@@ -4797,11 +4798,13 @@ function confirmMobileAction() {
                     `💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
                 
                 // Add to purchase history
-                gameState.purchaseHistory.push({
-                    item: drug.name,
-                    action: 'buy',
-                    quantity: mobileState.quantity,
+                if (!gameState.player.purchaseHistory[drug.name]) {
+                    gameState.player.purchaseHistory[drug.name] = [];
+                }
+                gameState.player.purchaseHistory[drug.name].push({
+                    amount: mobileState.quantity,
                     price: price,
+                    total: totalCost,
                     day: gameState.player.day,
                     location: gameState.player.location
                 });
