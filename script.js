@@ -64,7 +64,7 @@ function finishLoading() {
             hideLoadingScreen();
             
             // Show the start screen or game based on saved state
-            const savedGame = localStorage.getItem('packetPushers_save');
+            const savedGame = localStorage.getItem('packetPushersGame');
             if (savedGame) {
                 const continueBtn = document.getElementById('continueBtn');
                 if (continueBtn) {
@@ -1699,6 +1699,12 @@ function handleTravel(parts) {
         // Apply daily interest
         applyDailyInterest();
         
+        // Check if game is over
+        if (gameState.player.day >= gameState.player.maxDays) {
+            endGame();
+            return;
+        }
+        
         addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}.`, 'success');
         playSound('slidein'); // Local travel sound
         
@@ -1747,7 +1753,7 @@ function handleTravel(parts) {
     }
     
     // Check if game is over
-    if (gameState.player.day > gameState.player.maxDays) {
+    if (gameState.player.day >= gameState.player.maxDays) {
         endGame();
         return;
     }
