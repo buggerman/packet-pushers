@@ -4,3 +4,6 @@
 
 # does not ignore the README.md file
 !README.md
+
+# Trash
+.DS_Store
