@@ -1,6 +1,26 @@
 // Packet Pushers Game Logic
 // Complete implementation of the classic drug dealing game
 
+// Loading screen management
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+    }
+}
+
+function showLoadingProgress(percentage, text = 'Loading...') {
+    const progressBar = document.getElementById('loadingProgressBar');
+    const loadingText = document.querySelector('.loading-text');
+    
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+    }
+    if (loadingText) {
+        loadingText.textContent = text;
+    }
+}
+
 // SEO and Performance Optimization
 document.addEventListener('DOMContentLoaded', function() {
     // Set page title dynamically
@@ -22,20 +42,79 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(canonical);
     }
     
-    // Preload critical game assets
-    const audioFiles = [
-        'sound/touchsound.wav',
-        'sound/cashreg.wav',
-        'sound/headlines.wav',
-        'sound/uhoh.wav'
-    ];
+    // Initialize loading sequence
+    showLoadingProgress(20, 'Loading game assets...');
     
-    audioFiles.forEach(file => {
-        const audio = new Audio();
-        audio.preload = 'auto';
-        audio.src = file;
-    });
+    // For local development, just simulate loading
+    showLoadingProgress(50, 'Initializing game data...');
+    
+    // Skip audio loading for local development - finish loading after a short delay
+    setTimeout(() => {
+        finishLoading();
+    }, 1000);
 });
+
+function finishLoading() {
+    showLoadingProgress(80, 'Initializing game systems...');
+    
+    // Simulate final initialization steps
+    setTimeout(() => {
+        showLoadingProgress(100, 'Ready!');
+        setTimeout(() => {
+            hideLoadingScreen();
+            
+            // Show the start screen or game based on saved state
+            const savedGame = localStorage.getItem('packetPushers_save');
+            if (savedGame) {
+                const continueBtn = document.getElementById('continueBtn');
+                if (continueBtn) {
+                    continueBtn.style.display = 'block';
+                }
+            }
+        }, 500);
+    }, 300);
+}
+
+// Error handling functions
+function showError(title, description, onRetry = null) {
+    const errorContainer = document.getElementById('errorContainer');
+    const errorTitle = document.getElementById('errorTitle');
+    const errorDescription = document.getElementById('errorDescription');
+    const retryBtn = document.getElementById('errorRetryBtn');
+    
+    if (errorContainer && errorTitle && errorDescription) {
+        errorTitle.textContent = title;
+        errorDescription.textContent = description;
+        errorContainer.style.display = 'block';
+        
+        // Store retry function globally for the button
+        window.lastRetryAction = onRetry;
+        
+        if (retryBtn) {
+            retryBtn.style.display = onRetry ? 'block' : 'none';
+        }
+    }
+}
+
+function retryLastAction() {
+    if (window.lastRetryAction && typeof window.lastRetryAction === 'function') {
+        try {
+            window.lastRetryAction();
+            dismissError();
+        } catch (error) {
+            console.error('Error during retry:', error);
+            showError('Retry Failed', 'The retry action failed. Please try again or dismiss this error.');
+        }
+    }
+}
+
+function dismissError() {
+    const errorContainer = document.getElementById('errorContainer');
+    if (errorContainer) {
+        errorContainer.style.display = 'none';
+    }
+    window.lastRetryAction = null;
+}
 
 // Performance tracking for SEO
 const performanceMetrics = {
@@ -529,7 +608,7 @@ function exitTravelMode() {
         </div>
     `;
     
-    addMessage('Travel mode deactivated.', 'info');
+    // Remove useless message
 }
 
 // Combat system consolidation class
@@ -627,7 +706,9 @@ class MobileModalManager {
             
             itemsHtml += `
                 <div class="mobile-item ${itemData.disabled ? 'disabled' : ''}" 
-                     data-item-index="${index}" data-price="${price}" data-action="${action}">
+                     data-item-index="${index}" data-price="${price}" data-action="${action}"
+                     tabindex="0" role="button" 
+                     aria-label="${itemData.name} - ${itemData.priceText} - ${itemData.actionText}">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${itemData.name}</div>
                         <div class="mobile-item-price">${itemData.priceText}</div>
@@ -661,6 +742,28 @@ class MobileModalManager {
         });
         
         modal.style.display = 'flex';
+        
+        // Add escape key handler and focus management
+        document.addEventListener('keydown', mobileModalEscapeHandler);
+        
+        // Add keyboard navigation to mobile items
+        const mobileItems = modal.querySelectorAll('.mobile-item:not(.disabled)');
+        mobileItems.forEach(item => {
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    item.click();
+                }
+            });
+        });
+        
+        // Focus first interactive element
+        setTimeout(() => {
+            const firstItem = modal.querySelector('.mobile-item:not(.disabled)');
+            if (firstItem) {
+                firstItem.focus();
+            }
+        }, 100);
     }
     
     static getPriceIndicators(item, price, action) {
@@ -718,7 +821,7 @@ class MobileModalManager {
     static getSellItemData(drugName) {
         const amount = gameState.player.inventory[drugName];
         const price = gameState.currentPrices[drugName];
-        const drugData = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
+        const drugData = gameState.drugs.find(d => d.name === drugName);
         const basePrice = drugData ? drugData.basePrice : price;
         const priceRatio = price / basePrice;
         
@@ -855,7 +958,21 @@ class NotificationSystem {
 
 // Game state object
 let gameState = {
-    drugs: GAME_CONSTANTS.DRUGS, // Reference to available drugs
+    drugs: [
+        { name: '🧪 Acid', basePrice: 1000, volatility: 0.9 },
+        { name: '❄️ Cocaine', basePrice: 15000, volatility: 0.2 },
+        { name: '🟫 Hash', basePrice: 150, volatility: 0.7 },
+        { name: '💉 Heroin', basePrice: 5000, volatility: 0.3 },
+        { name: '💊 Molly', basePrice: 10, volatility: 0.9 },
+        { name: '🧊 Ice', basePrice: 311, volatility: 0.8 },
+        { name: '🌺 Opium', basePrice: 548, volatility: 0.7 },
+        { name: '🪨 Crack', basePrice: 1000, volatility: 0.6 },
+        { name: '🌵 Peyote', basePrice: 122, volatility: 0.9 },
+        { name: '🍄 Mushrooms', basePrice: 600, volatility: 0.8 },
+        { name: '⚡ Speed', basePrice: 70, volatility: 0.9 },
+        { name: '🌿 Weed', basePrice: 300, volatility: 0.8 },
+        { name: '🦄 Special K', basePrice: 471, volatility: 0.7 }
+    ],
     player: {
         cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
         debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
@@ -882,21 +999,6 @@ let gameState = {
     },
     availableLocations: [],
     currentAvailableDestinations: [],
-    drugs: [
-        { name: '🧪 Acid', basePrice: 1000, volatility: 0.9 },
-        { name: '❄️ Cocaine', basePrice: 15000, volatility: 0.2 },
-        { name: '🟫 Hash', basePrice: 150, volatility: 0.7 },
-        { name: '💉 Heroin', basePrice: 5000, volatility: 0.3 },
-        { name: '💊 Molly', basePrice: 10, volatility: 0.9 },
-        { name: '🧊 Ice', basePrice: 311, volatility: 0.8 },
-        { name: '🌺 Opium', basePrice: 548, volatility: 0.7 },
-        { name: '🪨 Crack', basePrice: 1000, volatility: 0.6 },
-        { name: '🌵 Peyote', basePrice: 122, volatility: 0.9 },
-        { name: '🍄 Mushrooms', basePrice: 600, volatility: 0.8 },
-        { name: '⚡ Speed', basePrice: 70, volatility: 0.9 },
-        { name: '🌿 Weed', basePrice: 300, volatility: 0.8 },
-        { name: '🦄 Special K', basePrice: 471, volatility: 0.7 }
-    ],
     weapons: [
         { name: 'Pea Shooter', price: 50, damage: 1, hitSound: 'peashoot', hitSoundHit: 'peashoothit', description: 'Forged in the fires of childhood rebellion, this deceptively simple weapon has ended more careers than bullets. Legend speaks of \'Tiny Tim\' Martinez, who cleared an entire police precinct using nothing but dried peas and unwavering determination. The psychological impact of being defeated by a children\'s toy has driven hardened criminals to seek therapy. Warning: May cause existential crisis in opponents.' },
         { name: 'Catapult', price: 200, damage: 2, hitSound: 'catapult', hitSoundHit: 'catapulthit', description: 'Salvaged from the ruins of Medieval Times restaurant after the infamous \'Dinner Theater Massacre of \'97.\' This ancient war machine has been modified with modern engineering and a thirst for vengeance. Its previous owner, Sir Reginald the Unhinged, used it to launch flaming dinner rolls at tax collectors. Now it launches justice... and occasionally small rocks.' },
@@ -1178,11 +1280,8 @@ Use simple names in commands (emojis are just for display):<br>
 • peyote • mushrooms, shrooms • speed, amphetamine<br>
 <br>
 <strong>KEYBOARD NAVIGATION:</strong><br>
-• <strong>B</strong> - Enter buy mode (use arrow keys to select)<br>
-• <strong>S</strong> - Enter sell mode (use arrow keys to select)<br>
 • <strong>T</strong> - Enter travel mode (use arrow keys to select)<br>
 • <strong>C</strong> - Enter charts mode (click drug to view chart)<br>
-• <strong>H</strong> - Enter history mode (click inventory item to view history)<br>
 • <strong>Enter</strong> - Confirm selection<br>
 • <strong>Escape</strong> - Cancel navigation/Open menu<br>
 • <strong>Arrow Keys</strong> - Navigate items/cities<br>
@@ -1759,12 +1858,8 @@ function showBankBalance() {
 
 // Debt management functions
 function showDebtManagement() {
-    // Check if we're on mobile/desktop and show appropriate interface
-    if (window.innerWidth <= 768) {
-        showMobileDebtInterface();
-    } else {
-        showDesktopDebtInterface();
-    }
+    // Use modal approach for both mobile and desktop to preserve game log
+    showMobileDebtInterface();
 }
 
 function showMobileDebtInterface() {
@@ -1847,6 +1942,14 @@ function showMobileDebtInterface() {
     
     modalBody.innerHTML = debtHtml;
     modal.style.display = 'flex';
+    
+    // Add escape key handler and focus management
+    document.addEventListener('keydown', mobileModalEscapeHandler);
+    setTimeout(() => {
+        const input = modal.querySelector('input');
+        if (input) input.focus();
+    }, 100);
+    
     playSound('touchsound');
 }
 
@@ -2823,11 +2926,8 @@ function handleShopCommand(parts) {
 function visitWeaponShop() {
     if (!requireLocationService('weapons', 'weapon shop')) return;
     
-    if (window.innerWidth <= 768) {
-        showWeaponShopModal();
-    } else {
-        showDesktopWeaponShop();
-    }
+    // Use modal approach for both mobile and desktop to preserve game log
+    showWeaponShopModal();
 }
 
 function showWeaponShopModal() {
@@ -2892,6 +2992,13 @@ function showWeaponShopModal() {
     
     modalBody.innerHTML = weaponHtml;
     modal.style.display = 'flex';
+    
+    // Add escape key handler and focus management  
+    document.addEventListener('keydown', mobileModalEscapeHandler);
+    setTimeout(() => {
+        const firstBtn = modal.querySelector('.mobile-item:not(.disabled)');
+        if (firstBtn) firstBtn.focus();
+    }, 100);
 }
 
 function showDesktopWeaponShop() {
@@ -2957,11 +3064,8 @@ function exitWeaponShop() {
 function visitCoatShop() {
     if (!requireLocationService('clothes', 'coat shop')) return;
     
-    if (window.innerWidth <= 768) {
-        showCoatShopModal();
-    } else {
-        showDesktopCoatShop();
-    }
+    // Use modal approach for both mobile and desktop to preserve game log
+    showCoatShopModal();
 }
 
 function showCoatShopModal() {
@@ -3026,6 +3130,13 @@ function showCoatShopModal() {
     
     modalBody.innerHTML = coatHtml;
     modal.style.display = 'flex';
+    
+    // Add escape key handler and focus management
+    document.addEventListener('keydown', mobileModalEscapeHandler);
+    setTimeout(() => {
+        const firstBtn = modal.querySelector('.mobile-item:not(.disabled)');
+        if (firstBtn) firstBtn.focus();
+    }, 100);
 }
 
 function showDesktopCoatShop() {
@@ -3359,18 +3470,6 @@ function handleKeyDown(e) {
                 exitNavigation();
             }
             break;
-        case 'b':
-        case 'B':
-            if (navigationState.currentMode === 'normal') {
-                enterBuyMode();
-            }
-            break;
-        case 's':
-        case 'S':
-            if (navigationState.currentMode === 'normal') {
-                enterSellMode();
-            }
-            break;
         case 't':
         case 'T':
             if (navigationState.currentMode === 'normal') {
@@ -3381,12 +3480,6 @@ function handleKeyDown(e) {
         case 'C':
             if (navigationState.currentMode === 'normal') {
                 enterChartsMode();
-            }
-            break;
-        case 'h':
-        case 'H':
-            if (navigationState.currentMode === 'normal') {
-                enterHistoryMode();
             }
             break;
         case 'ArrowUp':
@@ -3440,38 +3533,6 @@ function handleKeyUp(e) {
     // Handle any key up events if needed
 }
 
-function enterBuyMode() {
-    navigationState.isNavigating = true;
-    navigationState.currentMode = 'market';
-    navigationState.selectedIndex = 0;
-    navigationState.actionType = 'buy';
-    navigationState.quantity = 1; // Will be updated when item is selected
-    
-    showNavigationHint('Use arrow keys to select item, Enter to confirm, Escape to cancel');
-    NavigationHighlighter.highlightMarketItem(navigationState.selectedIndex);
-    addMessage('Buy mode activated. Select a drug to purchase.', 'success');
-    playSound('touchsound'); // Navigation sound
-}
-
-function enterSellMode() {
-    const inventoryItems = Object.keys(gameState.player.inventory);
-    
-    if (inventoryItems.length === 0) {
-        addMessage('Your inventory is empty. Nothing to sell.', 'error');
-        return;
-    }
-    
-    navigationState.isNavigating = true;
-    navigationState.currentMode = 'inventory';
-    navigationState.selectedIndex = 0;
-    navigationState.actionType = 'sell';
-    navigationState.quantity = 1; // Will be updated when item is selected
-    
-    showNavigationHint('Use arrow keys to select item, Enter to confirm, Escape to cancel');
-    NavigationHighlighter.highlightInventoryItem(navigationState.selectedIndex);
-    addMessage('Sell mode activated. Select an item to sell.', 'success');
-    playSound('touchsound'); // Navigation sound
-}
 
 function enterTravelMode() {
     navigationState.isNavigating = true;
@@ -3479,9 +3540,148 @@ function enterTravelMode() {
     navigationState.selectedIndex = 0;
     navigationState.actionType = 'travel';
     
-    showClickableTravelInterface();
+    showTravelModal();
     addMessage('Travel mode activated. Click on a destination to travel.', 'success');
     playSound('touchsound'); // Navigation sound
+}
+
+function showTravelModal() {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    const currentLocation = gameState.player.location;
+    const [currentCity, currentDistrict] = currentLocation.split(' - ');
+    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    
+    modalTitle.textContent = '🚗 TRAVEL';
+    
+    // Build list of available destinations
+    const availableDestinations = [];
+    
+    // Add local districts (within same city)
+    gameState.cities[currentCity].forEach(district => {
+        if (district !== currentDistrict) {
+            availableDestinations.push({
+                name: district,
+                fullName: `${currentCity} - ${district}`,
+                type: 'local',
+                cost: 'FREE',
+                services: getLocationServices(currentCity, district)
+            });
+        }
+    });
+    
+    // Add other cities (only if at airport)
+    if (isAtAirport) {
+        Object.keys(gameState.cities).forEach(city => {
+            if (city !== currentCity) {
+                const airportDistrict = gameState.cities[city][0];
+                availableDestinations.push({
+                    name: city,
+                    fullName: `${city} - ${airportDistrict}`,
+                    type: 'intercity',
+                    cost: '$20',
+                    services: getLocationServices(city, airportDistrict)
+                });
+            }
+        });
+    }
+    
+    // Separate local and intercity destinations
+    const localDestinations = availableDestinations.filter(dest => dest.type === 'local');
+    const intercityDestinations = availableDestinations.filter(dest => dest.type === 'intercity');
+    
+    let travelHtml = `
+        <div class="travel-interface">
+            <div class="travel-status">
+                <h3>Current Location</h3>
+                <p><strong>${currentLocation}</strong></p>
+            </div>
+            <div class="mobile-item-list">
+    `;
+    
+    // Local travel section
+    if (localDestinations.length > 0) {
+        travelHtml += `<div class="panel-section-heading">🚶 Local Travel (Free)</div>`;
+        
+        localDestinations.forEach(dest => {
+            const serviceIcons = dest.services.map(s => {
+                switch(s) {
+                    case 'weapons': return '🔫';
+                    case 'clothes': return '🧥';
+                    case 'bank': return '🏦';
+                    default: return '';
+                }
+            }).join('');
+            
+            travelHtml += `
+                <div class="mobile-item travel-option" data-destination="${dest.fullName}">
+                    <div class="mobile-item-info">
+                        <div class="mobile-item-name">${dest.name} ${serviceIcons}</div>
+                        <div class="mobile-item-price">Free Travel</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    // Intercity travel section
+    if (intercityDestinations.length > 0) {
+        travelHtml += `<div class="panel-section-heading">✈️ City Travel ($20)</div>`;
+        
+        intercityDestinations.forEach(dest => {
+            const serviceIcons = dest.services.map(s => {
+                switch(s) {
+                    case 'weapons': return '🔫';
+                    case 'clothes': return '🧥';
+                    case 'bank': return '🏦';
+                    default: return '';
+                }
+            }).join('');
+            
+            travelHtml += `
+                <div class="mobile-item travel-option" data-destination="${dest.fullName}">
+                    <div class="mobile-item-info">
+                        <div class="mobile-item-name">${dest.name} ${serviceIcons}</div>
+                        <div class="mobile-item-price">$20 Travel Cost</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (localDestinations.length === 0 && intercityDestinations.length === 0) {
+        travelHtml += `
+            <div class="mobile-item disabled">
+                <div class="mobile-item-info">
+                    <div class="mobile-item-name">No destinations available</div>
+                    <div class="mobile-item-price">Visit an airport to travel between cities</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    travelHtml += `
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = travelHtml;
+    
+    // Add click event listeners to travel options
+    modalBody.querySelectorAll('.travel-option:not(.disabled)').forEach(option => {
+        option.addEventListener('click', () => {
+            const destination = option.dataset.destination;
+            travelToDirect(destination);
+            closeMobileModal();
+            navigationState.isNavigating = false;
+            navigationState.currentMode = 'normal';
+        });
+    });
+    
+    modal.style.display = 'block';
+    playSound('touchsound');
 }
 
 function enterChartsMode() {
@@ -3496,24 +3696,6 @@ function enterChartsMode() {
     playSound('touchsound'); // Navigation sound
 }
 
-function enterHistoryMode() {
-    const inventoryItems = Object.keys(gameState.player.inventory);
-    
-    if (inventoryItems.length === 0) {
-        addMessage('Your inventory is empty. No purchase history to show.', 'error');
-        return;
-    }
-    
-    navigationState.isNavigating = true;
-    navigationState.currentMode = 'history';
-    navigationState.selectedIndex = 0;
-    navigationState.actionType = 'history';
-    
-    showNavigationHint('Click on an item in your inventory to view its purchase history');
-    NavigationHighlighter.highlightInventoryItem(navigationState.selectedIndex);
-    addMessage('History mode activated. Click on an item to view its purchase history.', 'success');
-    playSound('touchsound'); // Navigation sound
-}
 
 function enterBankMode() {
     // Check if current location has a bank
@@ -3526,12 +3708,8 @@ function showBankInterface() {
     const bankBalance = gameState.player.bankBalance || 0;
     const cash = gameState.player.cash;
     
-    // Check if we're on mobile/desktop and show appropriate interface
-    if (window.innerWidth <= 768) {
-        showMobileBankInterface();
-    } else {
-        showDesktopBankInterface();
-    }
+    // Use modal approach for both mobile and desktop to preserve game log
+    showMobileBankInterface();
 }
 
 function showMobileBankInterface() {
@@ -3891,14 +4069,7 @@ function navigateUp() {
 function navigateDown() {
     let maxIndex = 0;
     
-    if (navigationState.currentMode === 'market') {
-        if (!gameState.drugs || gameState.drugs.length === 0) return;
-        maxIndex = gameState.drugs.length - 1;
-    } else if (navigationState.currentMode === 'inventory') {
-        const inventoryItems = Object.keys(gameState.player.inventory || {});
-        if (inventoryItems.length === 0) return;
-        maxIndex = inventoryItems.length - 1;
-    } else if (navigationState.currentMode === 'travel') {
+    if (navigationState.currentMode === 'travel') {
         if (!gameState.currentAvailableDestinations || gameState.currentAvailableDestinations.length === 0) return;
         maxIndex = gameState.currentAvailableDestinations.length - 1;
     }
@@ -3985,16 +4156,7 @@ function setMaxQuantity() {
 }
 
 function confirmSelection() {
-    if (navigationState.currentMode === 'market') {
-        const selectedDrug = gameState.drugs[navigationState.selectedIndex];
-        navigationState.selectedItem = selectedDrug;
-        enterQuantityMode();
-    } else if (navigationState.currentMode === 'inventory') {
-        const inventoryItems = Object.keys(gameState.player.inventory);
-        const selectedDrug = inventoryItems[navigationState.selectedIndex];
-        navigationState.selectedItem = selectedDrug;
-        enterQuantityMode();
-    } else if (navigationState.currentMode === 'travel') {
+    if (navigationState.currentMode === 'travel') {
         const selectedDestination = gameState.currentAvailableDestinations[navigationState.selectedIndex];
         executeTravel(selectedDestination.fullName);
     } else if (navigationState.currentMode === 'quantity') {
@@ -4025,68 +4187,7 @@ function enterQuantityMode() {
 }
 
 function executeAction() {
-    if (navigationState.actionType === 'buy') {
-        // Direct buy execution
-        const drug = navigationState.selectedItem;
-        const quantity = navigationState.quantity;
-        const price = gameState.currentPrices[drug.name];
-        const totalCost = price * quantity;
-        
-        // Check if player can afford it
-        if (!validateAffordability(totalCost, `${quantity} ${drug.name}`)) {
-            exitNavigation();
-            return;
-        }
-        
-        // Check inventory space
-        if (!validateInventorySpace(quantity, drug.name)) {
-            exitNavigation();
-            return;
-        }
-        
-        // Execute purchase directly
-        gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + quantity;
-        processTransaction(totalCost, `${quantity} ${drug.name}`, 
-            `💰 Bought ${quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
-        
-        // Track purchase history
-        if (!gameState.player.purchaseHistory[drug.name]) {
-            gameState.player.purchaseHistory[drug.name] = [];
-        }
-        gameState.player.purchaseHistory[drug.name].push({
-            amount: quantity,
-            price: price,
-            total: totalCost,
-            day: gameState.player.day,
-            location: gameState.player.location
-        });
-        
-        exitNavigation();
-        
-    } else if (navigationState.actionType === 'sell') {
-        // Direct sell execution
-        const drugName = navigationState.selectedItem;
-        const quantity = navigationState.quantity;
-        const currentAmount = gameState.player.inventory[drugName] || 0;
-        
-        if (currentAmount < quantity) {
-            errorMessage(`You only have ${currentAmount} ${drugName}!`);
-            exitNavigation();
-            return;
-        }
-        
-        const price = gameState.currentPrices[drugName];
-        const totalValue = price * quantity;
-        
-        // Execute sale
-        gameState.player.inventory[drugName] -= quantity;
-        if (gameState.player.inventory[drugName] <= 0) {
-            delete gameState.player.inventory[drugName];
-        }
-        
-        processSale(totalValue, `${quantity} ${drugName}`, 
-            `💰 Sold ${quantity} ${drugName} for $${totalValue.toLocaleString()}!`);
-    }
+    // Buy/sell modes removed - now handled by direct clicking
     
     exitNavigation();
 }
@@ -4145,16 +4246,10 @@ function exitNavigation() {
 }
 
 function updateNavigation() {
-    if (navigationState.currentMode === 'market') {
-        NavigationHighlighter.highlightMarketItem(navigationState.selectedIndex);
-    } else if (navigationState.currentMode === 'inventory') {
-        NavigationHighlighter.highlightInventoryItem(navigationState.selectedIndex);
-    } else if (navigationState.currentMode === 'travel') {
+    if (navigationState.currentMode === 'travel') {
         NavigationHighlighter.highlightCityOption(navigationState.selectedIndex);
     } else if (navigationState.currentMode === 'charts') {
         NavigationHighlighter.highlightMarketItem(navigationState.selectedIndex);
-    } else if (navigationState.currentMode === 'history') {
-        NavigationHighlighter.highlightInventoryItem(navigationState.selectedIndex);
     }
 }
 
@@ -4437,7 +4532,7 @@ function showQuickCharts() {
 }
 
 function showMobileBuyModal() {
-    MobileModalManager.show('buy', GAME_CONSTANTS.DRUGS, drug => gameState.currentPrices[drug.name]);
+    MobileModalManager.show('buy', gameState.drugs, drug => gameState.currentPrices[drug.name]);
 }
 
 function showMobileSellModal() {
@@ -4510,7 +4605,7 @@ function showMobileTravelModal() {
 }
 
 function showMobileChartsModal() {
-    MobileModalManager.show('charts', GAME_CONSTANTS.DRUGS, drug => gameState.currentPrices[drug.name]);
+    MobileModalManager.show('charts', gameState.drugs, drug => gameState.currentPrices[drug.name]);
 }
 
 function showMobileChart(drugName) {
@@ -4780,7 +4875,7 @@ function confirmMobileAction() {
     // Execute the action directly instead of using processCommand
     if (mobileState.currentAction === 'buy') {
         console.log('Looking for drug with itemName:', itemName);
-        const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
+        const drug = gameState.drugs.find(d => d.name.toLowerCase().includes(itemName));
         console.log('Found drug:', drug);
         
         if (drug) {
@@ -4794,8 +4889,13 @@ function confirmMobileAction() {
                 
                 console.log('Validation passed, executing purchase directly');
                 
-                processPurchase(totalCost, `${mobileState.quantity} ${drug.name}`,
-                    `💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
+                // Execute purchase
+                gameState.player.cash -= totalCost;
+                gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + mobileState.quantity;
+                
+                addMessage(`💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`, 'success');
+                playSound('cashreg');
+                updateDisplay();
                 
                 // Add to purchase history
                 if (!gameState.player.purchaseHistory[drug.name]) {
@@ -4815,7 +4915,7 @@ function confirmMobileAction() {
             console.log('Drug not found for itemName:', itemName);
         }
     } else if (mobileState.currentAction === 'sell') {
-        const drug = GAME_CONSTANTS.DRUGS.find(d => d.name.toLowerCase().includes(itemName));
+        const drug = gameState.drugs.find(d => d.name.toLowerCase().includes(itemName));
         if (drug) {
             const currentAmount = gameState.player.inventory[drug.name] || 0;
             
@@ -4839,10 +4939,207 @@ function closeMobileModal() {
     const modal = document.getElementById('mobileModal');
     modal.style.display = 'none';
     
+    // Remove escape key handler
+    document.removeEventListener('keydown', mobileModalEscapeHandler);
+    
     // Reset mobile state
     mobileState.currentAction = null;
     mobileState.selectedItem = null;
     mobileState.quantity = 1;
+}
+
+function mobileModalEscapeHandler(e) {
+    if (e.key === 'Escape') {
+        closeMobileModal();
+    }
+}
+
+function showBuyModal(drugName, price, currentlyOwned) {
+    console.log('showBuyModal called with:', drugName, price, currentlyOwned);
+    
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    if (!modal || !modalTitle || !modalBody) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    modalTitle.textContent = `💰 BUY ${drugName}`;
+    
+    // Calculate affordability and inventory space
+    const maxAffordable = Math.floor(gameState.player.cash / price);
+    const maxInventorySpace = getCurrentMaxInventory() - getCurrentInventorySize();
+    const maxCanBuy = Math.min(maxAffordable, maxInventorySpace);
+    
+    console.log('Buy modal calculations:', {
+        cash: gameState.player.cash,
+        price: price,
+        maxAffordable: maxAffordable,
+        maxInventory: getCurrentMaxInventory(),
+        currentInventory: getCurrentInventorySize(),
+        maxInventorySpace: maxInventorySpace,
+        maxCanBuy: maxCanBuy
+    });
+    
+    if (maxCanBuy <= 0) {
+        modalBody.innerHTML = `
+            <div class="mobile-chart-error">
+                ${maxAffordable <= 0 ? 
+                    "💸 Not enough cash to buy any " + drugName + "!" : 
+                    "📦 Not enough inventory space!"}
+            </div>
+            <div class="mobile-item-actions" style="margin-top: 20px;">
+                <button class="mobile-action-btn" onclick="closeMobileModal()">Close</button>
+            </div>
+        `;
+        modal.style.display = 'flex';
+        document.addEventListener('keydown', mobileModalEscapeHandler);
+        return;
+    }
+    
+    modalBody.innerHTML = `
+        <div class="buy-modal-content">
+            <div class="drug-info">
+                <div class="price-info">Price: $${price.toLocaleString()} each</div>
+                ${currentlyOwned > 0 ? `<div class="owned-info">Currently owned: ${currentlyOwned}</div>` : ''}
+                <div class="max-info">Max you can buy: ${maxCanBuy.toLocaleString()}</div>
+            </div>
+            
+            <div class="quantity-selector">
+                <label for="buyQuantity">Quantity:</label>
+                <div class="quantity-controls">
+                    <button type="button" class="qty-btn" onclick="adjustBuyQuantity(-1)">-</button>
+                    <input type="number" id="buyQuantity" class="qty-input" value="1" min="1" max="${maxCanBuy}" onchange="updateBuyTotal()">
+                    <button type="button" class="qty-btn" onclick="adjustBuyQuantity(1)">+</button>
+                </div>
+                <button type="button" class="qty-max-btn" onclick="setBuyQuantityMax()">MAX</button>
+            </div>
+            
+            <div class="total-cost" id="buyTotalCost">
+                Total: $${price.toLocaleString()}
+            </div>
+            
+            <div class="mobile-item-actions">
+                <button class="mobile-action-btn primary" onclick="executeBuyFromModal()">
+                    💰 BUY
+                </button>
+                <button class="mobile-action-btn" onclick="closeMobileModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    document.addEventListener('keydown', mobileModalEscapeHandler);
+    
+    // Focus the quantity input
+    setTimeout(() => {
+        const quantityInput = document.getElementById('buyQuantity');
+        if (quantityInput) quantityInput.focus();
+    }, 100);
+    
+    // Store modal state
+    window.currentBuyModal = {
+        drugName: drugName,
+        price: price,
+        maxCanBuy: maxCanBuy
+    };
+}
+
+function adjustBuyQuantity(change) {
+    const input = document.getElementById('buyQuantity');
+    if (!input) return;
+    
+    const currentVal = parseInt(input.value) || 1;
+    const newVal = Math.max(1, Math.min(window.currentBuyModal.maxCanBuy, currentVal + change));
+    input.value = newVal;
+    updateBuyTotal();
+}
+
+function setBuyQuantityMax() {
+    const input = document.getElementById('buyQuantity');
+    if (!input) return;
+    
+    input.value = window.currentBuyModal.maxCanBuy;
+    updateBuyTotal();
+}
+
+function updateBuyTotal() {
+    const input = document.getElementById('buyQuantity');
+    const totalElement = document.getElementById('buyTotalCost');
+    if (!input || !totalElement) return;
+    
+    const quantity = parseInt(input.value) || 1;
+    const total = quantity * window.currentBuyModal.price;
+    totalElement.textContent = `Total: $${total.toLocaleString()}`;
+}
+
+function executeBuyFromModal() {
+    console.log('executeBuyFromModal called');
+    
+    const input = document.getElementById('buyQuantity');
+    if (!input) {
+        console.error('buyQuantity input not found');
+        return;
+    }
+    
+    const quantity = parseInt(input.value) || 1;
+    const drugName = window.currentBuyModal.drugName;
+    
+    console.log('Buy attempt:', { quantity, drugName });
+    
+    // Find the drug
+    const drug = gameState.drugs.find(d => d.name === drugName);
+    if (!drug) {
+        console.error('Drug not found:', drugName);
+        addMessage('Drug not found!', 'error');
+        closeMobileModal();
+        return;
+    }
+    
+    console.log('Drug found:', drug);
+    
+    // Execute the purchase using existing logic
+    const price = gameState.currentPrices[drug.name];
+    const totalCost = price * quantity;
+    
+    // Validate purchase
+    if (!validateAffordability(totalCost, `${quantity} ${drug.name}`)) {
+        console.log('Purchase failed: not enough cash');
+        return; // Don't close modal, let user see error and try again
+    }
+    
+    if (!validateInventorySpace(quantity, drug.name)) {
+        console.log('Purchase failed: not enough inventory space');
+        return; // Don't close modal, let user see error and try again
+    }
+    
+    console.log('Purchase validation passed, executing transaction');
+    
+    // Execute purchase
+    gameState.player.cash -= totalCost;
+    gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + quantity;
+    
+    addMessage(`💰 Bought ${quantity} ${drug.name} for $${totalCost.toLocaleString()}!`, 'success');
+    playSound('cashreg');
+    updateDisplay();
+    
+    // Track purchase history
+    if (!gameState.player.purchaseHistory[drug.name]) {
+        gameState.player.purchaseHistory[drug.name] = [];
+    }
+    gameState.player.purchaseHistory[drug.name].push({
+        amount: quantity,
+        price: price,
+        total: totalCost,
+        day: gameState.player.day,
+        location: gameState.player.location
+    });
+    
+    closeMobileModal();
 }
 
 // Add click handlers for existing market and inventory items
@@ -4857,14 +5154,20 @@ function updateMarketDisplay() {
         
         // Determine price change direction
         let changeIcon = '';
+        let changeDirection = '';
         if (previousPrice) {
             if (price > previousPrice) {
                 changeIcon = '<span class="price-up">↑</span>'; // Price increased (green)
+                changeDirection = 'up';
             } else if (price < previousPrice) {
                 changeIcon = '<span class="price-down">↓</span>'; // Price decreased (red)
+                changeDirection = 'down';
             } else {
                 changeIcon = '<span class="price-same">↕</span>'; // Price stayed same (yellow)
+                changeDirection = 'same';
             }
+        } else {
+            changeDirection = 'same';
         }
         
         // Determine if price is extremely high or low
@@ -4876,51 +5179,46 @@ function updateMarketDisplay() {
             extremeIcon = '🔻'; // Low prices - red triangle down emoji (good deal)
         }
         
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'market-item';
-        
         // Get current inventory amount
         const currentAmount = gameState.player.inventory[drug.name] || 0;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'market-item';
+        itemDiv.setAttribute('tabindex', '0');
+        itemDiv.setAttribute('role', 'listitem');
+        itemDiv.setAttribute('aria-label', `${drug.name} - Price: $${price.toLocaleString()}${currentAmount > 0 ? `, You own: ${currentAmount}` : ''} - ${changeDirection === 'up' ? 'Price increased' : changeDirection === 'down' ? 'Price decreased' : 'Price unchanged'}`);
         
         itemDiv.innerHTML = `
             <div class="market-item-header">
                 <span class="item-name">${drug.name}</span>
-                <span class="item-indicators">${extremeIcon}</span>
+                <span class="item-indicators" aria-hidden="true">${extremeIcon}</span>
                 <span class="item-price">$${price.toLocaleString()}</span>
-                <span class="item-trend">${changeIcon}</span>
+                <span class="item-trend price-${changeDirection}" aria-hidden="true">${changeIcon}</span>
             </div>
             <div class="market-item-info">
                 <span class="inventory-amount">${currentAmount > 0 ? `Own: ${currentAmount}` : ''}</span>
             </div>
         `;
         
-        // Add click handler for both mobile and desktop
-        itemDiv.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                // Mobile: Use modal
-                mobileState.currentAction = 'buy';
-                selectMobileItem(drug.name, price);
-                document.getElementById('mobileModal').style.display = 'flex';
+        // Add click and keyboard handlers for both mobile and desktop
+        const handleInteraction = () => {
+            // Check current mode and handle accordingly
+            if (navigationState.currentMode === 'charts') {
+                // Show price chart for this drug
+                showPriceGraph(drug.name);
+                // Exit charts mode after showing chart
+                exitNavigation();
             } else {
-                // Desktop: Check if we're in charts mode
-                if (navigationState.currentMode === 'charts') {
-                    // Show price chart
-                    showPriceGraph(drug.name.split(' ').slice(-1)[0].toLowerCase());
-                    exitNavigation();
-                } else {
-                    // Normal buy mode
-                    navigationState.isNavigating = true;
-                    navigationState.currentMode = 'market';
-                    navigationState.selectedIndex = gameState.drugs.findIndex(d => d.name === drug.name);
-                    navigationState.actionType = 'buy';
-                    navigationState.quantity = 1;
-                    navigationState.selectedItem = drug;
-                    
-                    showNavigationHint('Use +/- or arrow keys to adjust quantity, Enter to confirm, Escape to cancel');
-                    NavigationHighlighter.highlightMarketItem(navigationState.selectedIndex);
-                    enterQuantityMode();
-                    addMessage(`Buy mode activated for ${drug.name}. Use +/- to adjust quantity.`, 'success');
-                }
+                // Default behavior - show buy modal
+                showBuyModal(drug.name, price, currentAmount);
+            }
+        };
+        
+        itemDiv.addEventListener('click', handleInteraction);
+        itemDiv.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleInteraction();
             }
         });
         
@@ -4946,6 +5244,9 @@ function updateInventoryDisplay() {
         
         const itemDiv = document.createElement('div');
         itemDiv.className = 'inventory-item';
+        itemDiv.setAttribute('tabindex', '0');
+        itemDiv.setAttribute('role', 'listitem');
+        itemDiv.setAttribute('aria-label', `${drug} - ${amount} units owned, worth $${totalValue.toLocaleString()}`);
         itemDiv.innerHTML = `
             <div class="inventory-item-header">
                 <span class="item-name">${drug}</span>
@@ -4954,18 +5255,27 @@ function updateInventoryDisplay() {
             </div>
             <div class="inventory-item-controls">
                 <div class="quantity-controls">
-                    <button class="qty-btn" onclick="adjustQuantity(this, -1)">-</button>
-                    <input type="number" class="qty-input" value="1" min="1" max="${amount}" data-drug="${drug}">
-                    <button class="qty-btn" onclick="adjustQuantity(this, 1)">+</button>
-                    <button class="sell-btn" onclick="sellDrugDirect('${drug}', this)">SELL</button>
-                    <button class="sell-all-btn" onclick="sellAllDrug('${drug}')">SELL ALL</button>
+                    <button class="qty-btn" onclick="adjustQuantity(this, -1)" aria-label="Decrease quantity">-</button>
+                    <input type="number" class="qty-input" value="1" min="1" max="${amount}" data-drug="${drug}" aria-label="Quantity to sell">
+                    <button class="qty-btn" onclick="adjustQuantity(this, 1)" aria-label="Increase quantity">+</button>
+                    <button class="sell-btn" onclick="sellDrugDirect('${drug}', this)" aria-label="Sell selected quantity">SELL</button>
+                    <button class="sell-all-btn" onclick="sellAllDrug('${drug}')" aria-label="Sell all units">SELL ALL</button>
                 </div>
             </div>
         `;
         
-        // Add click handler for both mobile and desktop
-        itemDiv.addEventListener('click', () => {
-            showInventoryItemInterface(drug);
+        // Add click and keyboard handlers for both mobile and desktop  
+        const handleInteraction = () => {
+            // Show purchase history directly when clicking inventory items
+            showPurchaseHistory(drug);
+        };
+        
+        itemDiv.addEventListener('click', handleInteraction);
+        itemDiv.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleInteraction();
+            }
         });
         
         inventoryList.appendChild(itemDiv);
@@ -4987,7 +5297,7 @@ function showMobileInventoryItemModal(drugName) {
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
-    const drug = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
+    const drug = gameState.drugs.find(d => d.name === drugName);
     const currentPrice = gameState.currentPrices[drugName];
     const amount = gameState.player.inventory[drugName];
     const totalValue = currentPrice * amount;
@@ -5077,7 +5387,7 @@ function showMobileInventoryItemModal(drugName) {
 
 function showDesktopInventoryItemInterface(drugName) {
     const gameOutput = document.getElementById('gameOutput');
-    const drug = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
+    const drug = gameState.drugs.find(d => d.name === drugName);
     const currentPrice = gameState.currentPrices[drugName];
     const amount = gameState.player.inventory[drugName];
     const totalValue = currentPrice * amount;
@@ -6857,11 +7167,11 @@ function isLocalStorageAvailable() {
 
 // Safe random drug selection with bounds checking
 function getRandomDrug() {
-    if (!GAME_CONSTANTS.DRUGS || GAME_CONSTANTS.DRUGS.length === 0) {
+    if (!gameState.drugs || gameState.drugs.length === 0) {
         console.warn('No drugs available for random selection');
         return null;
     }
-    return GAME_CONSTANTS.DRUGS[Math.floor(Math.random() * GAME_CONSTANTS.DRUGS.length)];
+    return gameState.drugs[Math.floor(Math.random() * gameState.drugs.length)];
 }
 
 // Game state validation
@@ -6923,11 +7233,32 @@ function endGame() {
 // Menu system
 function toggleMenu() {
     const menu = document.getElementById('gameMenu');
-    menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+    const isOpening = menu.style.display === 'none' || menu.style.display === '';
+    
+    menu.style.display = isOpening ? 'flex' : 'none';
+    
+    if (isOpening) {
+        // Focus first button when opening
+        const firstBtn = menu.querySelector('.menu-btn');
+        if (firstBtn) {
+            setTimeout(() => firstBtn.focus(), 100);
+        }
+        // Add escape key handler for modal
+        document.addEventListener('keydown', menuEscapeHandler);
+    } else {
+        document.removeEventListener('keydown', menuEscapeHandler);
+    }
+}
+
+function menuEscapeHandler(e) {
+    if (e.key === 'Escape') {
+        closeMenu();
+    }
 }
 
 function closeMenu() {
     document.getElementById('gameMenu').style.display = 'none';
+    document.removeEventListener('keydown', menuEscapeHandler);
     // Command input removed - using clickable interface only
 }
 
@@ -7077,10 +7408,24 @@ function showLeaderboard() {
     }
     
     leaderboardDiv.style.display = 'flex';
+    
+    // Focus management and escape key handling
+    const closeBtn = leaderboardDiv.querySelector('.menu-btn');
+    if (closeBtn) {
+        setTimeout(() => closeBtn.focus(), 100);
+    }
+    document.addEventListener('keydown', leaderboardEscapeHandler);
+}
+
+function leaderboardEscapeHandler(e) {
+    if (e.key === 'Escape') {
+        closeLeaderboard();
+    }
 }
 
 function closeLeaderboard() {
     document.getElementById('leaderboard').style.display = 'none';
+    document.removeEventListener('keydown', leaderboardEscapeHandler);
 }
 
 // Start Screen Functions

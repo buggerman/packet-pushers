@@ -100,6 +100,10 @@
     box-sizing: border-box;
 }
 
+* {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace !important;
+}
+
 body {
     font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace;
     background-color: var(--bg-color);
@@ -147,19 +151,54 @@ body {
     line-height: 1.2;
 }
 
-/* Main Layout - Optimized for 1920x1080 with 5 UI elements */
+/* Main Layout - Responsive Grid System */
 .game-layout {
     display: grid;
-    grid-template-columns: 1fr 250px 250px;
-    grid-template-rows: 1fr auto;
-    gap: 8px;
+    grid-template-columns: 1fr; /* Mobile-first */
+    grid-template-rows: auto auto auto auto;
+    gap: 15px;
     flex: 1;
     padding: 8px;
     overflow: hidden;
     min-height: 0; /* Important for flex child */
     grid-template-areas: 
-        "main-log player-status market-prices"
-        "action-buttons action-buttons action-buttons";
+        "player-status"
+        "market-prices"
+        "main-log"
+        "action-buttons";
+}
+
+/* Tablet Layout - 2-column for intermediate screens */
+@media (min-width: 768px) {
+    .game-layout {
+        grid-template-columns: 1fr 300px;
+        grid-template-rows: 1fr 1fr auto;
+        gap: 12px;
+        grid-template-areas: 
+            "main-log player-status"
+            "main-log market-prices"
+            "action-buttons action-buttons";
+    }
+}
+
+/* Desktop Layout - Enhanced 3-column for large screens */
+@media (min-width: 1200px) {
+    .game-layout {
+        grid-template-columns: 1fr 350px 300px;
+        grid-template-rows: 1fr auto;
+        gap: 8px;
+        grid-template-areas: 
+            "main-log player-status market-prices"
+            "action-buttons action-buttons action-buttons";
+    }
+}
+
+/* Ultra-wide desktop optimization */
+@media (min-width: 1600px) {
+    .game-layout {
+        grid-template-columns: 1fr 380px 320px;
+        gap: 10px;
+    }
 }
 
 /* Main Panel - Game Log */
@@ -209,20 +248,87 @@ body {
     background-color: rgba(0, 255, 0, 0.05);
 }
 
+/* Enhanced message categorization with visual hierarchy */
 .event-message {
     color: var(--accent-color);
     font-weight: bold;
     margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--accent-color);
+    background-color: rgba(255, 165, 0, 0.1);
+    border-radius: 0 3px 3px 0;
 }
 
 .error-message {
     color: var(--debt-color);
     font-weight: bold;
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--debt-color);
+    background-color: rgba(255, 68, 68, 0.1);
+    border-radius: 0 3px 3px 0;
+    border: 1px solid rgba(255, 68, 68, 0.3);
 }
 
 .success-message {
     color: var(--text-color);
     font-weight: bold;
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--text-color);
+    background-color: rgba(0, 255, 0, 0.1);
+    border-radius: 0 3px 3px 0;
+}
+
+.warning-message {
+    color: #ffaa00;
+    font-weight: bold;
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid #ffaa00;
+    background-color: rgba(255, 170, 0, 0.1);
+    border-radius: 0 3px 3px 0;
+}
+
+.info-message {
+    color: var(--text-color);
+    margin: 10px 0;
+    padding: 6px 10px;
+    border-left: 2px solid rgba(0, 255, 0, 0.5);
+    background-color: rgba(0, 255, 0, 0.05);
+    border-radius: 0 2px 2px 0;
+    font-size: 0.9em;
+}
+
+/* Transaction messages with visual indicators */
+.buy-message {
+    color: var(--debt-color);
+    font-weight: bold;
+    margin: 8px 0;
+    padding: 6px 10px;
+    border-left: 3px solid var(--debt-color);
+    background-color: rgba(255, 68, 68, 0.05);
+    border-radius: 0 2px 2px 0;
+}
+
+.sell-message {
+    color: var(--text-color);
+    font-weight: bold;
+    margin: 8px 0;
+    padding: 6px 10px;
+    border-left: 3px solid var(--text-color);
+    background-color: rgba(0, 255, 0, 0.05);
+    border-radius: 0 2px 2px 0;
+}
+
+.travel-message {
+    color: var(--accent-color);
+    margin: 8px 0;
+    padding: 6px 10px;
+    border-left: 2px solid var(--accent-color);
+    background-color: rgba(255, 165, 0, 0.05);
+    border-radius: 0 2px 2px 0;
+    font-style: italic;
 }
 
 /* Input Section */
@@ -246,7 +352,7 @@ body {
     background-color: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-color);
-    font-family: inherit;
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace;
     font-size: 1rem;
     padding: 8px 12px;
     border-radius: 3px;
@@ -308,45 +414,100 @@ body {
     flex: 1;
 }
 
+/* Enhanced panel heading hierarchy */
 .stats-panel h3,
 .market-panel h3,
 .inventory-panel h3 {
     color: var(--accent-color);
-    font-size: 0.95rem;
-    margin-bottom: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 12px;
     text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 4px;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 6px;
+    text-shadow: 0 0 3px var(--accent-color);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Secondary headings within panels */
+.panel-section-heading {
+    color: var(--text-color);
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin: 12px 0 6px 0;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .player-status-section {
     flex-shrink: 0;
 }
 
+/* Enhanced stat display hierarchy */
 .stat-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 0.8rem;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px 0;
+    font-size: 0.82rem;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+}
+
+.stat-line:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .stat-label {
     color: var(--text-color);
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
 .stat-value {
     color: var(--white-color);
     font-weight: bold;
+    font-size: 0.9em;
+    text-align: right;
 }
 
 .stat-value.debt {
     color: var(--debt-color);
+    text-shadow: 0 0 2px var(--debt-color);
+}
+
+.stat-value.positive {
+    color: var(--text-color);
+    text-shadow: 0 0 2px var(--text-color);
+}
+
+.stat-value.negative {
+    color: var(--debt-color);
+    text-shadow: 0 0 2px var(--debt-color);
+}
+
+/* Highlight important stats */
+.stat-line.important {
+    background-color: rgba(255, 165, 0, 0.1);
+    padding: 6px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 165, 0, 0.2);
+}
+
+.stat-line.important .stat-value {
+    color: var(--accent-color);
+    font-size: 1em;
+    text-shadow: 0 0 3px var(--accent-color);
 }
 
 /* Market Panel */
 .market-list {
-    font-size: 0.75rem;
-    letter-spacing: -0.01em; /* Very condensed for market items */
+    font-size: 0.8rem; /* Increased for better readability */
+    letter-spacing: 0em; /* Normal spacing for readability */
 }
 
 .market-item {
@@ -702,8 +863,14 @@ body {
     border-bottom: none;
 }
 
-.market-item:hover {
+.market-item:hover,
+.market-item:focus {
     background-color: rgba(0, 255, 0, 0.1);
+}
+
+.market-item:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 .market-item.selected {
@@ -722,8 +889,8 @@ body {
     color: var(--text-color);
     flex: 1;
     font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
-    letter-spacing: -0.02em; /* Extra condensed for item names */
-    word-spacing: -0.15em; /* Tighter word spacing */
+    letter-spacing: -0.01em; /* Slightly condensed but readable */
+    word-spacing: -0.05em; /* Slightly tighter word spacing */
     white-space: nowrap; /* Prevent wrapping */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ... if text is too long */
@@ -750,14 +917,44 @@ body {
     font-weight: bold;
 }
 
+.price-up::after {
+    content: " (price increased)";
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
 .price-down {
     color: #FF4444;
     font-weight: bold;
 }
 
+.price-down::after {
+    content: " (price decreased)";
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
 .price-same {
     color: #FFAA00;
     font-weight: bold;
+}
+
+.price-same::after {
+    content: " (price unchanged)";
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 .item-price {
@@ -767,8 +964,8 @@ body {
 
 /* Inventory Panel */
 .inventory-list {
-    font-size: 0.75rem;
-    letter-spacing: -0.01em; /* Very condensed for inventory items */
+    font-size: 0.8rem; /* Increased for better readability */
+    letter-spacing: 0em; /* Normal spacing for readability */
 }
 
 .inventory-item {
@@ -806,8 +1003,14 @@ body {
     border-bottom: none;
 }
 
-.inventory-item:hover {
+.inventory-item:hover,
+.inventory-item:focus {
     background-color: rgba(0, 255, 0, 0.1);
+}
+
+.inventory-item:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 .inventory-item.selected {
@@ -940,12 +1143,8 @@ body {
     font-size: 0.85rem;
 }
 
-/* Desktop optimizations for 1920x1080 and larger */
+/* Enhanced panel padding for larger screens */
 @media (min-width: 1600px) {
-    .game-layout {
-        grid-template-columns: 1fr 300px 280px;
-    }
-    
     .stats-panel,
     .market-panel {
         padding: 16px;
@@ -962,17 +1161,10 @@ body {
     }
 }
 
-/* Standard desktop layout */
-@media (min-width: 1200px) and (max-width: 1599px) {
-    .game-layout {
-        grid-template-columns: 1fr 280px 260px;
-    }
-}
-
-/* Responsive Design for tablets and mobile */
-@media (max-width: 1199px) {
+/* Mobile and tablet responsive adjustments */
+@media (max-width: 767px) {
     body {
-        overflow: auto; /* Allow scrolling on smaller screens */
+        overflow: auto; /* Allow scrolling on mobile */
     }
     
     .container {
@@ -987,18 +1179,7 @@ body {
     }
     
     .game-header h1 {
-        font-size: 1.8rem;
-    }
-    
-    .game-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
-        gap: 15px;
-        grid-template-areas: 
-            "player-status"
-            "market-prices"
-            "main-log"
-            "action-buttons";
+        font-size: 1.6rem;
     }
     
     .stats-panel,
@@ -1032,6 +1213,27 @@ body {
         margin: 20px;
         padding: 20px;
         max-width: calc(100% - 40px);
+    }
+}
+
+/* Tablet-specific improvements */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .container {
+        height: auto;
+        min-height: 100vh;
+        padding: 8px;
+    }
+    
+    .game-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .main-panel {
+        min-height: 400px;
+    }
+    
+    .game-output {
+        height: 400px;
     }
 }
 
@@ -1087,6 +1289,155 @@ body {
     0% { opacity: 1; }
     50% { opacity: 0.8; }
     100% { opacity: 1; }
+}
+
+/* Loading States */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 255, 0, 0.3);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--text-color);
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background-color: rgba(0, 255, 0, 0.2);
+    border-radius: 2px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    animation: loadingPulse 2s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Error States */
+.error-container {
+    background-color: rgba(255, 68, 68, 0.1);
+    border: 2px solid var(--debt-color);
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px;
+    text-align: center;
+}
+
+.error-title {
+    color: var(--debt-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px var(--debt-color);
+}
+
+.error-description {
+    color: var(--text-color);
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.error-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.error-btn {
+    background-color: var(--debt-color);
+    color: var(--white-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.error-btn:hover {
+    background-color: #ff6666;
+    transform: translateY(-1px);
+}
+
+.error-btn.secondary {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.error-btn.secondary:hover {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+}
+
+/* Connection status indicator */
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 1000;
+    transition: all 0.3s;
+}
+
+.connection-status.online {
+    background-color: rgba(0, 255, 0, 0.2);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+}
+
+.connection-status.offline {
+    background-color: rgba(255, 68, 68, 0.2);
+    color: var(--debt-color);
+    border: 1px solid var(--debt-color);
+    animation: statusBlink 2s infinite;
+}
+
+@keyframes statusBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.5; }
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -1235,9 +1586,10 @@ body {
 
 .quick-actions {
     display: flex;
-    gap: 10px;
+    gap: 16px;
     justify-content: center;
     flex-wrap: wrap;
+    padding: 16px;
 }
 
 .quick-btn {
@@ -1246,17 +1598,28 @@ body {
     color: var(--text-color);
     font-family: inherit;
     font-size: 0.9rem;
-    padding: 8px 16px;
+    padding: 12px 16px;
     cursor: pointer;
     border-radius: 3px;
     transition: all 0.3s;
-    min-width: 80px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.quick-btn:hover, .quick-btn:active {
+.quick-btn:hover, 
+.quick-btn:active,
+.quick-btn:focus {
     background-color: var(--border-color);
     color: var(--bg-color);
     transform: translateY(-1px);
+}
+
+.quick-btn:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 /* Mobile Modal */
@@ -1334,11 +1697,19 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     background-color: rgba(0, 255, 0, 0.05);
+    /* Make focusable */
+    tabindex: 0;
 }
 
 .mobile-item:hover, .mobile-item:active {
     background-color: rgba(0, 255, 0, 0.15);
     transform: translateY(-1px);
+}
+
+.mobile-item:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    background-color: rgba(0, 255, 0, 0.15);
 }
 
 .mobile-item.selected {
@@ -1463,18 +1834,46 @@ body {
     transform: translateY(-2px);
 }
 
-/* Action Buttons Section */
+/* Enhanced Action Buttons Section with Visual Hierarchy */
 .desktop-controls {
     grid-area: action-buttons;
     display: block;
-    padding: 8px;
+    padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: rgba(0, 255, 0, 0.02);
     flex-shrink: 0;
 }
 
+/* Primary action group */
 .desktop-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 4px;
+    margin-bottom: 8px;
+}
+
+/* Action group labels for better organization */
+.action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-group-label {
+    color: var(--accent-color);
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.action-buttons-row {
     display: flex;
     gap: 8px;
     justify-content: center;
@@ -1499,18 +1898,28 @@ body {
     font-family: inherit;
     font-size: 0.85rem;
     font-weight: bold;
-    padding: 6px 12px;
+    padding: 12px 16px;
     cursor: pointer;
     border-radius: 3px;
     transition: all 0.3s;
-    min-width: 80px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.service-btn:hover {
+.service-btn:hover,
+.service-btn:focus {
     background-color: var(--white-color);
     border-color: var(--white-color);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(255, 165, 0, 0.4);
+}
+
+.service-btn:focus {
+    outline: 2px solid var(--text-color);
+    outline-offset: 2px;
 }
 
 .mobile-location-services {
@@ -1529,17 +1938,27 @@ body {
     color: var(--text-color);
     font-family: inherit;
     font-size: 0.85rem;
-    padding: 6px 10px;
+    padding: 12px 16px;
     cursor: pointer;
     border-radius: 3px;
     transition: all 0.3s;
-    min-width: 65px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.desktop-btn:hover {
+.desktop-btn:hover,
+.desktop-btn:focus {
     background-color: var(--border-color);
     color: var(--bg-color);
     transform: translateY(-1px);
+}
+
+.desktop-btn:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 .desktop-btn .hotkey {
@@ -1711,18 +2130,10 @@ body {
 }
 
 /* Enhanced hover states for desktop */
-@media (min-width: 769px) {
+@media (min-width: 1200px) {
     .market-item:hover, .inventory-item:hover {
         background-color: rgba(0, 255, 0, 0.1);
         cursor: pointer;
-    }
-    
-    .desktop-controls {
-        display: block;
-    }
-    
-    .mobile-controls {
-        display: none;
     }
     
     .start-actions {
@@ -1736,8 +2147,18 @@ body {
     }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Control visibility based on screen size */
+@media (min-width: 768px) {
+    .desktop-controls {
+        display: block;
+    }
+    
+    .mobile-controls {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
     .mobile-controls {
         display: block;
     }
@@ -1887,6 +2308,143 @@ body {
     transform: none;
 }
 
+/* Buy Modal Styles */
+.buy-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.drug-info {
+    background-color: rgba(0, 255, 0, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 15px;
+    text-align: center;
+}
+
+.price-info {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 8px;
+}
+
+.owned-info {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.max-info {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.quantity-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.qty-btn {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:hover {
+    background-color: rgba(0, 255, 0, 0.15);
+}
+
+.qty-input {
+    width: 80px;
+    height: 44px;
+    text-align: center;
+    font-size: 1.1rem;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 5px;
+}
+
+.qty-max-btn {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+.qty-max-btn:hover {
+    background-color: #ffb84d;
+}
+
+.total-cost {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    padding: 15px;
+    border: 2px solid var(--accent-color);
+    border-radius: 5px;
+    background-color: rgba(255, 165, 0, 0.1);
+}
+
+.mobile-action-btn {
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 5px;
+    min-height: 44px;
+    transition: all 0.3s;
+}
+
+.mobile-action-btn:hover {
+    background-color: rgba(0, 255, 0, 0.15);
+}
+
+.mobile-action-btn.primary {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    border-color: var(--accent-color);
+}
+
+.mobile-action-btn.primary:hover {
+    background-color: #ffb84d;
+}
+
+.mobile-item-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
 /* Combat Interface */
 .combat-interface {
     display: flex;
@@ -1917,13 +2475,20 @@ body {
 .combat-action {
     border: 2px solid var(--border-color) !important;
     background-color: rgba(0, 255, 0, 0.05) !important;
+    color: var(--text-color) !important;
     transition: all 0.3s !important;
 }
 
 .combat-action:hover {
     border-color: var(--accent-color) !important;
     background-color: rgba(255, 165, 0, 0.1) !important;
+    color: var(--text-color) !important;
     transform: translateY(-2px) !important;
+}
+
+.combat-action .mobile-item-name,
+.combat-action .mobile-item-info {
+    color: var(--text-color) !important;
 }
 
 .combat-action:active {
@@ -1955,13 +2520,20 @@ body {
 .banking-action {
     border: 2px solid var(--border-color) !important;
     background-color: rgba(0, 255, 0, 0.05) !important;
+    color: var(--text-color) !important;
     transition: all 0.3s !important;
 }
 
 .banking-action:hover {
     border-color: var(--accent-color) !important;
     background-color: rgba(255, 165, 0, 0.1) !important;
+    color: var(--text-color) !important;
     transform: translateY(-2px) !important;
+}
+
+.banking-action .mobile-item-name,
+.banking-action .mobile-item-info {
+    color: var(--text-color) !important;
 }
 
 .banking-input {
@@ -2012,13 +2584,20 @@ body {
 .debt-action {
     border: 2px solid var(--debt-color) !important;
     background-color: rgba(255, 68, 68, 0.05) !important;
+    color: var(--text-color) !important;
     transition: all 0.3s !important;
 }
 
 .debt-action:hover {
     border-color: var(--accent-color) !important;
     background-color: rgba(255, 165, 0, 0.1) !important;
+    color: var(--text-color) !important;
     transform: translateY(-2px) !important;
+}
+
+.debt-action .mobile-item-name,
+.debt-action .mobile-item-info {
+    color: var(--text-color) !important;
 }
 
 .debt-quick-amounts {
@@ -2080,13 +2659,21 @@ body {
 .shop-item {
     border: 2px solid var(--border-color) !important;
     background-color: rgba(0, 255, 0, 0.05) !important;
+    color: var(--text-color) !important;
     transition: all 0.3s !important;
 }
 
 .shop-item:hover {
     border-color: var(--accent-color) !important;
     background-color: rgba(255, 165, 0, 0.1) !important;
+    color: var(--text-color) !important;
     transform: translateY(-2px) !important;
+}
+
+.shop-item .mobile-item-name,
+.shop-item .mobile-item-info,
+.shop-item .mobile-item-description {
+    color: var(--text-color) !important;
 }
 
 .shop-item.disabled {

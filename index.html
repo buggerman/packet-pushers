@@ -34,18 +34,18 @@
     <meta property="twitter:creator" content="@PacketPushersGame">
     <meta property="twitter:site" content="@PacketPushersGame">
     
-    <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <!-- Favicons - removed for local development -->
+    <!-- <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.json"> -->
     
     <!-- Theme Color -->
     <meta name="theme-color" content="#000000">
     <meta name="msapplication-TileColor" content="#000000">
-    <meta name="msapplication-TileImage" content="/assets/ms-icon-144x144.png">
-    <meta name="msapplication-config" content="/assets/browserconfig.xml">
+    <!-- <meta name="msapplication-TileImage" content="/assets/ms-icon-144x144.png">
+    <meta name="msapplication-config" content="/assets/browserconfig.xml"> -->
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://packetpushers.app/">
@@ -150,6 +150,20 @@
 </head>
 <body>
     <div class="container">
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Initializing Terminal Market...</div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar" id="loadingProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Connection Status Indicator -->
+        <div class="connection-status online" id="connectionStatus" style="display: none;">
+            🟢 ONLINE
+        </div>
+
         <header class="game-header">
             <h1>PACKET PUSHERS</h1>
             <div class="subtitle">Terminal Market v2.5.1</div>
@@ -218,78 +232,67 @@
         </main>
 
         <div class="game-layout" id="gameLayout" style="display: none;">
-            <div class="main-panel">
-                <div class="game-output" id="gameOutput">
-                    <div class="welcome-message">
+            <div class="main-panel" role="region" aria-label="Game Log and Messages">
+                <div class="game-output" id="gameOutput" role="log" aria-live="polite" aria-label="Game messages and events" tabindex="0">
+                    <div class="welcome-message" role="status">
                         <p>Welcome to Packet Pushers!</p>
                         <p>You owe the loan shark $5,000 with daily interest.</p>
                         <p>You have 30 days to pay off your debt and make your fortune.</p>
-                        <p>Type 'help' for commands.</p>
+                        <p>Use the clickable interface to buy, sell, and navigate.</p>
                     </div>
                 </div>
                 
                 
-                <div class="desktop-controls" id="desktopControls">
-                    <div class="desktop-actions">
-                        <button class="desktop-btn" onclick="enterBuyMode()">
-                            <span class="hotkey">B</span>UY
+                <div class="desktop-controls" id="desktopControls" role="region" aria-label="Game Actions">
+                    <nav class="desktop-actions" role="navigation" aria-label="Primary game controls">
+                        <button class="desktop-btn" onclick="enterTravelMode()" aria-label="Enter travel mode to change locations (Hotkey: T)" tabindex="0">
+                            <span class="hotkey" aria-hidden="true">T</span>RAVEL
                         </button>
-                        <button class="desktop-btn" onclick="enterSellMode()">
-                            <span class="hotkey">S</span>ELL
+                        <button class="desktop-btn" onclick="enterChartsMode()" aria-label="View price charts and market trends (Hotkey: C)" tabindex="0">
+                            <span class="hotkey" aria-hidden="true">C</span>HARTS
                         </button>
-                        <button class="desktop-btn" onclick="enterTravelMode()">
-                            <span class="hotkey">T</span>RAVEL
+                        <button class="desktop-btn" onclick="showDebtManagement()" aria-label="Manage debt and loan payments (Hotkey: D)" tabindex="0">
+                            <span class="hotkey" aria-hidden="true">D</span>EBT
                         </button>
-                        <button class="desktop-btn" onclick="enterChartsMode()">
-                            <span class="hotkey">C</span>HARTS
-                        </button>
-                        <button class="desktop-btn" onclick="enterHistoryMode()">
-                            <span class="hotkey">H</span>ISTORY
-                        </button>
-                        <button class="desktop-btn" onclick="showDebtManagement()">
-                            <span class="hotkey">D</span>EBT
-                        </button>
-                        <button class="desktop-btn" onclick="showStatus()">
+                        <button class="desktop-btn" onclick="showStatus()" aria-label="View player status and statistics" tabindex="0">
                             STATUS
                         </button>
-                        <button class="desktop-btn" onclick="toggleMenu()">
+                        <button class="desktop-btn" onclick="toggleMenu()" aria-label="Open game menu with save/load options" tabindex="0">
                             MENU
                         </button>
-                    </div>
+                    </nav>
                     
                     <!-- Location-specific service buttons -->
-                    <div class="location-services" id="locationServices">
-                        <button class="service-btn" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;">
+                    <div class="location-services" id="locationServices" role="region" aria-label="Location Services">
+                        <button class="service-btn" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;" aria-label="Visit weapons shop to buy combat equipment" tabindex="0">
                             🔫 WEAPONS
                         </button>
-                        <button class="service-btn" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;">
+                        <button class="service-btn" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;" aria-label="Visit clothes shop to increase carrying capacity" tabindex="0">
                             🧥 CLOTHES
                         </button>
-                        <button class="service-btn" id="bankBtn" onclick="showBankInterface()" style="display: none;">
+                        <button class="service-btn" id="bankBtn" onclick="showBankInterface()" style="display: none;" aria-label="Visit bank to deposit or withdraw money" tabindex="0">
                             🏦 BANK
                         </button>
                     </div>
                 </div>
                 
-                <div class="mobile-controls" id="mobileControls">
-                    <div class="quick-actions">
-                        <button class="quick-btn" onclick="showQuickBuy()">📱 BUY</button>
-                        <button class="quick-btn" onclick="showQuickSell()">💰 SELL</button>
-                        <button class="quick-btn" onclick="showQuickTravel()">🚗 TRAVEL</button>
-                        <button class="quick-btn" onclick="showQuickCharts()">📊 CHARTS</button>
-                        <button class="quick-btn" onclick="showDebtManagement()">💳 DEBT</button>
-                        <button class="quick-btn" onclick="showQuickMenu()">⚙️ MENU</button>
-                    </div>
+                <div class="mobile-controls" id="mobileControls" role="region" aria-label="Mobile Game Actions">
+                    <nav class="quick-actions" role="navigation" aria-label="Mobile game controls">
+                        <button class="quick-btn" onclick="showQuickTravel()" aria-label="Travel to different locations" tabindex="0">🚗 TRAVEL</button>
+                        <button class="quick-btn" onclick="showQuickCharts()" aria-label="View price charts" tabindex="0">📊 CHARTS</button>
+                        <button class="quick-btn" onclick="showDebtManagement()" aria-label="Manage loan and debt" tabindex="0">💳 DEBT</button>
+                        <button class="quick-btn" onclick="showQuickMenu()" aria-label="Open game menu" tabindex="0">⚙️ MENU</button>
+                    </nav>
                     
                     <!-- Mobile location-specific service buttons -->
-                    <div class="mobile-location-services" id="mobileLocationServices">
-                        <button class="quick-btn" id="mobileWeaponShopBtn" onclick="visitWeaponShop()" style="display: none;">
+                    <div class="mobile-location-services" id="mobileLocationServices" role="region" aria-label="Mobile Location Services">
+                        <button class="quick-btn" id="mobileWeaponShopBtn" onclick="visitWeaponShop()" style="display: none;" aria-label="Visit weapons shop" tabindex="0">
                             🔫 WEAPONS
                         </button>
-                        <button class="quick-btn" id="mobileClothesShopBtn" onclick="visitCoatShop()" style="display: none;">
+                        <button class="quick-btn" id="mobileClothesShopBtn" onclick="visitCoatShop()" style="display: none;" aria-label="Visit clothes shop" tabindex="0">
                             🧥 CLOTHES
                         </button>
-                        <button class="quick-btn" id="mobileBankBtn" onclick="showBankInterface()" style="display: none;">
+                        <button class="quick-btn" id="mobileBankBtn" onclick="showBankInterface()" style="display: none;" aria-label="Visit bank" tabindex="0">
                             🏦 BANK
                         </button>
                     </div>
@@ -297,9 +300,9 @@
             </div>
 
             <!-- Player Status Panel -->
-            <div class="stats-panel">
+            <div class="stats-panel" role="region" aria-label="Player Status Information">
                 <div class="player-status-section">
-                    <h3>PLAYER STATUS</h3>
+                    <h3 id="player-status-heading">PLAYER STATUS</h3>
                     <div class="stat-line">
                         <span class="stat-label">Name:</span>
                         <span class="stat-value" id="playerName">Anonymous Dealer</span>
@@ -339,18 +342,18 @@
                 </div>
 
                 <!-- Inventory Panel -->
-                <div class="inventory-panel">
-                    <h3>INVENTORY</h3>
-                    <div class="inventory-list" id="inventoryList">
-                        <div class="empty-inventory">No items</div>
+                <div class="inventory-panel" role="region" aria-label="Player Inventory">
+                    <h3 id="inventory-heading">INVENTORY</h3>
+                    <div class="inventory-list" id="inventoryList" role="list" aria-labelledby="inventory-heading" aria-live="polite">
+                        <div class="empty-inventory" role="status">No items</div>
                     </div>
                 </div>
             </div>
 
             <!-- Market Prices Panel -->
-            <div class="market-panel">
-                <h3>MARKET PRICES</h3>
-                <div class="market-list" id="marketPrices">
+            <div class="market-panel" role="region" aria-label="Current Market Prices">
+                <h3 id="market-prices-heading">MARKET PRICES</h3>
+                <div class="market-list" id="marketPrices" role="list" aria-labelledby="market-prices-heading" aria-live="polite">
                     <!-- Market prices will be populated by JavaScript -->
                 </div>
             </div>
@@ -389,6 +392,16 @@
                 <div class="modal-body" id="modalBody">
                     <!-- Modal content will be populated by JavaScript -->
                 </div>
+            </div>
+        </div>
+
+        <!-- Error Container -->
+        <div class="error-container" id="errorContainer" style="display: none;">
+            <div class="error-title" id="errorTitle">Error</div>
+            <div class="error-description" id="errorDescription">Something went wrong. Please try again.</div>
+            <div class="error-actions">
+                <button class="error-btn" id="errorRetryBtn" onclick="retryLastAction()">RETRY</button>
+                <button class="error-btn secondary" id="errorDismissBtn" onclick="dismissError()">DISMISS</button>
             </div>
         </div>
     </div>
