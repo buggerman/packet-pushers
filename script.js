@@ -465,6 +465,9 @@ function travelToDirect(fullLocationName) {
         gameState.player.cash -= cost;
         gameState.player.day += 1;
         
+        // Check for scheduled events from old lady predictions
+        checkScheduledEvents();
+        
         // Apply daily interest
         const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
         gameState.player.debt += interest;
@@ -474,6 +477,9 @@ function travelToDirect(fullLocationName) {
     } else {
         // Local travel also takes a day
         gameState.player.day += 1;
+        
+        // Check for scheduled events from old lady predictions
+        checkScheduledEvents();
         
         // Apply daily interest
         const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
@@ -5240,6 +5246,7 @@ function triggerRandomEvent(headlinesSoundPlayed = false) {
         { type: 'health_issue', weight: 4 },
         { type: 'dealer_encounter', weight: 6 },
         { type: 'informant_tip', weight: 5 },
+        { type: 'old_lady', weight: 8 },
         { type: 'nothing', weight: 4 }
     ];
     
@@ -5304,6 +5311,9 @@ function executeRandomEvent(eventType, headlinesSoundPlayed = false) {
             break;
         case 'informant_tip':
             handleInformantTip();
+            break;
+        case 'old_lady':
+            handleOldLadyEvent();
             break;
         case 'nothing':
             // No event
@@ -6274,6 +6284,140 @@ function handleInformantTip() {
     }
 }
 
+function handleOldLadyEvent() {
+    addMessage(`👵 An old lady in tattered clothes approaches you with knowing eyes.`, 'event');
+    
+    const hints = [
+        // Market hints (cryptic predictions about price movements)
+        {
+            type: 'market_hint',
+            messages: [
+                "\"The white powder flows like snow... but winter brings scarcity,\" she cackles.",
+                "\"The needle's song grows loud... when the music stops, prices drop,\" she whispers.",
+                "\"Green leaves wither when badges shine bright... wise ones sell before the storm,\" she mutters.",
+                "\"Crystal dreams shatter easily... when they do, the shards cost more,\" she croaks.",
+                "\"The brown earth feeds many... but drought comes to the hungry,\" she says mysteriously.",
+                "\"Little pills dance in circles... but the dance floor empties when lights flash,\" she warns.",
+                "\"Bitter smoke clears minds... yet clearer skies bring higher prices,\" she chuckles.",
+                "\"Sweet rock melts fast... when heat comes, rocks become rare,\" she predicts."
+            ],
+            effects: () => {
+                // Cryptic but accurate market prediction
+                const drug = getRandomDrug();
+                if (drug && Math.random() < 0.7) { // 70% chance the hint is accurate
+                    const direction = Math.random() < 0.5 ? 'up' : 'down';
+                    const multiplier = direction === 'up' ? (1.4 + Math.random() * 0.8) : (0.4 + Math.random() * 0.4);
+                    
+                    // Schedule the price change for 1-2 days later
+                    const daysAhead = 1 + Math.floor(Math.random() * 2);
+                    const targetDay = gameState.player.day + daysAhead;
+                    
+                    if (!gameState.scheduledEvents) gameState.scheduledEvents = [];
+                    gameState.scheduledEvents.push({
+                        day: targetDay,
+                        type: 'price_change',
+                        drug: drug.name,
+                        multiplier: multiplier,
+                        direction: direction
+                    });
+                    
+                    console.log(`Old lady scheduled ${drug.name} to ${direction === 'up' ? 'surge' : 'crash'} on day ${targetDay}`);
+                }
+            }
+        },
+        // Police raid warnings (cryptic warnings about busts)
+        {
+            type: 'police_hint',
+            messages: [
+                "\"Dogs sniff the wind... they hunt tomorrow where shadows gather,\" she warns ominously.",
+                "\"Blue uniforms march in formation... storms come to those who stand tall,\" she whispers.",
+                "\"Handcuffs sing a metal song... the music plays loudest after midnight,\" she predicts.",
+                "\"Badges glint like stars... but stars fade when dawn breaks,\" she mutters darkly.",
+                "\"The law has long arms... they reach furthest when pockets are full,\" she cautions.",
+                "\"Sirens wail like banshees... they cry for those who fly too high,\" she warns.",
+                "\"Bars make poor nests... avoid the cages when hawks circle,\" she advises cryptically."
+            ],
+            effects: () => {
+                // Increase police encounter chance for next few days
+                if (!gameState.temporaryEffects) gameState.temporaryEffects = {};
+                gameState.temporaryEffects.policeWarning = {
+                    expiresDay: gameState.player.day + 3,
+                    effect: 'reduced_police_encounters'
+                };
+                addMessage('Something about her warning makes you more cautious...', 'success');
+            }
+        },
+        // General ominous warnings
+        {
+            type: 'general_hint',
+            messages: [
+                "\"The wheel turns... fortunes rise and fall like autumn leaves,\" she muses.",
+                "\"Darkness follows light... prepare for shadows when the sun shines brightest,\" she warns.",
+                "\"Heavy pockets attract hungry wolves... lightness brings safety,\" she advises.",
+                "\"Trust comes dear... betrayal comes free as morning air,\" she says sadly.",
+                "\"The wise fish swims deep... surface dwellers catch the hook,\" she counsels.",
+                "\"Old bones feel the storm coming... young blood should listen to old warnings,\" she cautions."
+            ],
+            effects: () => {
+                // Small random effect - cash, luck, or warning
+                const effect = Math.random();
+                if (effect < 0.3) {
+                    const cashBonus = 20 + Math.floor(Math.random() * 50);
+                    gameState.player.cash += cashBonus;
+                    addMessage(`The old lady presses $${cashBonus} into your hand and vanishes.`, 'success');
+                } else if (effect < 0.6) {
+                    // Minor luck bonus (stored for next trade)
+                    if (!gameState.temporaryEffects) gameState.temporaryEffects = {};
+                    gameState.temporaryEffects.oldLadyLuck = {
+                        expiresDay: gameState.player.day + 1,
+                        effect: 'slight_price_bonus'
+                    };
+                    addMessage('You feel strangely fortunate after the encounter...', 'success');
+                } else {
+                    addMessage('The old lady nods knowingly and disappears into the crowd.', 'event');
+                }
+            }
+        }
+    ];
+    
+    // Choose a random hint type
+    const hintType = hints[Math.floor(Math.random() * hints.length)];
+    const message = hintType.messages[Math.floor(Math.random() * hintType.messages.length)];
+    
+    addMessage(`👵 ${message}`, 'event');
+    
+    // Apply the hint's effects
+    hintType.effects();
+    
+    playSound('touchsound');
+}
+
+function checkScheduledEvents() {
+    if (!gameState.scheduledEvents || gameState.scheduledEvents.length === 0) return;
+    
+    const currentDay = gameState.player.day;
+    const eventsToExecute = gameState.scheduledEvents.filter(event => event.day === currentDay);
+    
+    eventsToExecute.forEach(event => {
+        if (event.type === 'price_change') {
+            const currentPrice = gameState.currentPrices[event.drug];
+            if (currentPrice) {
+                const newPrice = Math.floor(currentPrice * event.multiplier);
+                gameState.currentPrices[event.drug] = Math.max(1, newPrice); // Ensure price doesn't go to 0
+                
+                const changeDescription = event.direction === 'up' ? 'skyrocketed' : 'plummeted';
+                const percentage = Math.round(Math.abs(event.multiplier - 1) * 100);
+                
+                addMessage(`📈 ${event.drug} prices ${changeDescription} by ${percentage}%! The old lady's words echo in your mind...`, 'event');
+                playSound('headlines');
+            }
+        }
+    });
+    
+    // Remove executed events
+    gameState.scheduledEvents = gameState.scheduledEvents.filter(event => event.day !== currentDay);
+}
+
 // Utility functions
 function loseRandomInventory(percentage) {
     const inventoryItems = Object.keys(gameState.player.inventory);
@@ -6464,11 +6608,11 @@ function isLocalStorageAvailable() {
 
 // Safe random drug selection with bounds checking
 function getRandomDrug() {
-    if (!gameState.drugs || gameState.drugs.length === 0) {
+    if (!GAME_CONSTANTS.DRUGS || GAME_CONSTANTS.DRUGS.length === 0) {
         console.warn('No drugs available for random selection');
         return null;
     }
-    return gameState.drugs[Math.floor(Math.random() * gameState.drugs.length)];
+    return GAME_CONSTANTS.DRUGS[Math.floor(Math.random() * GAME_CONSTANTS.DRUGS.length)];
 }
 
 // Game state validation
