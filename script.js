@@ -581,6 +581,9 @@ function travelToDirect(fullLocationName) {
         // Check for scheduled events from old lady predictions
         checkScheduledEvents();
         
+        // Check for guaranteed price surges
+        checkGuaranteedSurges();
+        
         // Apply daily interest
         const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
         gameState.player.debt += interest;
@@ -593,6 +596,9 @@ function travelToDirect(fullLocationName) {
         
         // Check for scheduled events from old lady predictions
         checkScheduledEvents();
+        
+        // Check for guaranteed price surges
+        checkGuaranteedSurges();
         
         // Apply daily interest
         const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
@@ -3131,7 +3137,7 @@ function showCoatShopModal() {
         
         coatHtml += `
             <button class="mobile-item shop-item ${!canBuy ? 'disabled' : ''}" 
-                    onclick="${canBuy ? `buyCoatDirect('${coat.name}')` : ''}">
+                    onclick="${canBuy ? `buyCoatDirect('${coat.name.replace(/'/g, "\\'")}')` : ''}">
                 <div class="mobile-item-info">
                     <div class="mobile-item-name">${coat.name} ${hasCoat ? '(Current)' : ''}</div>
                     <div class="mobile-item-price">$${coat.price.toLocaleString()} | Capacity: ${coat.capacity}</div>
@@ -3199,7 +3205,7 @@ function showDesktopCoatShop() {
         const canBuy = canAfford && !hasCoat;
         
         coatHtml += `
-                    <button class="desktop-btn" onclick="${canBuy ? `buyCoatDirect('${coat.name}')` : hasCoat ? `sellCoatDirect()` : ''}" ${!canBuy && !hasCoat ? 'disabled' : ''}>
+                    <button class="desktop-btn" onclick="${canBuy ? `buyCoatDirect('${coat.name.replace(/'/g, "\\'")}')` : hasCoat ? `sellCoatDirect()` : ''}" ${!canBuy && !hasCoat ? 'disabled' : ''}>
                         <div class="btn-content">
                             <div class="btn-title">${coat.name} ${hasCoat ? '(Owned)' : ''}</div>
                             <div class="btn-subtitle">$${coat.price.toLocaleString()} | ${coat.capacity} units</div>
@@ -5830,6 +5836,13 @@ function getCharacterDialogue(character, situation) {
 
 // Random events system
 function triggerRandomEvent(headlinesSoundPlayed = false) {
+    // 40% chance for old lady encounter (high priority)
+    if (Math.random() < 0.4) {
+        executeRandomEvent('old_lady', headlinesSoundPlayed);
+        return true;
+    }
+    
+    // If old lady didn't trigger, proceed with normal weighted random events
     const events = [
         { type: 'police', weight: 10 },
         { type: 'mugging', weight: 8 },
@@ -5845,7 +5858,6 @@ function triggerRandomEvent(headlinesSoundPlayed = false) {
         { type: 'health_issue', weight: 4 },
         { type: 'dealer_encounter', weight: 6 },
         { type: 'informant_tip', weight: 5 },
-        { type: 'old_lady', weight: 8 },
         { type: 'nothing', weight: 4 }
     ];
     
@@ -6991,6 +7003,61 @@ function handleOldLadyEvent() {
     playSound('touchsound');
 }
 
+// Guaranteed price surge events for high-value drugs
+function handleGuaranteedCocaineSurge() {
+    const multiplier = 8.0 + Math.random() * 4.0; // 8x to 12x insane surge
+    gameState.currentPrices['Cocaine'] = Math.floor(gameState.currentPrices['Cocaine'] * multiplier);
+    
+    const surgeReasons = [
+        'DEA Operation "White Storm" eliminates major supplier - cocaine prices explode!',
+        'Coast Guard intercepts massive shipment - street cocaine becomes scarce!',
+        'Cartel war disrupts trafficking routes - cocaine supply collapses!',
+        'International sting operation hits distribution network - prices skyrocket!',
+        'Border crackdown stops 90% of imports - cocaine becomes liquid gold!'
+    ];
+    
+    const reason = surgeReasons[Math.floor(Math.random() * surgeReasons.length)];
+    addMessage(`🚨 BREAKING NEWS: ${reason}`, 'event');
+    addMessage(`🚀💎 Cocaine prices have reached INSANE levels!`, 'event');
+    playSound('headlines');
+    gameState.guaranteedSurges.cocaine.triggered = true;
+}
+
+function handleGuaranteedHeroinSurge() {
+    const multiplier = 6.0 + Math.random() * 6.0; // 6x to 12x insane surge
+    gameState.currentPrices['Heroin'] = Math.floor(gameState.currentPrices['Heroin'] * multiplier);
+    
+    const surgeReasons = [
+        'Operation "Golden Triangle" dismantles heroin network - prices soar!',
+        'International drug bust eliminates supply chain - heroin becomes precious!',
+        'Afghan supply lines severed by military action - street prices explode!',
+        'Major laboratory raids across three countries - heroin scarcity crisis!',
+        'Interpol operation destroys trafficking organization - prices hit the moon!'
+    ];
+    
+    const reason = surgeReasons[Math.floor(Math.random() * surgeReasons.length)];
+    addMessage(`🚨 BREAKING NEWS: ${reason}`, 'event');
+    addMessage(`🚀💎 Heroin prices have reached INSANE levels!`, 'event');
+    playSound('headlines');
+    gameState.guaranteedSurges.heroin.triggered = true;
+}
+
+function checkGuaranteedSurges() {
+    const currentDay = gameState.player.day;
+    
+    // Check for guaranteed cocaine surge
+    if (!gameState.guaranteedSurges.cocaine.triggered && 
+        currentDay >= gameState.guaranteedSurges.cocaine.day) {
+        handleGuaranteedCocaineSurge();
+    }
+    
+    // Check for guaranteed heroin surge
+    if (!gameState.guaranteedSurges.heroin.triggered && 
+        currentDay >= gameState.guaranteedSurges.heroin.day) {
+        handleGuaranteedHeroinSurge();
+    }
+}
+
 function checkScheduledEvents() {
     if (!gameState.scheduledEvents || gameState.scheduledEvents.length === 0) return;
     
@@ -7572,6 +7639,18 @@ function startNewGame() {
     gameState.priceHistory = {}; // Track day-wise price history for graphs
     gameState.gameRunning = true;
     gameState.gameOver = false;
+    
+    // Schedule guaranteed price surges for Cocaine and Heroin
+    gameState.guaranteedSurges = {
+        cocaine: {
+            day: Math.floor(Math.random() * 15) + 5, // Days 5-19
+            triggered: false
+        },
+        heroin: {
+            day: Math.floor(Math.random() * 15) + 10, // Days 10-24
+            triggered: false
+        }
+    };
     
     // Clear any existing game output
     document.getElementById('gameOutput').innerHTML = '';
