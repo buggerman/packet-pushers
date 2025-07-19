@@ -101,66 +101,88 @@
 }
 
 body {
-    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace;
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
-    letter-spacing: 0.05em;
-    overflow-x: hidden;
+    letter-spacing: 0.03em; /* Slightly more condensed */
+    overflow: hidden; /* Prevent any scrolling */
+    margin: 0;
+    padding: 0;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 10px;
-    min-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
 .game-header {
     text-align: center;
-    padding: 20px 0;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 20px;
+    flex-shrink: 0;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .game-header h1 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     color: var(--accent-color);
-    text-shadow: 0 0 10px var(--accent-color);
-    margin-bottom: 5px;
+    text-shadow: 0 0 8px var(--accent-color);
+    margin-bottom: 4px;
+    line-height: 1.2;
 }
 
 .subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-color);
     opacity: 0.8;
+    line-height: 1.2;
 }
 
-/* Main Layout */
+/* Main Layout - Optimized for 1920x1080 with 5 UI elements */
 .game-layout {
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 20px;
-    min-height: 70vh;
+    grid-template-columns: 1fr 250px 250px;
+    grid-template-rows: 1fr auto;
+    gap: 8px;
+    flex: 1;
+    padding: 8px;
+    overflow: hidden;
+    min-height: 0; /* Important for flex child */
+    grid-template-areas: 
+        "main-log player-status market-prices"
+        "action-buttons action-buttons action-buttons";
 }
 
-/* Main Panel */
+/* Main Panel - Game Log */
 .main-panel {
+    grid-area: main-log;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.8);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .game-output {
-    height: 500px;
+    flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding: 12px;
     background-color: rgba(0, 0, 0, 0.9);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     scrollbar-width: thin;
     scrollbar-color: var(--border-color) var(--bg-color);
+    min-height: 0;
 }
 
 .game-output::-webkit-scrollbar {
@@ -252,38 +274,60 @@ body {
     51%, 100% { opacity: 0; }
 }
 
-/* Side Panel */
-.side-panel {
+/* Individual UI Elements */
+.stats-panel {
+    grid-area: player-status;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 12px;
+    overflow-y: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
 
-.stats-panel,
-.market-panel,
+.market-panel {
+    grid-area: market-prices;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 12px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
 .inventory-panel {
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.8);
-    padding: 15px;
+    padding: 12px;
+    overflow-y: auto;
+    min-height: 0;
+    margin-top: 8px;
+    flex: 1;
 }
 
 .stats-panel h3,
 .market-panel h3,
 .inventory-panel h3 {
     color: var(--accent-color);
-    font-size: 1.1rem;
-    margin-bottom: 10px;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
+    padding-bottom: 4px;
+}
+
+.player-status-section {
+    flex-shrink: 0;
 }
 
 .stat-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
 }
 
 .stat-label {
@@ -301,7 +345,8 @@ body {
 
 /* Market Panel */
 .market-list {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    letter-spacing: -0.01em; /* Very condensed for market items */
 }
 
 .market-item {
@@ -318,6 +363,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4px;
+    white-space: nowrap; /* Prevent wrapping in header */
 }
 
 .market-item-header .item-price {
@@ -675,6 +721,12 @@ body {
 .item-name {
     color: var(--text-color);
     flex: 1;
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    letter-spacing: -0.02em; /* Extra condensed for item names */
+    word-spacing: -0.15em; /* Tighter word spacing */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ... if text is too long */
 }
 
 .item-indicators {
@@ -715,7 +767,8 @@ body {
 
 /* Inventory Panel */
 .inventory-list {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    letter-spacing: -0.01em; /* Very condensed for inventory items */
 }
 
 .inventory-item {
@@ -732,6 +785,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4px;
+    white-space: nowrap; /* Prevent wrapping in header */
 }
 
 .inventory-item-header .item-value {
@@ -886,10 +940,50 @@ body {
     font-size: 0.85rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Desktop optimizations for 1920x1080 and larger */
+@media (min-width: 1600px) {
+    .game-layout {
+        grid-template-columns: 1fr 300px 280px;
+    }
+    
+    .stats-panel,
+    .market-panel {
+        padding: 16px;
+    }
+    
+    .inventory-panel {
+        padding: 16px;
+    }
+    
+    .desktop-btn {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        min-width: 70px;
+    }
+}
+
+/* Standard desktop layout */
+@media (min-width: 1200px) and (max-width: 1599px) {
+    .game-layout {
+        grid-template-columns: 1fr 280px 260px;
+    }
+}
+
+/* Responsive Design for tablets and mobile */
+@media (max-width: 1199px) {
+    body {
+        overflow: auto; /* Allow scrolling on smaller screens */
+    }
+    
     .container {
+        height: auto;
+        min-height: 100vh;
         padding: 5px;
+    }
+    
+    .game-header {
+        height: auto;
+        padding: 15px 0;
     }
     
     .game-header h1 {
@@ -898,24 +992,35 @@ body {
     
     .game-layout {
         grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
         gap: 15px;
-    }
-    
-    .side-panel {
-        order: -1;
-        flex-direction: row;
-        overflow-x: auto;
+        grid-template-areas: 
+            "player-status"
+            "market-prices"
+            "main-log"
+            "action-buttons";
     }
     
     .stats-panel,
-    .market-panel,
+    .market-panel {
+        min-width: auto;
+        min-height: auto;
+        overflow-y: visible;
+    }
+    
     .inventory-panel {
-        min-width: 200px;
-        flex: 1;
+        min-width: auto;
+        min-height: auto;
+        overflow-y: visible;
+        margin-top: 8px;
+    }
+    
+    .main-panel {
+        min-height: 300px;
     }
     
     .game-output {
-        height: 350px;
+        height: 300px;
     }
     
     .command-input {
@@ -931,28 +1036,41 @@ body {
 }
 
 @media (max-width: 480px) {
-    .side-panel {
-        flex-direction: column;
+    .stats-panel,
+    .market-panel {
+        min-width: auto;
+        padding: 10px;
     }
     
-    .stats-panel,
-    .market-panel,
     .inventory-panel {
         min-width: auto;
+        padding: 10px;
+        margin-top: 8px;
     }
     
     .game-output {
-        height: 300px;
-        font-size: 0.85rem;
+        height: 250px;
+        font-size: 0.8rem;
+        padding: 10px;
     }
     
     .input-section {
-        padding: 10px;
+        padding: 8px;
     }
     
     .command-input {
         font-size: 16px;
-        padding: 10px;
+        padding: 8px;
+    }
+    
+    .desktop-controls {
+        padding: 6px;
+    }
+    
+    .desktop-btn {
+        font-size: 0.75rem;
+        padding: 4px 6px;
+        min-width: 50px;
     }
 }
 
@@ -1345,17 +1463,20 @@ body {
     transform: translateY(-2px);
 }
 
-/* Desktop Controls */
+/* Action Buttons Section */
 .desktop-controls {
+    grid-area: action-buttons;
     display: block;
-    padding: 10px;
-    border-top: 1px solid var(--border-color);
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
     background-color: rgba(0, 255, 0, 0.02);
+    flex-shrink: 0;
 }
 
 .desktop-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
 }
@@ -1407,12 +1528,12 @@ body {
     border: 1px solid var(--border-color);
     color: var(--text-color);
     font-family: inherit;
-    font-size: 0.9rem;
-    padding: 6px 12px;
+    font-size: 0.85rem;
+    padding: 6px 10px;
     cursor: pointer;
     border-radius: 3px;
     transition: all 0.3s;
-    min-width: 70px;
+    min-width: 65px;
 }
 
 .desktop-btn:hover {
@@ -1426,28 +1547,7 @@ body {
     font-weight: bold;
 }
 
-/* Click-to-select visual feedback */
-.clickable-hint {
-    opacity: 0;
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.9);
-    color: var(--text-color);
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 0.85rem;
-    pointer-events: none;
-    z-index: 10;
-    transition: opacity 0.3s;
-}
-
-.market-item:hover .clickable-hint,
-.inventory-item:hover .clickable-hint {
-    opacity: 1;
-}
-
+/* Click-to-select visual feedback - removed tooltips */
 .market-item, .inventory-item {
     position: relative;
 }

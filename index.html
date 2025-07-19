@@ -54,6 +54,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
+    <!-- JetBrains Mono Font -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -293,8 +296,9 @@
                 </div>
             </div>
 
-            <div class="side-panel">
-                <div class="stats-panel">
+            <!-- Player Status Panel -->
+            <div class="stats-panel">
+                <div class="player-status-section">
                     <h3>PLAYER STATUS</h3>
                     <div class="stat-line">
                         <span class="stat-label">Name:</span>
@@ -334,18 +338,20 @@
                     </div>
                 </div>
 
-                <div class="market-panel">
-                    <h3>MARKET PRICES</h3>
-                    <div class="market-list" id="marketPrices">
-                        <!-- Market prices will be populated by JavaScript -->
-                    </div>
-                </div>
-
+                <!-- Inventory Panel -->
                 <div class="inventory-panel">
                     <h3>INVENTORY</h3>
                     <div class="inventory-list" id="inventoryList">
                         <div class="empty-inventory">No items</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Market Prices Panel -->
+            <div class="market-panel">
+                <h3>MARKET PRICES</h3>
+                <div class="market-list" id="marketPrices">
+                    <!-- Market prices will be populated by JavaScript -->
                 </div>
             </div>
         </div>

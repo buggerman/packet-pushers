@@ -4891,7 +4891,6 @@ function updateMarketDisplay() {
             </div>
             <div class="market-item-info">
                 <span class="inventory-amount">${currentAmount > 0 ? `Own: ${currentAmount}` : ''}</span>
-                <div class="clickable-hint">${navigationState.currentMode === 'charts' ? 'Click to view chart' : 'Click to buy'}</div>
             </div>
         `;
         
@@ -4966,37 +4965,284 @@ function updateInventoryDisplay() {
         
         // Add click handler for both mobile and desktop
         itemDiv.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                // Mobile: Use modal
-                mobileState.currentAction = 'sell';
-                const price = gameState.currentPrices[drug];
-                selectMobileItem(drug, price);
-                document.getElementById('mobileModal').style.display = 'flex';
-            } else {
-                // Desktop: Check if we're in history mode
-                if (navigationState.currentMode === 'history') {
-                    // Show purchase history
-                    showPurchaseHistory(drug.split(' ').slice(-1)[0].toLowerCase());
-                    exitNavigation();
-                } else {
-                    // Normal sell mode
-                    navigationState.isNavigating = true;
-                    navigationState.currentMode = 'inventory';
-                    navigationState.selectedIndex = inventory.findIndex(d => d === drug);
-                    navigationState.actionType = 'sell';
-                    navigationState.quantity = 1;
-                    navigationState.selectedItem = drug;
-                    
-                    showNavigationHint('Use +/- or arrow keys to adjust quantity, Enter to confirm, Escape to cancel');
-                    NavigationHighlighter.highlightInventoryItem(navigationState.selectedIndex);
-                    enterQuantityMode();
-                    addMessage(`Sell mode activated for ${drug}. Use +/- to adjust quantity.`, 'success');
-                }
-            }
+            showInventoryItemInterface(drug);
         });
         
         inventoryList.appendChild(itemDiv);
     });
+}
+
+function showInventoryItemInterface(drugName) {
+    if (window.innerWidth <= 768) {
+        // Mobile: Show combined modal
+        showMobileInventoryItemModal(drugName);
+    } else {
+        // Desktop: Show in game output
+        showDesktopInventoryItemInterface(drugName);
+    }
+}
+
+function showMobileInventoryItemModal(drugName) {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    const drug = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
+    const currentPrice = gameState.currentPrices[drugName];
+    const amount = gameState.player.inventory[drugName];
+    const totalValue = currentPrice * amount;
+    
+    modalTitle.textContent = `📦 ${drugName}`;
+    
+    // Get purchase history
+    const history = gameState.player.purchaseHistory[drugName] || [];
+    
+    let historyHtml = `
+        <div class="inventory-detail">
+            <div class="inventory-summary">
+                <h3>📊 Current Holdings</h3>
+                <div class="inventory-stats">
+                    <div>Units: ${amount}</div>
+                    <div>Current Price: $${currentPrice}</div>
+                    <div>Total Value: $${totalValue.toLocaleString()}</div>
+                </div>
+            </div>
+            
+            <div class="purchase-history-section">
+                <h3>📋 Purchase History</h3>
+    `;
+    
+    if (history.length === 0) {
+        historyHtml += `<div class="no-history">No purchase history available</div>`;
+    } else {
+        let totalCost = 0;
+        let totalAmount = 0;
+        
+        historyHtml += `<div class="history-entries">`;
+        history.forEach((purchase, index) => {
+            const location = getCityAbbreviation(purchase.location.split(' - ')[0]);
+            totalAmount += purchase.amount;
+            totalCost += purchase.total;
+            
+            historyHtml += `
+                <div class="history-entry">
+                    <div class="history-main">Day ${purchase.day}: ${purchase.amount} units @ $${purchase.price}</div>
+                    <div class="history-details">$${purchase.total} (${location})</div>
+                </div>
+            `;
+        });
+        historyHtml += `</div>`;
+        
+        const avgPrice = totalCost / totalAmount;
+        const potentialProfit = totalValue - totalCost;
+        const profitClass = potentialProfit >= 0 ? 'profit' : 'loss';
+        
+        historyHtml += `
+            <div class="history-summary">
+                <div>Total Purchased: ${totalAmount} units for $${totalCost.toLocaleString()}</div>
+                <div>Average Buy Price: $${avgPrice.toFixed(2)}</div>
+                <div class="${profitClass}">If sold now: ${potentialProfit >= 0 ? 'profit' : 'loss'} of $${Math.abs(potentialProfit).toLocaleString()}</div>
+            </div>
+        `;
+    }
+    
+    historyHtml += `
+            </div>
+            
+            <div class="sell-actions">
+                <h3>💰 Sell Options</h3>
+                <div class="sell-controls">
+                    <div class="quantity-control">
+                        <label>Quantity:</label>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="adjustMobileQuantity(-1)">-</button>
+                            <input type="number" id="mobileInventoryQty" value="1" min="1" max="${amount}" />
+                            <button class="qty-btn" onclick="adjustMobileQuantity(1)">+</button>
+                            <button class="qty-btn" onclick="setMobileQuantityMax()">MAX</button>
+                        </div>
+                    </div>
+                    <div class="sell-buttons">
+                        <button class="mobile-sell-btn" onclick="executeMobileSell('${drugName}')">
+                            💰 SELL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = historyHtml;
+    modal.style.display = 'flex';
+}
+
+function showDesktopInventoryItemInterface(drugName) {
+    const gameOutput = document.getElementById('gameOutput');
+    const drug = GAME_CONSTANTS.DRUGS.find(d => d.name === drugName);
+    const currentPrice = gameState.currentPrices[drugName];
+    const amount = gameState.player.inventory[drugName];
+    const totalValue = currentPrice * amount;
+    
+    // Get purchase history
+    const history = gameState.player.purchaseHistory[drugName] || [];
+    
+    let interfaceHtml = `
+        <div class="inventory-item-interface">
+            <div class="interface-header">
+                <h2>📦 ${drugName} - Inventory Details</h2>
+                <button class="close-btn" onclick="exitInventoryItemInterface()">✕ Close</button>
+            </div>
+            
+            <div class="inventory-summary">
+                <h3>📊 Current Holdings</h3>
+                <div class="summary-grid">
+                    <div>Units: ${amount}</div>
+                    <div>Current Price: $${currentPrice}</div>
+                    <div>Total Value: $${totalValue.toLocaleString()}</div>
+                </div>
+            </div>
+            
+            <div class="purchase-history-section">
+                <h3>📋 Purchase History</h3>
+    `;
+    
+    if (history.length === 0) {
+        interfaceHtml += `<div class="no-history">No purchase history available for this item.</div>`;
+    } else {
+        let totalCost = 0;
+        let totalAmount = 0;
+        
+        interfaceHtml += `<div class="history-table">`;
+        history.forEach((purchase, index) => {
+            const location = getCityAbbreviation(purchase.location.split(' - ')[0]);
+            totalAmount += purchase.amount;
+            totalCost += purchase.total;
+            
+            interfaceHtml += `
+                <div class="history-row">
+                    <span>#${index + 1}</span>
+                    <span>Day ${purchase.day}</span>
+                    <span>${purchase.amount} units</span>
+                    <span>$${purchase.price}</span>
+                    <span>$${purchase.total}</span>
+                    <span>${location}</span>
+                </div>
+            `;
+        });
+        interfaceHtml += `</div>`;
+        
+        const avgPrice = totalCost / totalAmount;
+        const potentialProfit = totalValue - totalCost;
+        const profitClass = potentialProfit >= 0 ? 'profit' : 'loss';
+        
+        interfaceHtml += `
+            <div class="history-analysis">
+                <div>💰 Total purchased: ${totalAmount} units for $${totalCost.toLocaleString()}</div>
+                <div>📊 Average buy price: $${avgPrice.toFixed(2)}</div>
+                <div>📈 Current market price: $${currentPrice}</div>
+                <div class="${profitClass}">💡 If sold now: ${potentialProfit >= 0 ? 'profit' : 'loss'} of $${Math.abs(potentialProfit).toLocaleString()}</div>
+            </div>
+        `;
+    }
+    
+    interfaceHtml += `
+            </div>
+            
+            <div class="sell-section">
+                <h3>💰 Sell ${drugName}</h3>
+                <div class="desktop-actions">
+                    <button class="desktop-btn" onclick="startDesktopSell('${drugName}', 1)">
+                        Sell 1 Unit
+                    </button>
+                    <button class="desktop-btn" onclick="startDesktopSell('${drugName}', ${Math.min(5, amount)})">
+                        Sell ${Math.min(5, amount)} Units
+                    </button>
+                    <button class="desktop-btn" onclick="startDesktopSell('${drugName}', ${Math.floor(amount/2)})">
+                        Sell Half (${Math.floor(amount/2)})
+                    </button>
+                    <button class="desktop-btn" onclick="startDesktopSell('${drugName}', ${amount})">
+                        Sell All (${amount})
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    gameOutput.innerHTML = interfaceHtml;
+}
+
+// Helper functions for mobile inventory interface
+function adjustMobileQuantity(delta) {
+    const qtyInput = document.getElementById('mobileInventoryQty');
+    if (qtyInput) {
+        const currentQty = parseInt(qtyInput.value) || 1;
+        const newQty = Math.max(1, Math.min(parseInt(qtyInput.max), currentQty + delta));
+        qtyInput.value = newQty;
+    }
+}
+
+function setMobileQuantityMax() {
+    const qtyInput = document.getElementById('mobileInventoryQty');
+    if (qtyInput) {
+        qtyInput.value = qtyInput.max;
+    }
+}
+
+function executeMobileSell(drugName) {
+    const qtyInput = document.getElementById('mobileInventoryQty');
+    const quantity = parseInt(qtyInput.value) || 1;
+    const price = gameState.currentPrices[drugName];
+    const totalEarnings = price * quantity;
+    
+    // Execute the sale
+    gameState.player.cash += totalEarnings;
+    gameState.player.inventory[drugName] -= quantity;
+    
+    // Remove from inventory if quantity reaches 0
+    if (gameState.player.inventory[drugName] <= 0) {
+        delete gameState.player.inventory[drugName];
+    }
+    
+    addMessage(`💰 Sold ${quantity} ${drugName} for $${totalEarnings.toLocaleString()}!`, 'success');
+    playSound('cashreg');
+    updateDisplay();
+    closeMobileModal();
+}
+
+// Helper functions for desktop inventory interface
+function exitInventoryItemInterface() {
+    const gameOutput = document.getElementById('gameOutput');
+    gameOutput.innerHTML = `
+        <div class="welcome-message">
+            <p>Welcome to Packet Pushers!</p>
+            <p>You owe the loan shark $${gameState.player.debt.toLocaleString()} with daily interest.</p>
+            <p>You have ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left.</p>
+            <p>Use the clickable interface to buy, sell, and manage your operations.</p>
+        </div>
+    `;
+    playSound('touchsound');
+}
+
+function startDesktopSell(drugName, quantity) {
+    const price = gameState.currentPrices[drugName];
+    const totalEarnings = price * quantity;
+    
+    // Execute the sale
+    gameState.player.cash += totalEarnings;
+    gameState.player.inventory[drugName] -= quantity;
+    
+    // Remove from inventory if quantity reaches 0
+    if (gameState.player.inventory[drugName] <= 0) {
+        delete gameState.player.inventory[drugName];
+        // If no more inventory, exit the interface
+        exitInventoryItemInterface();
+    } else {
+        // Refresh the interface to show updated amounts
+        showInventoryItemInterface(drugName);
+    }
+    
+    addMessage(`💰 Sold ${quantity} ${drugName} for $${totalEarnings.toLocaleString()}!`, 'success');
+    playSound('cashreg');
+    updateDisplay();
 }
 
 // Market price generation
