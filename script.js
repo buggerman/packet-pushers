@@ -432,7 +432,7 @@ function showClickableTravelInterface() {
                 name: district,
                 fullName: `${currentCity} - ${district}`,
                 type: 'local',
-                cost: 'FREE',
+                cost: '',
                 services: getLocationServices(currentCity, district)
             });
         }
@@ -470,7 +470,7 @@ function showClickableTravelInterface() {
     if (localDestinations.length > 0) {
         travelHtml += `
             <div class="travel-section">
-                <h4 class="section-title">🚶 Local Travel (Free)</h4>
+                <h4 class="section-title">🚶 Local Travel</h4>
                 <div class="desktop-actions">
         `;
         
@@ -1693,7 +1693,7 @@ function handleTravel(parts) {
         // Apply daily interest
         applyDailyInterest();
         
-        addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}. (Free local travel)`, 'success');
+        addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}.`, 'success');
         playSound('slidein'); // Local travel sound
         
     } else {
@@ -1975,7 +1975,7 @@ function showMobileDebtInterface() {
     `;
     
     modalBody.innerHTML = debtHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     
     // Add escape key handler and focus management
     document.addEventListener('keydown', mobileModalEscapeHandler);
@@ -2611,7 +2611,7 @@ Name: ${gameState.player.name || 'Anonymous Dealer'}<br>
 Cash: $${gameState.player.cash}<br>
 Bank: $${gameState.player.bankBalance || 0}<br>
 Debt: $${gameState.player.debt}<br>
-Net Worth: $${netWorth}<br>
+Net Worth: ${formatCurrency(netWorth)}<br>
 Location: ${formatLocationDisplay(gameState.player.location)}<br>
 Day: ${gameState.player.day} / ${gameState.player.maxDays}<br>
 Inventory: ${inventorySize} / ${getCurrentMaxInventory()}<br>
@@ -3025,7 +3025,7 @@ function showWeaponShopModal() {
     `;
     
     modalBody.innerHTML = weaponHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     
     // Add escape key handler and focus management  
     document.addEventListener('keydown', mobileModalEscapeHandler);
@@ -3163,7 +3163,7 @@ function showCoatShopModal() {
     `;
     
     modalBody.innerHTML = coatHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     
     // Add escape key handler and focus management
     document.addEventListener('keydown', mobileModalEscapeHandler);
@@ -3443,7 +3443,7 @@ function showCities() {
     let citiesText = '<div class="help-text"><strong>TRAVEL OPTIONS:</strong><br><br>';
     
     // Show current city districts first
-    citiesText += `<strong>📍 ${currentCity} (Local Travel - Free):</strong><br>`;
+    citiesText += `<strong>📍 ${currentCity} (Local Travel):</strong><br>`;
     gameState.cities[currentCity].forEach(district => {
         const marker = district === currentDistrict ? ' (current)' : '';
         const locationData = gameState.locationServices[currentCity] && gameState.locationServices[currentCity][district];
@@ -3600,7 +3600,7 @@ function showTravelModal() {
                 name: district,
                 fullName: `${currentCity} - ${district}`,
                 type: 'local',
-                cost: 'FREE',
+                cost: '',
                 services: getLocationServices(currentCity, district)
             });
         }
@@ -3637,7 +3637,7 @@ function showTravelModal() {
     
     // Local travel section
     if (localDestinations.length > 0) {
-        travelHtml += `<div class="panel-section-heading">🚶 Local Travel (Free)</div>`;
+        travelHtml += `<div class="panel-section-heading">🚶 Local Travel</div>`;
         
         localDestinations.forEach(dest => {
             const serviceIcons = dest.services.map(s => {
@@ -3653,7 +3653,7 @@ function showTravelModal() {
                 <div class="mobile-item travel-option" data-destination="${dest.fullName}">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${dest.name} ${serviceIcons}</div>
-                        <div class="mobile-item-price">Free Travel</div>
+                        <div class="mobile-item-price">Local travel</div>
                     </div>
                 </div>
             `;
@@ -3714,7 +3714,7 @@ function showTravelModal() {
         });
     });
     
-    modal.style.display = 'block';
+    showMobileModalWithUtility(modal);
     playSound('touchsound');
 }
 
@@ -3795,7 +3795,7 @@ function showMobileBankInterface() {
     `;
     
     modalBody.innerHTML = bankHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     playSound('touchsound');
 }
 
@@ -4601,7 +4601,7 @@ function showMobileTravelModal() {
                 <div class="mobile-item" onclick="selectMobileCity('${fullLocation}')">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${district}</div>
-                        <div class="mobile-item-price">Local travel - FREE</div>
+                        <div class="mobile-item-price">Local travel</div>
                     </div>
                     <div class="mobile-item-action">🚶 WALK</div>
                 </div>
@@ -4642,7 +4642,7 @@ function showMobileTravelModal() {
     itemsHtml += '</div>';
     modalBody.innerHTML = itemsHtml;
     
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
 }
 
 function showMobileChartsModal() {
@@ -5034,7 +5034,7 @@ function showBuyModal(drugName, price, currentlyOwned) {
                 <button class="mobile-action-btn" onclick="closeMobileModal()">Close</button>
             </div>
         `;
-        modal.style.display = 'flex';
+        showMobileModalWithUtility(modal);
         document.addEventListener('keydown', mobileModalEscapeHandler);
         return;
     }
@@ -5072,7 +5072,7 @@ function showBuyModal(drugName, price, currentlyOwned) {
         </div>
     `;
     
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     document.addEventListener('keydown', mobileModalEscapeHandler);
     
     // Focus the quantity input
@@ -5422,7 +5422,7 @@ function showMobileInventoryItemModal(drugName) {
     `;
     
     modalBody.innerHTML = historyHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
 }
 
 function showDesktopInventoryItemInterface(drugName) {
@@ -6065,7 +6065,7 @@ function showCombatInterface(opponent, opponentType) {
     `;
     
     modalBody.innerHTML = combatHtml;
-    modal.style.display = 'flex';
+    showMobileModalWithUtility(modal);
     
     // Store opponent data for combat resolution
     gameState.currentCombatOpponent = opponent;
@@ -7066,6 +7066,13 @@ function formatLocationDisplay(fullLocation) {
     return `${cityAbbrev} - ${district}`;
 }
 
+function formatCurrency(amount) {
+    if (amount < 0) {
+        return `($${Math.abs(amount).toLocaleString()})`;
+    }
+    return `$${amount.toLocaleString()}`;
+}
+
 function calculateNetWorth() {
     let inventoryValue = 0;
     
@@ -7130,7 +7137,7 @@ function updateDisplay() {
     if (playerCash) playerCash.textContent = `$${gameState.player.cash}`;
     if (playerBank) playerBank.textContent = `$${gameState.player.bankBalance || 0}`;
     if (playerDebt) playerDebt.textContent = `$${gameState.player.debt}`;
-    if (playerNetWorth) playerNetWorth.textContent = `$${calculateNetWorth()}`;
+    if (playerNetWorth) playerNetWorth.textContent = formatCurrency(calculateNetWorth());
     if (currentDay) currentDay.textContent = `${gameState.player.day}`;
     
     // Update city and location separately
@@ -7252,7 +7259,7 @@ function endGame() {
     addMessage(`Final Day: ${gameState.player.day}`, 'event');
     addMessage(`Final Cash: $${gameState.player.cash}`, 'event');
     addMessage(`Remaining Debt: $${gameState.player.debt}`, 'event');
-    addMessage(`Final Net Worth: $${finalNetWorth}`, 'event');
+    addMessage(`Final Net Worth: ${formatCurrency(finalNetWorth)}`, 'event');
     
     if (finalNetWorth > 0) {
         addMessage('Congratulations! You made a profit!', 'success');
