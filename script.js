@@ -869,7 +869,7 @@ let gameState = {
     cities: {
         'New York': ['JFK Airport', 'Brooklyn Docks', 'Times Square', 'Central Park'],
         'Los Angeles': ['LAX Airport', 'Hollywood Hills', 'Venice Beach', 'Compton'],
-        'Chicago': ['O\'Hare Airport', 'The Loop', 'Wicker Park', 'South Side'],
+        'Chicago': ['O Hare Airport', 'The Loop', 'Wicker Park', 'South Side'],
         'Miami': ['Miami Airport', 'South Beach', 'Little Havana', 'Biscayne Bay'],
         'Detroit': ['Detroit Airport', 'Corktown', 'Greektown', 'Belle Isle'],
         'Boston': ['Logan Airport', 'Back Bay', 'North End', 'Fenway']
@@ -920,7 +920,7 @@ let gameState = {
             'Compton': { services: ['weapons'] } // Rough neighborhood
         },
         'Chicago': {
-            'O\'Hare Airport': { services: [] },
+            'O Hare Airport': { services: [] },
             'The Loop': { services: ['bank', 'clothes'] }, // Financial district
             'Wicker Park': { services: [] },
             'South Side': { services: ['weapons'] } // Dangerous area
@@ -5143,7 +5143,7 @@ function getLocationMultiplier(drugName) {
         'Los Angeles - Compton': { 'Heroin': 0.7, 'Speed': 0.8, 'Cocaine': 0.9, 'Crack': 0.6 },
         
         // Chicago districts
-        'Chicago - O\'Hare Airport': { 'Cocaine': 1.7, 'Heroin': 1.2, 'Speed': 1.1, 'Ice': 1.3 },
+        'Chicago - O Hare Airport': { 'Cocaine': 1.7, 'Heroin': 1.2, 'Speed': 1.1, 'Ice': 1.3 },
         'Chicago - The Loop': { 'Cocaine': 1.9, 'Heroin': 1.4, 'Special K': 1.5, 'Opium': 1.3 },
         'Chicago - Wicker Park': { 'Acid': 1.1, 'Mushrooms': 1.3, 'Hash': 0.9, 'Molly': 1.2 },
         'Chicago - South Side': { 'Heroin': 0.6, 'Speed': 0.7, 'Weed': 0.8, 'Crack': 0.5 },
