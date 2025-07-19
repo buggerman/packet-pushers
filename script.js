@@ -1227,30 +1227,25 @@ function handleBuy(parts) {
     // Check inventory space
     if (!validateInventorySpace(amount, drug.name)) return;
     
-    // Show confirmation dialog
-    const confirmMessage = `Are you sure you want to buy ${amount} ${drug.name} for $${totalCost.toLocaleString()}?`;
+    // Execute purchase directly
+    gameState.player.cash -= totalCost;
+    gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + amount;
     
-    showConfirmationDialog(confirmMessage, () => {
-        // Execute purchase
-        gameState.player.cash -= totalCost;
-        gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + amount;
-        
-        // Track purchase history for profit/loss calculations
-        if (!gameState.player.purchaseHistory[drug.name]) {
-            gameState.player.purchaseHistory[drug.name] = [];
-        }
-        gameState.player.purchaseHistory[drug.name].push({
-            amount: amount,
-            price: price,
-            total: totalCost,
-            day: gameState.player.day,
-            location: gameState.player.location
-        });
-        
-        NotificationSystem.cashSuccess(`💰 Bought ${amount} ${drug.name} for $${totalCost}!`);
-        
-        updateDisplay();
+    // Track purchase history for profit/loss calculations
+    if (!gameState.player.purchaseHistory[drug.name]) {
+        gameState.player.purchaseHistory[drug.name] = [];
+    }
+    gameState.player.purchaseHistory[drug.name].push({
+        amount: amount,
+        price: price,
+        total: totalCost,
+        day: gameState.player.day,
+        location: gameState.player.location
     });
+    
+    NotificationSystem.cashSuccess(`💰 Bought ${amount} ${drug.name} for $${totalCost}!`);
+    
+    updateDisplay();
 }
 
 // Find drug by name (with emoji-free matching)
@@ -4043,30 +4038,23 @@ function executeAction() {
             return;
         }
         
-        // Show confirmation dialog
-        const confirmMessage = `Are you sure you want to buy ${quantity} ${drug.name} for $${totalCost.toLocaleString()}?`;
+        // Execute purchase directly
+        gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + quantity;
+        processTransaction(totalCost, `${quantity} ${drug.name}`, 
+            `💰 Bought ${quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
         
-        showConfirmationDialog(confirmMessage, () => {
-            // Execute purchase
-            gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + quantity;
-            processTransaction(totalCost, `${quantity} ${drug.name}`, 
-                `💰 Bought ${quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
-            
-            // Track purchase history
-            if (!gameState.player.purchaseHistory[drug.name]) {
-                gameState.player.purchaseHistory[drug.name] = [];
-            }
-            gameState.player.purchaseHistory[drug.name].push({
-                quantity: quantity,
-                price: price,
-                day: gameState.player.day,
-                location: gameState.player.location
-            });
-            
-            exitNavigation();
-        }, () => {
-            exitNavigation();
+        // Track purchase history
+        if (!gameState.player.purchaseHistory[drug.name]) {
+            gameState.player.purchaseHistory[drug.name] = [];
+        }
+        gameState.player.purchaseHistory[drug.name].push({
+            quantity: quantity,
+            price: price,
+            day: gameState.player.day,
+            location: gameState.player.location
         });
+        
+        exitNavigation();
         
     } else if (navigationState.actionType === 'sell') {
         // Direct sell execution
@@ -4797,25 +4785,20 @@ function confirmMobileAction() {
             if (validateAffordability(totalCost, `${mobileState.quantity} ${drug.name}`) &&
                 validateInventorySpace(mobileState.quantity, drug.name)) {
                 
-                console.log('Validation passed, showing confirmation dialog');
+                console.log('Validation passed, executing purchase directly');
                 
-                showConfirmationDialog(
-                    `Buy ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}?`,
-                    () => {
-                        processPurchase(totalCost, `${mobileState.quantity} ${drug.name}`,
-                            `💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
-                        
-                        // Add to purchase history
-                        gameState.purchaseHistory.push({
-                            item: drug.name,
-                            action: 'buy',
-                            quantity: mobileState.quantity,
-                            price: price,
-                            day: gameState.player.day,
-                            location: gameState.player.location
-                        });
-                    }
-                );
+                processPurchase(totalCost, `${mobileState.quantity} ${drug.name}`,
+                    `💰 Bought ${mobileState.quantity} ${drug.name} for $${totalCost.toLocaleString()}!`);
+                
+                // Add to purchase history
+                gameState.purchaseHistory.push({
+                    item: drug.name,
+                    action: 'buy',
+                    quantity: mobileState.quantity,
+                    price: price,
+                    day: gameState.player.day,
+                    location: gameState.player.location
+                });
             } else {
                 console.log('Validation failed for mobile buy');
             }
