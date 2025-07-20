@@ -153,6 +153,15 @@ This game is a love letter to the original Dope Wars by Beermat Software, which 
 
 *"Some games teach you about economics. Others teach you about life. Dope Wars taught us about both."*
 
+## 🔊 Sound Attribution
+
+The retro sound effects used in this game are from the original Dope Wars developed by Beermat Software and other contributors from the 1990s shareware scene. These classic audio assets are used here as tribute to honor the game that inspired this project.
+
+- **Original Dope Wars** © Beermat Software and contributors
+- **Sound Effects** © Their respective creators from the original Dope Wars development team
+
+All sound assets remain the property of their original creators and are used with respect for their contribution to gaming history.
+
 ---
 
 *Transport back to the 80s and see if you can become the ultimate Packet Pusher!*
