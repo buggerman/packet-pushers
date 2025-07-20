@@ -1,4 +1,8 @@
+# Ignore junk directories
 .*/
+
+# Exclude .github
+!.github/
 
 # ignores all .md files
 *.md
