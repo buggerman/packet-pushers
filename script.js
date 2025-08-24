@@ -839,20 +839,13 @@ function travelToDirect(fullLocationName) {
         playSound('slidein');
     }
     
-    // Exit travel mode and update display
-    exitTravelMode();
+    // Don't clear game output - preserve encounter messages
     updateDisplay();
 }
 
 function exitTravelMode() {
-    // Restore normal game output
-    const gameOutput = document.getElementById('gameOutput');
-    gameOutput.innerHTML = `
-        <div class="status-summary">
-            <div class="debt-warning">💀 Debt: $${gameState.player.debt.toLocaleString()}</div>
-            <div class="time-remaining">⏰ ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left</div>
-        </div>
-    `;
+    // Don't clear game output - let encounter messages persist
+    // Status is shown in player panel, no need to overwrite encounter messages
 }
 
 // Combat system consolidation class
@@ -7635,6 +7628,12 @@ function isActionAllowed(actionName = 'action') {
 function advanceDayAndApplyInterest() {
     gameState.player.day += 1;
     
+    // Check if game should end after advancing day
+    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+        endGame();
+        return 0;
+    }
+    
     // Apply daily interest
     const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
     gameState.player.debt += interest;
@@ -7655,7 +7654,9 @@ function advanceDayAndApplyInterest() {
 
 // Centralized game end checking function
 function checkGameEnd() {
-    if (gameState.player.day >= GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+    console.log(`Checking game end: Day ${gameState.player.day} vs MAX_DAYS ${GAME_CONSTANTS.PLAYER.MAX_DAYS}`);
+    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+        console.log('Game should end - calling endGame()');
         endGame();
         return true;
     }

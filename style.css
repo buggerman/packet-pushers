@@ -2120,9 +2120,9 @@ body.modal-open {
     background-color: var(--bg-color);
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 85vh;
+    width: 95%;
+    max-width: 1000px;
+    max-height: 90vh;
     overflow-y: auto;
     position: relative;
     display: flex;
@@ -3681,12 +3681,13 @@ textarea:focus {
     display: block;
 }
 
-/* Charts Modal Styling */
+/* Charts Modal Styling - Larger for Desktop */
 .charts-interface {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-height: 70vh;
+    min-height: 500px;
+    max-height: 80vh;
 }
 
 .drug-selector {
@@ -3732,7 +3733,7 @@ textarea:focus {
 
 .chart-display {
     flex: 1;
-    min-height: 200px;
+    min-height: 400px;
 }
 
 .chart-placeholder {
