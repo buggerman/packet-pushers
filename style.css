@@ -156,7 +156,7 @@ body.modal-open {
 }
 
 .header-ascii {
-    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
     font-size: 0.4rem;
     color: var(--accent-color);
     text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--glow-color);
@@ -166,6 +166,11 @@ body.modal-open {
     text-align: center;
     white-space: pre;
     overflow: hidden;
+    unicode-bidi: embed;
+    font-feature-settings: "liga" 0;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 @media (max-width: 768px) {
@@ -181,6 +186,15 @@ body.modal-open {
     }
 }
 
+/* Windows Unicode character fix */
+@supports not (unicode-bidi: embed) {
+    .header-ascii,
+    .ascii-title {
+        font-family: 'Consolas', 'Courier New', monospace;
+        letter-spacing: 0.05em;
+    }
+}
+
 @keyframes titlePulse {
     from { text-shadow: 0 0 20px var(--accent-color), 0 0 40px var(--glow-color); }
     to { text-shadow: 0 0 30px var(--accent-color), 0 0 60px var(--glow-color), 0 0 80px var(--secondary-accent); }
@@ -193,16 +207,17 @@ body.modal-open {
     line-height: 1.2;
 }
 
-/* Restored Working Layout */
+/* Fixed Layout - Always Accessible */
 .game-layout {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto minmax(200px, 1fr) auto;
     gap: 8px;
     flex: 1;
     padding: 8px;
     overflow: hidden;
     min-height: 0;
+    max-height: calc(100vh - 120px);
     grid-template-areas: 
         "player-status"
         "market-prices"
@@ -355,6 +370,7 @@ body.modal-open {
     scrollbar-width: thin;
     scrollbar-color: var(--border-color) var(--bg-color);
     min-height: 0;
+    max-height: 300px;
 }
 
 .game-output::-webkit-scrollbar {
@@ -2585,12 +2601,18 @@ textarea:focus {
     transform: translateY(-2px);
 }
 
-/* Compact Action Controls */
+/* Compact Action Controls - Always Accessible */
 .desktop-controls {
+    grid-area: action-buttons;
     padding: 8px;
-    border-top: 1px solid var(--border-color);
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 0 0 8px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--panel-shadow);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
 }
 
 .desktop-actions {
@@ -2805,7 +2827,7 @@ textarea:focus {
 }
 
 .ascii-title {
-    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
     font-size: 0.6rem;
     color: var(--accent-color);
     text-shadow: 0 0 15px var(--accent-color), 0 0 30px var(--glow-color);
@@ -2815,6 +2837,11 @@ textarea:focus {
     text-align: center;
     white-space: pre;
     overflow: hidden;
+    unicode-bidi: embed;
+    font-feature-settings: "liga" 0;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 @media (max-width: 768px) {
