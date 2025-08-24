@@ -6530,60 +6530,7 @@ function policeChoice(choice, officerName, officerType) {
         }
     }
     
-    // If player has a weapon, show combat interface
-    if (gameState.player.weapon) {
-        addMessage(`You grip your ${gameState.player.weapon.name} tightly...`, 'event');
-        showCombatInterface(officer, 'police');
-        return;
-    }
-    
-    // Random outcome based on officer type
-    const outcome = Math.random();
-    let arrestChance = 0.3;
-    let bribeChance = 0.6;
-    
-    if (officer.type === 'tough') {
-        arrestChance = 0.5;
-        bribeChance = 0.7;
-    } else if (officer.type === 'corrupt') {
-        arrestChance = 0.1;
-        bribeChance = 0.8;
-    } else if (officer.type === 'smart') {
-        arrestChance = 0.4;
-        bribeChance = 0.5;
-    }
-    
-    if (outcome < arrestChance) {
-        // Arrest
-        addMessage(`${officer.name}: "${getCharacterDialogue(officer, 'arrest')}"`, 'event');
-        addMessage('You were arrested! All your inventory is confiscated.', 'error');
-        gameState.player.inventory = {};
-        gameState.player.day += 3;
-        const fine = Math.floor(gameState.player.cash * 0.2);
-        gameState.player.cash -= fine;
-        addMessage(`You spent 3 days in jail and paid a $${fine} fine.`, 'error');
-        playSound('wasted');
-    } else if (outcome < bribeChance) {
-        // Bribe option
-        const bribe = Math.floor(200 + Math.random() * 300);
-        addMessage(`${officer.name}: "${getCharacterDialogue(officer, 'bribe')}"`, 'event');
-        if (gameState.player.cash >= bribe && officer.type !== 'by_the_book') {
-            gameState.player.cash -= bribe;
-            addMessage(`You paid a $${bribe} bribe and avoided arrest.`, 'success');
-            playSound('money'); // Bribe money sound
-        } else if (officer.type === 'by_the_book') {
-            addMessage('This officer is too honest to bribe! You tried to run but were caught!', 'error');
-            loseRandomInventory(0.5);
-            playSound('jaildoor'); // Arrested sound
-        } else {
-            addMessage('You tried to run but were caught! Lost some inventory.', 'error');
-            loseRandomInventory(0.5);
-            playSound('jaildoor'); // Arrested sound
-        }
-    } else {
-        // Escape
-        addMessage('You managed to slip away while the officer was distracted!', 'success');
-    }
+    // Old police event code removed - using modal system now
 }
 
 // Combat interface for player choices
