@@ -2720,16 +2720,15 @@ textarea:focus {
     flex-shrink: 0;
 }
 
-/* Unified Button Hover Effects */
+/* Optimized Button Hover Effects */
 .action-btn:hover,
 .desktop-btn:hover,
-.quick-btn:hover,
-.chart-btn:hover {
-    background: linear-gradient(135deg, var(--border-color), var(--secondary-accent)) !important;
+.quick-btn:hover {
+    background: var(--border-color) !important;
     color: var(--white-color) !important;
-    transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px var(--glow-color) !important;
+    transform: translateY(-1px) !important;
     border-color: var(--accent-color) !important;
+    transition: all 0.2s ease !important;
 }
 
 .action-btn.service {

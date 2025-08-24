@@ -1488,6 +1488,10 @@ function initializeLocations() {
 function initGame() {
     gameState.gameRunning = true;
     gameState.gameOver = false;
+    
+    // Performance optimization - initialize DOM cache early
+    initDOMCache();
+    
     initializeLocations();
     generateMarketPrices();
     updateDisplay();
@@ -5526,9 +5530,11 @@ function executeBuyFromModal() {
 
 // Add click handlers for existing market and inventory items
 function updateMarketDisplay() {
-    const marketPrices = document.getElementById('marketPrices');
-    if (!marketPrices) return;
-    marketPrices.innerHTML = '';
+    if (!domCache.marketPrices) domCache.marketPrices = document.getElementById('marketPrices');
+    if (!domCache.marketPrices) return;
+    
+    // Performance optimization - use DocumentFragment for batch DOM updates
+    const fragment = document.createDocumentFragment();
     
     gameState.drugs.forEach(drug => {
         const price = gameState.currentPrices[drug.name];
@@ -5590,14 +5596,20 @@ function updateMarketDisplay() {
         
         itemDiv.addEventListener('click', handleInteraction);
         
-        marketPrices.appendChild(itemDiv);
+        fragment.appendChild(itemDiv);
     });
+    
+    // Single DOM update for better performance
+    domCache.marketPrices.innerHTML = '';
+    domCache.marketPrices.appendChild(fragment);
 }
 
 function updateInventoryDisplay() {
-    const inventoryList = document.getElementById('inventoryList');
-    if (!inventoryList) return;
-    inventoryList.innerHTML = '';
+    if (!domCache.inventoryList) domCache.inventoryList = document.getElementById('inventoryList');
+    if (!domCache.inventoryList) return;
+    
+    // Performance optimization - use DocumentFragment
+    const fragment = document.createDocumentFragment();
     
     const inventory = Object.keys(gameState.player.inventory);
     
@@ -5641,8 +5653,12 @@ function updateInventoryDisplay() {
         
         itemDiv.addEventListener('click', handleInteraction);
         
-        inventoryList.appendChild(itemDiv);
+        fragment.appendChild(itemDiv);
     });
+    
+    // Single DOM update for performance
+    domCache.inventoryList.innerHTML = '';
+    domCache.inventoryList.appendChild(fragment);
 }
 
 function showInventoryItemInterface(drugName) {
@@ -7452,38 +7468,30 @@ function addMessage(message, type = 'normal') {
 }
 
 function updateDisplay() {
-    // Update player stats with DOM validation
+    // Performance optimization - use cached DOM elements
+    if (!domCache.playerCash) initDOMCache();
+    
     const playerName = document.getElementById('playerName');
-    const playerCash = document.getElementById('playerCash');
-    const playerBank = document.getElementById('playerBank');
-    const playerNetWorth = document.getElementById('playerNetWorth');
-    const currentCity = document.getElementById('currentCity');
-    const currentLocation = document.getElementById('currentLocation');
-    const inventorySpace = document.getElementById('inventorySpace');
     
     if (playerName) playerName.textContent = gameState.player.name || 'Anonymous Dealer';
-    if (playerCash) playerCash.textContent = `$${gameState.player.cash}`;
-    if (playerBank) playerBank.textContent = `$${gameState.player.bankBalance || 0}`;
-    if (playerNetWorth) playerNetWorth.textContent = formatCurrency(calculateNetWorth());
+    if (domCache.playerCash) domCache.playerCash.textContent = `$${gameState.player.cash}`;
+    if (domCache.playerBank) domCache.playerBank.textContent = `$${gameState.player.bankBalance || 0}`;
+    if (domCache.playerNetWorth) domCache.playerNetWorth.textContent = formatCurrency(calculateNetWorth());
     
     // Update city and location separately
     const [city, district] = gameState.player.location.split(' - ');
-    if (currentCity) currentCity.textContent = city;
-    if (currentLocation) currentLocation.textContent = district;
+    if (domCache.currentCity) domCache.currentCity.textContent = city;
+    if (domCache.currentLocation) domCache.currentLocation.textContent = district;
     
-    if (inventorySpace) inventorySpace.textContent = `${getCurrentInventorySize()}/${getCurrentMaxInventory()}`;
+    if (domCache.inventorySpace) domCache.inventorySpace.textContent = `${getCurrentInventorySize()}/${getCurrentMaxInventory()}`;
     
-    // Update compact status bar
-    updateStatusBar();
-    
-    // Update market display  
-    updateMarketDisplay();
-    
-    // Update inventory display
-    updateInventoryDisplay();
-    
-    // Update location-specific service buttons
-    updateLocationServiceButtons();
+    // Batch DOM updates for better performance
+    requestAnimationFrame(() => {
+        updateStatusBar();
+        updateMarketDisplay();
+        updateInventoryDisplay();
+        updateLocationServiceButtons();
+    });
 }
 
 // Update compact status bar
