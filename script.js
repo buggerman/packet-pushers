@@ -1233,7 +1233,7 @@ let gameState = {
         'Sydney': ['Kingsford Smith', 'Kings Cross', 'Darling Harbour', 'North Sydney', 'Bondi Beach', 'Bennelong Point', 'Manly', 'Bus'],
         'San Francisco': ['San Francisco Intl', 'China Town', 'Nob Hill', 'The Mission', 'The Haight', 'SoMa', 'Presidio', 'Metro'],
         'Paris': ['Charles De Gaulle', 'Montmartre', 'Clichy', 'Bois de Boulogne', 'Champs-Elysees', 'Marais', 'Quartier Latin', 'Metro'],
-        'Chicago': ['O\'Hare International', 'Navy Pier', 'Lincoln Park', 'Cabrini Green', 'Hyde Park', 'Bucktown', 'Loop', 'CTA'],
+        'Chicago': ['OHare International', 'Navy Pier', 'Lincoln Park', 'Cabrini Green', 'Hyde Park', 'Bucktown', 'Loop', 'CTA'],
         'Toronto': ['Lester B. Pearson International', 'Parkdale', 'Jane / Finch', 'Downtown', 'Scarborough', 'North York', 'The Beaches', 'TTC'],
         'Johannesburg': ['Johannesburg International', 'Hillbrow', 'Malvern', 'Yeoville', 'Berea', 'Mellville', 'Marshalltown', 'Minibus taxi'],
         'Montreal': ['Dorval International', 'N.D.G.', 'Dorchester Square', 'Old Port', 'Mount Royal', 'Berri Park', 'Cote-des-Neiges', 'Metro']
@@ -7418,9 +7418,9 @@ function handleOldLadyEvent() {
 
 // Guaranteed price surge events for high-value drugs
 function handleGuaranteedCocaineSurge() {
-    // Set to authentic Beermat levels - 150k+ per unit
-    const basePrice = gameState.currentPrices['Cocaine'] || 15000;
-    gameState.currentPrices['Cocaine'] = Math.floor(150000 + Math.random() * 50000); // 150k-200k authentic surge
+    // Authentic Beermat cocaine surge - 80k-300k (cocaine goes higher than heroin)
+    const surgePrice = Math.floor(80000 + Math.random() * 220000); // 80k-300k range
+    gameState.currentPrices['❄️ Cocaine'] = surgePrice;
     
     const surgeReasons = [
         'DEA Operation "White Storm" eliminates major supplier - cocaine prices explode!',
@@ -7438,9 +7438,9 @@ function handleGuaranteedCocaineSurge() {
 }
 
 function handleGuaranteedHeroinSurge() {
-    // Set to authentic Beermat levels - 150k+ per unit
-    const basePrice = gameState.currentPrices['Heroin'] || 5000;
-    gameState.currentPrices['Heroin'] = Math.floor(150000 + Math.random() * 50000); // 150k-200k authentic surge
+    // Authentic Beermat heroin surge - 80k-180k (lower than cocaine)
+    const surgePrice = Math.floor(80000 + Math.random() * 100000); // 80k-180k range
+    gameState.currentPrices['💉 Heroin'] = surgePrice;
     
     const surgeReasons = [
         'Operation "Golden Triangle" dismantles heroin network - prices soar!',
