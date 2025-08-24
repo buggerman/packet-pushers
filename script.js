@@ -6413,11 +6413,16 @@ function handlePoliceEvent() {
 }
 
 function showPoliceEncounterModal(officer) {
-    const modal = document.getElementById('mobileModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
+    // Ensure any existing modal is closed first
+    closeMobileModal();
     
-    modalTitle.textContent = '🚔 POLICE ENCOUNTER';
+    // Small delay to ensure modal is closed before opening police encounter
+    setTimeout(() => {
+        const modal = document.getElementById('mobileModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        modalTitle.textContent = '🚔 POLICE ENCOUNTER';
     
     const hasWeapon = gameState.player.weapon;
     const inventoryValue = calculateInventoryValue();
@@ -6452,8 +6457,9 @@ function showPoliceEncounterModal(officer) {
         </div>
     `;
     
-    modalBody.innerHTML = encounterHtml;
-    showMobileModalWithUtility(modal);
+        modalBody.innerHTML = encounterHtml;
+        showMobileModalWithUtility(modal);
+    }, 100); // 100ms delay to ensure modal transitions work
 }
 
 function policeChoice(choice, officerName, officerType) {
@@ -6841,11 +6847,16 @@ function handleMuggingEvent() {
 }
 
 function showMuggerEncounterModal(mugger) {
-    const modal = document.getElementById('mobileModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
+    // Ensure any existing modal is closed first
+    closeMobileModal();
     
-    modalTitle.textContent = '💰 MUGGER ENCOUNTER';
+    // Small delay to ensure modal is closed before opening mugger encounter
+    setTimeout(() => {
+        const modal = document.getElementById('mobileModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        modalTitle.textContent = '💰 MUGGER ENCOUNTER';
     
     const hasWeapon = gameState.player.weapon;
     const cashAmount = gameState.player.cash;
@@ -6879,8 +6890,9 @@ function showMuggerEncounterModal(mugger) {
         </div>
     `;
     
-    modalBody.innerHTML = encounterHtml;
-    showMobileModalWithUtility(modal);
+        modalBody.innerHTML = encounterHtml;
+        showMobileModalWithUtility(modal);
+    }, 100); // 100ms delay to ensure modal transitions work
 }
 
 function muggerChoice(choice, muggerName, muggerType, demandAmount) {
