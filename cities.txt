@@ -1,0 +1,11 @@
+New York@U.S.A.@Bronx@Queens@Central Park@Manhattan@Coney Island@Brooklyn@Subway@John F. Kennedy
+London@U.K.@Camden@Kensington@Hyde Park@East End@Canary Wharf@Richmond@Tube@Heathrow
+Los Angeles@U.S.A.@South Central@Hollywood@Pasadena@Beverly Hills@Anaheim@Glendale@Metro@L.A.X.
+Derby@U.K.@Allenton@Alvaston@Normanton@Shelton Lock@Oakwood@Chellaston@Bus@East Midlands
+Sydney@Australia@Kings Cross@Darling Harbour@North Sydney@Bondi Beach@Bennelong Point@Manly@Bus@Kingsford Smith
+San Francisco@U.S.A.@China Town@Nob Hill@The Mission@The Haight@SoMa@Presidio@Metro@San Francisco Intl
+Paris@France@Montmartre@Clichy@Bois de Boulogne@Champs-Elysees@Marais@Quartier Latin@Metro@Charles De Gaulle
+Chicago@U.S.A.@Navy Pier@Lincoln Park@Cabrini Green@Hyde Park@Bucktown@Loop@CTA@O'Hare International
+Toronto@Canada@Parkdale@Jane / Finch@Downtown@Scarborough@North York@The Beaches@TTC@Lester B. Pearson International
+Johannesburg@South Africa@Hillbrow@Malvern@Yeoville@Berea@Mellville@Marshalltown@Minibus taxi@Johannesburg International
+Montreal@Canada@N.D.G.@Dorchester Square@Old Port@Mount Royal@Berri Park@Cote-des-Neiges@Metro@Dorval International

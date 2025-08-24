@@ -2180,15 +2180,14 @@ body.modal-open {
     background-color: var(--bg-color);
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    width: 95%;
-    max-width: 1000px;
-    max-height: 90vh;
+    width: 98%;
+    max-width: 1600px;
+    max-height: 95vh;
     overflow-y: auto;
     position: relative;
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
-    -webkit-overflow-scrolling: touch;
 }
 
 /* Enhanced mobile item touch targets */

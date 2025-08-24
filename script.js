@@ -1226,12 +1226,17 @@ let gameState = {
         initialDebt: GAME_CONSTANTS.PLAYER.STARTING_DEBT // Starting debt amount
     },
     cities: {
-        'New York': ['JFK Airport', 'Brooklyn Docks', 'Times Square', 'Central Park'],
-        'Los Angeles': ['LAX Airport', 'Hollywood Hills', 'Venice Beach', 'Compton'],
-        'Chicago': ['O Hare Airport', 'The Loop', 'Wicker Park', 'South Side'],
-        'Miami': ['Miami Airport', 'South Beach', 'Little Havana', 'Biscayne Bay'],
-        'Detroit': ['Detroit Airport', 'Corktown', 'Greektown', 'Belle Isle'],
-        'Boston': ['Logan Airport', 'Back Bay', 'North End', 'Fenway']
+        'New York': ['John F. Kennedy', 'Bronx', 'Queens', 'Central Park', 'Manhattan', 'Coney Island', 'Brooklyn', 'Subway'],
+        'London': ['Heathrow', 'Camden', 'Kensington', 'Hyde Park', 'East End', 'Canary Wharf', 'Richmond', 'Tube'],
+        'Los Angeles': ['L.A.X.', 'South Central', 'Hollywood', 'Pasadena', 'Beverly Hills', 'Anaheim', 'Glendale', 'Metro'],
+        'Derby': ['East Midlands', 'Allenton', 'Alvaston', 'Normanton', 'Shelton Lock', 'Oakwood', 'Chellaston', 'Bus'],
+        'Sydney': ['Kingsford Smith', 'Kings Cross', 'Darling Harbour', 'North Sydney', 'Bondi Beach', 'Bennelong Point', 'Manly', 'Bus'],
+        'San Francisco': ['San Francisco Intl', 'China Town', 'Nob Hill', 'The Mission', 'The Haight', 'SoMa', 'Presidio', 'Metro'],
+        'Paris': ['Charles De Gaulle', 'Montmartre', 'Clichy', 'Bois de Boulogne', 'Champs-Elysees', 'Marais', 'Quartier Latin', 'Metro'],
+        'Chicago': ['O\'Hare International', 'Navy Pier', 'Lincoln Park', 'Cabrini Green', 'Hyde Park', 'Bucktown', 'Loop', 'CTA'],
+        'Toronto': ['Lester B. Pearson International', 'Parkdale', 'Jane / Finch', 'Downtown', 'Scarborough', 'North York', 'The Beaches', 'TTC'],
+        'Johannesburg': ['Johannesburg International', 'Hillbrow', 'Malvern', 'Yeoville', 'Berea', 'Mellville', 'Marshalltown', 'Minibus taxi'],
+        'Montreal': ['Dorval International', 'N.D.G.', 'Dorchester Square', 'Old Port', 'Mount Royal', 'Berri Park', 'Cote-des-Neiges', 'Metro']
     },
     availableLocations: [],
     currentAvailableDestinations: [],
@@ -7413,8 +7418,9 @@ function handleOldLadyEvent() {
 
 // Guaranteed price surge events for high-value drugs
 function handleGuaranteedCocaineSurge() {
-    const multiplier = 8.0 + Math.random() * 4.0; // 8x to 12x insane surge
-    gameState.currentPrices['Cocaine'] = Math.floor(gameState.currentPrices['Cocaine'] * multiplier);
+    // Set to authentic Beermat levels - 150k+ per unit
+    const basePrice = gameState.currentPrices['Cocaine'] || 15000;
+    gameState.currentPrices['Cocaine'] = Math.floor(150000 + Math.random() * 50000); // 150k-200k authentic surge
     
     const surgeReasons = [
         'DEA Operation "White Storm" eliminates major supplier - cocaine prices explode!',
@@ -7432,8 +7438,9 @@ function handleGuaranteedCocaineSurge() {
 }
 
 function handleGuaranteedHeroinSurge() {
-    const multiplier = 6.0 + Math.random() * 6.0; // 6x to 12x insane surge
-    gameState.currentPrices['Heroin'] = Math.floor(gameState.currentPrices['Heroin'] * multiplier);
+    // Set to authentic Beermat levels - 150k+ per unit
+    const basePrice = gameState.currentPrices['Heroin'] || 5000;
+    gameState.currentPrices['Heroin'] = Math.floor(150000 + Math.random() * 50000); // 150k-200k authentic surge
     
     const surgeReasons = [
         'Operation "Golden Triangle" dismantles heroin network - prices soar!',
@@ -7801,6 +7808,15 @@ function advanceDayAndApplyInterest() {
 // Centralized game end checking function
 function checkGameEnd() {
     console.log(`Checking game end: Day ${gameState.player.day} vs MAX_DAYS ${GAME_CONSTANTS.PLAYER.MAX_DAYS}`);
+    
+    // Add last day warning on Day 29
+    if (gameState.player.day === 29 && !gameState.lastDayWarningShown) {
+        addMessage('🚨 LAST DAY WARNING: Tomorrow is your final day! Unload your stash and settle your debts!', 'warning');
+        playSound('lastday');
+        gameState.lastDayWarningShown = true;
+    }
+    
+    // Game ends after Day 30 (when day becomes 31)
     if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
         console.log('Game should end - calling endGame()');
         endGame();
