@@ -4104,36 +4104,51 @@ function showDrugChart(drugName) {
                 <span class="stat-low">Low: $${minPrice.toLocaleString()}</span>
             </div>
             
-            <div class="price-chart">
-                <div class="chart-axis-y">
-                    <div class="y-label">$${maxPrice.toLocaleString()}</div>
-                    <div class="y-label">$${Math.round((maxPrice + minPrice) / 2).toLocaleString()}</div>
-                    <div class="y-label">$${minPrice.toLocaleString()}</div>
-                </div>
-                
-                <div class="chart-graph">`;
+            <div class="line-chart">
+                <div class="chart-container">
+                    <svg class="price-line-chart" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Grid lines -->
+                        <defs>
+                            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,170,255,0.2)" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        
+                        <!-- Price line -->`;
     
-    // Create visual bars for each day
+    // Create SVG line graph
+    let pathData = '';
     history.forEach((entry, index) => {
-        const barHeight = Math.max(10, ((entry.price - minPrice) / priceRange) * 100);
+        const x = 50 + (index * (300 / Math.max(1, history.length - 1)));
+        const y = 180 - ((entry.price - minPrice) / priceRange) * 140;
+        pathData += index === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+    });
+    
+    chartHtml += `
+                        <path d="${pathData}" fill="none" stroke="#ff0080" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- Data points -->`;
+    
+    history.forEach((entry, index) => {
+        const x = 50 + (index * (300 / Math.max(1, history.length - 1)));
+        const y = 180 - ((entry.price - minPrice) / priceRange) * 140;
         const [city] = entry.location.split(' - ');
         const cityAbbr = city.substring(0, 3).toUpperCase();
         
         chartHtml += `
-            <div class="chart-bar-container">
-                <div class="chart-bar" style="height: ${barHeight}%"></div>
-                <div class="bar-label">D${entry.day}</div>
-                <div class="bar-price">$${entry.price.toLocaleString()}</div>
-                <div class="bar-location">${cityAbbr}</div>
-            </div>
+                        <circle cx="${x}" cy="${y}" r="4" fill="#00d4ff" stroke="#ff0080" stroke-width="2"/>
+                        <text x="${x}" y="195" text-anchor="middle" fill="#00d4ff" font-size="10">D${entry.day}</text>
+                        <text x="${x}" y="15" text-anchor="middle" fill="#ffffff" font-size="9">$${entry.price.toLocaleString()}</text>
         `;
     });
     
     chartHtml += `
-                </div>
-                
-                <div class="chart-axis-x">
-                    <div class="x-label">Days</div>
+                        <!-- Y-axis labels -->
+                        <text x="10" y="25" fill="#00d4ff" font-size="10">$${maxPrice.toLocaleString()}</text>
+                        <text x="10" y="105" fill="#00d4ff" font-size="10">$${Math.round((maxPrice + minPrice) / 2).toLocaleString()}</text>
+                        <text x="10" y="185" fill="#00d4ff" font-size="10">$${minPrice.toLocaleString()}</text>
+                    </svg>
                 </div>
             </div>
         </div>
@@ -7448,7 +7463,10 @@ function playSound(soundName) {
 
 // UI Functions
 function addMessage(message, type = 'normal') {
-    const gameOutput = document.getElementById('gameOutput');
+    if (!domCache.gameOutput) domCache.gameOutput = document.getElementById('gameOutput');
+    const gameOutput = domCache.gameOutput;
+    if (!gameOutput) return;
+    
     const messageDiv = document.createElement('div');
     
     messageDiv.innerHTML = message;
@@ -7637,7 +7655,7 @@ function advanceDayAndApplyInterest() {
 
 // Centralized game end checking function
 function checkGameEnd() {
-    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+    if (gameState.player.day >= GAME_CONSTANTS.PLAYER.MAX_DAYS) {
         endGame();
         return true;
     }

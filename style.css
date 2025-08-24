@@ -3757,3 +3757,22 @@ textarea:focus {
     font-style: italic;
     opacity: 0.7;
 }
+
+/* Line Chart Styling */
+.line-chart {
+    margin-top: 15px;
+}
+
+.chart-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.price-line-chart {
+    width: 100%;
+    height: 200px;
+    background: rgba(0, 20, 40, 0.5);
+    border-radius: 4px;
+}
