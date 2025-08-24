@@ -20,7 +20,7 @@ You are a drug dealer with 30 days to make as much money as possible. Start with
 - **Weapons Shop**: 6 unique weapons from Pea Shooter to the legendary Rubber Chicken
 - **Clothes Shop**: 5 different coats to expand your carrying capacity (120-200 units)
 - **Banking System**: Manage your money and pay off debts with loan sharks
-- **Travel System**: Local travel (free) and intercity flights ($20 + 1 day)
+- **Travel System**: Local and intercity travel between 6 cities and 24 locations
 - **Random Events**: Police raids, market surges, crashes, muggings, and more
 - **Combat System**: Fight cops and muggers with weapons or psychological warfare
 - **Mobile Responsive**: Play on desktop or mobile devices

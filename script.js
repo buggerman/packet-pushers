@@ -671,7 +671,7 @@ function showClickableTravelInterface() {
                     name: city,
                     fullName: `${city} - ${airportDistrict}`,
                     type: 'intercity',
-                    cost: '$20',
+                    cost: '',
                     services: getLocationServices(city, airportDistrict)
                 });
             }
@@ -690,11 +690,11 @@ function showClickableTravelInterface() {
             </div>
     `;
     
-    // Local travel section
+    // 🚶 section
     if (localDestinations.length > 0) {
         travelHtml += `
             <div class="travel-section">
-                <h4 class="section-title">🚶 Local Travel</h4>
+                <h4 class="section-title">🚶 Local</h4>
                 <div class="desktop-actions">
         `;
         
@@ -725,7 +725,7 @@ function showClickableTravelInterface() {
     if (intercityDestinations.length > 0) {
         travelHtml += `
             <div class="travel-section">
-                <h4 class="section-title">✈️ City Travel ($20)</h4>
+                <h4 class="section-title">✈️ Cities</h4>
                 <div class="desktop-actions">
         `;
         
@@ -817,9 +817,9 @@ function travelToDirect(fullLocationName) {
     // Update location services
     updateLocationServiceButtons();
     
-    // Random events
+    // Random events - increased from 0.3 to 0.6 for more frequent encounters
     let eventResult = false;
-    if (Math.random() < 0.3) {
+    if (Math.random() < 0.6) {
         eventResult = triggerRandomEvent();
     }
     
@@ -835,7 +835,7 @@ function travelToDirect(fullLocationName) {
         // Inter-city travel with no event
         playSound('airport');
     } else {
-        // Local travel with no event
+        // 🚶 with no event
         playSound('slidein');
     }
     
@@ -1494,7 +1494,7 @@ function showHelp() {
 <strong>PACKET PUSHERS COMMANDS:</strong><br>
 • <strong>buy [drug] [amount]</strong> - Buy drugs (e.g., "buy cocaine 5", "buy specialk 3")<br>
 • <strong>sell [drug] [amount]</strong> - Sell drugs (e.g., "sell weed 10", "sell molly 2")<br>
-• <strong>travel [city]</strong> - Travel to a city (costs $${GAME_CONSTANTS.TRAVEL.INTERCITY_COST} and 1 day)<br>
+• <strong>travel [city]</strong> - Travel to a city (free travel, takes 1 day)<br>
 • <strong>pay [amount]</strong> - Pay debt to loan shark<br>
 • <strong>payoff</strong> - Pay off remaining debt completely<br>
 • <strong>debt</strong> - Show debt management interface<br>
@@ -1894,7 +1894,7 @@ function handleTravel(parts) {
                            );
     
     if (isLocalDistrict) {
-        // Local travel within city
+        // 🚶 within city
         const targetDistrict = gameState.cities[currentCity].find(district => 
             district.toLowerCase() === destination.toLowerCase()
         );
@@ -1917,7 +1917,7 @@ function handleTravel(parts) {
         
         addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}. Day ${gameState.player.day}.`, 'success');
         addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
-        playSound('slidein'); // Local travel sound
+        playSound('slidein'); // 🚶 sound
         
     } else {
         // Inter-city travel
@@ -3645,7 +3645,7 @@ function showCities() {
     const isAtAirport = currentDistrict.toLowerCase().includes('airport');
     
     if (isAtAirport) {
-        citiesText += '<br><strong>✈️ Other Cities ($20 flight + land at airport):</strong><br>';
+        citiesText += '<br><strong>✈️ Cities:</strong><br>';
         
         // Show other cities
         Object.keys(gameState.cities).forEach(city => {
@@ -3798,7 +3798,7 @@ function showTravelModal() {
                     name: city,
                     fullName: `${city} - ${airportDistrict}`,
                     type: 'intercity',
-                    cost: '$20',
+                    cost: '',
                     services: getLocationServices(city, airportDistrict)
                 });
             }
@@ -3818,9 +3818,9 @@ function showTravelModal() {
             <div class="mobile-item-list">
     `;
     
-    // Local travel section
+    // 🚶 section
     if (localDestinations.length > 0) {
-        travelHtml += `<div class="panel-section-heading">🚶 Local Travel</div>`;
+        travelHtml += `<div class="panel-section-heading">🚶 Local</div>`;
         
         localDestinations.forEach(dest => {
             const serviceIcons = dest.services.map(s => {
@@ -3836,7 +3836,7 @@ function showTravelModal() {
                 <div class="mobile-item travel-option" data-destination="${dest.fullName}">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${dest.name} ${serviceIcons}</div>
-                        <div class="mobile-item-price">Local travel</div>
+                        <div class="mobile-item-price"></div>
                     </div>
                 </div>
             `;
@@ -3845,7 +3845,7 @@ function showTravelModal() {
     
     // Intercity travel section
     if (intercityDestinations.length > 0) {
-        travelHtml += `<div class="panel-section-heading">✈️ City Travel ($20)</div>`;
+        travelHtml += `<div class="panel-section-heading">✈️ Cities</div>`;
         
         intercityDestinations.forEach(dest => {
             const serviceIcons = dest.services.map(s => {
@@ -3861,7 +3861,7 @@ function showTravelModal() {
                 <div class="mobile-item travel-option" data-destination="${dest.fullName}">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${dest.name} ${serviceIcons}</div>
-                        <div class="mobile-item-price">$20 Travel Cost</div>
+                        <div class="mobile-item-price"></div>
                     </div>
                 </div>
             `;
@@ -4506,7 +4506,7 @@ function showCityOptions() {
         // Show inter-city destinations
         if (intercityDestinations.length > 0) {
             optionsHtml += '</div>'; // Close current cities-list
-            optionsHtml += '<div style="margin-top: 15px; margin-bottom: 10px;"><strong>✈️ Inter-City ($20):</strong></div>';
+            optionsHtml += '<div style="margin-top: 15px; margin-bottom: 10px;"><strong>✈️ Cities:</strong></div>';
             optionsHtml += '<div class="cities-list">'; // Start new cities-list for inter-city
             intercityDestinations.forEach(dest => {
                 // Get service icons for this destination (airport)
@@ -4708,9 +4708,9 @@ function showMobileTravelModal() {
                 <div class="mobile-item" onclick="selectMobileCity('${fullLocation}')">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">${district}</div>
-                        <div class="mobile-item-price">Local travel</div>
+                        <div class="mobile-item-price"></div>
                     </div>
-                    <div class="mobile-item-action">🚶 WALK</div>
+                    <div class="mobile-item-action">WALK</div>
                 </div>
             `;
         }
@@ -4726,9 +4726,9 @@ function showMobileTravelModal() {
                     <div class="mobile-item" onclick="selectMobileCity('${fullLocation}')">
                         <div class="mobile-item-info">
                             <div class="mobile-item-name">${city}</div>
-                            <div class="mobile-item-price">$20 + 1 day</div>
+                            <div class="mobile-item-price"></div>
                         </div>
-                        <div class="mobile-item-action">✈️ FLY</div>
+                        <div class="mobile-item-action">FLY</div>
                     </div>
                 `;
             }
@@ -5915,22 +5915,22 @@ function getCharacterDialogue(character, situation) {
 function triggerRandomEvent(headlinesSoundPlayed = false) {
     // All events in weighted random system (old lady gets high priority through weight)
     const events = [
-        { type: 'old_lady', weight: 20 }, // High weight for frequent old lady encounters
-        { type: 'police', weight: 10 },
-        { type: 'mugging', weight: 8 },
+        { type: 'old_lady', weight: 22 }, // High weight for frequent old lady encounters  
+        { type: 'police', weight: 18 }, // Increased from 10 to 18 for more police encounters
+        { type: 'mugging', weight: 15 }, // Increased from 8 to 15 for more mugging encounters
         { type: 'market_surge', weight: 15 },
         { type: 'market_crash', weight: 15 },
         { type: 'drug_bust', weight: 12 },
         { type: 'police_raid', weight: 8 },
         { type: 'supply_shortage', weight: 10 },
         { type: 'addicts', weight: 8 }, // Authentic Dope Wars addicts event
-        { type: 'police_dog', weight: 8 },
+        { type: 'police_dog', weight: 12 }, // Increased from 8 to 12 for more police dog encounters
         { type: 'loan_shark', weight: 8 },
-        { type: 'find_cash', weight: 12 },
+        { type: 'find_cash', weight: 10 }, // Decreased from 12 to 10
         { type: 'health_issue', weight: 4 },
         { type: 'dealer_encounter', weight: 6 },
         { type: 'informant_tip', weight: 5 },
-        { type: 'nothing', weight: 4 }
+        { type: 'nothing', weight: 2 } // Decreased from 4 to 2 for fewer empty events
     ];
     
     const totalWeight = events.reduce((sum, event) => sum + event.weight, 0);
@@ -7930,9 +7930,9 @@ function testTravelMechanics() {
     gameState.player.location = 'New York - Brooklyn Docks';
     travelToDirect('New York - Manhattan');
     
-    console.log(`Local travel: Day ${initialDay} -> ${gameState.player.day}, Cash ${initialCash} -> ${gameState.player.cash}`);
+    console.log(`🚶: Day ${initialDay} -> ${gameState.player.day}, Cash ${initialCash} -> ${gameState.player.cash}`);
     console.log(gameState.player.day === initialDay && gameState.player.cash === initialCash ? 
-        '✅ Local travel is free and instant' : '❌ Local travel should be free and instant');
+        '✅ 🚶 is free and instant' : '❌ 🚶 should be free and instant');
     
     // Restore and test intercity travel
     gameState = JSON.parse(JSON.stringify(originalState));
@@ -8027,22 +8027,22 @@ function testRandomEvents() {
 function testSingleRandomEvent() {
     // Replicate the triggerRandomEvent logic to identify event types
     const events = [
-        { type: 'old_lady', weight: 20 }, // High weight for frequent old lady encounters
-        { type: 'police', weight: 10 },
-        { type: 'mugging', weight: 8 },
+        { type: 'old_lady', weight: 22 }, // High weight for frequent old lady encounters  
+        { type: 'police', weight: 18 }, // Increased from 10 to 18 for more police encounters
+        { type: 'mugging', weight: 15 }, // Increased from 8 to 15 for more mugging encounters
         { type: 'market_surge', weight: 15 },
         { type: 'market_crash', weight: 15 },
         { type: 'drug_bust', weight: 12 },
         { type: 'police_raid', weight: 8 },
         { type: 'supply_shortage', weight: 10 },
-        { type: 'addicts', weight: 8 },
-        { type: 'police_dog', weight: 8 },
+        { type: 'addicts', weight: 8 }, // Authentic Dope Wars addicts event
+        { type: 'police_dog', weight: 12 }, // Increased from 8 to 12 for more police dog encounters
         { type: 'loan_shark', weight: 8 },
-        { type: 'find_cash', weight: 12 },
+        { type: 'find_cash', weight: 10 }, // Decreased from 12 to 10
         { type: 'health_issue', weight: 4 },
         { type: 'dealer_encounter', weight: 6 },
         { type: 'informant_tip', weight: 5 },
-        { type: 'nothing', weight: 4 }
+        { type: 'nothing', weight: 2 } // Decreased from 4 to 2 for fewer empty events
     ];
     
     const totalWeight = events.reduce((sum, event) => sum + event.weight, 0);
