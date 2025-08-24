@@ -6519,21 +6519,6 @@ function policeChoice(choice, officerName, officerType) {
 }
 
 // Combat interface for player choices
-    
-    // Special handling for high-value drugs
-    if (hasCocaine || hasHeroin) {
-        addMessage(`${officer.name}: "We've been watching you. You're carrying serious contraband!"`, 'event');
-        // Higher chance of arrest with valuable drugs
-        if (Math.random() < 0.7) {
-            addMessage('The officer calls for backup! This is serious!', 'error');
-            playSound('siren');
-        }
-    }
-    
-    // Old police event code removed - using modal system now
-}
-
-// Combat interface for player choices
 function showCombatInterface(opponent, opponentType) {
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
@@ -6954,33 +6939,6 @@ function muggerChoice(choice, muggerName, muggerType, demandAmount) {
             break;
     }
     updateDisplay();
-}
-    
-    if (mugger.type === 'aggressive') {
-        addMessage(`${mugger.name}: "Hand over your cash or else!"`, 'event');
-        addMessage(`You lost $${cashLoss} to the mugger.`, 'error');
-        playSound('hrdpunch'); // Getting mugged sound
-        // More likely to lose inventory
-        if (Math.random() < 0.5) {
-            loseRandomInventory(0.3);
-        }
-    } else if (mugger.type === 'smooth') {
-        addMessage(`${mugger.name}: "Nothing personal, just business."`, 'event');
-        addMessage(`You lost $${cashLoss} in a surprisingly polite mugging.`, 'error');
-        playSound('youhit'); // Standard hit sound
-        // Less likely to lose inventory
-        if (Math.random() < 0.2) {
-            loseRandomInventory(0.1);
-        }
-    } else {
-        addMessage(`${mugger.name}: "You shouldn't be walking around here alone."`, 'event');
-        addMessage(`You lost $${cashLoss} to the mugger.`, 'error');
-        playSound('youhit');
-        // Standard chance to lose inventory
-        if (Math.random() < 0.3) {
-            loseRandomInventory(0.2);
-        }
-    }
 }
 
 // Mugger combat system
