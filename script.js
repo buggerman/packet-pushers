@@ -7527,42 +7527,60 @@ function handleInformantTip() {
 function handleOldLadyEvent() {
     addMessage(`👵 An old lady in tattered clothes approaches you with knowing eyes.`, 'event');
     
+    // Check if guaranteed surges are coming and give specific predictions
+    const currentDay = gameState.player.day;
+    const cocaineDay = gameState.guaranteedSurges.cocaine.day;
+    const heroinDay = gameState.guaranteedSurges.heroin.day;
+    
+    let prediction = null;
+    
+    // Give specific predictions about guaranteed surges
+    if (!gameState.guaranteedSurges.cocaine.triggered && currentDay <= cocaineDay - 1) {
+        prediction = {
+            drug: 'cocaine',
+            day: cocaineDay,
+            message: `"Listen closely, child... the white powder's price will explode on day ${cocaineDay}. Stock up before then if you can afford it."`
+        };
+    } else if (!gameState.guaranteedSurges.heroin.triggered && currentDay <= heroinDay - 1) {
+        prediction = {
+            drug: 'heroin', 
+            day: heroinDay,
+            message: `"I see the needle's future... day ${heroinDay} will bring fortune to those who hold heroin. Mark my words."`
+        };
+    }
+    
+    if (prediction) {
+        addMessage(`👵 ${prediction.message}`, 'event');
+        addMessage(`📈 The old lady's eyes gleam with certainty...`, 'event');
+        console.log(`Old lady predicted ${prediction.drug} surge on day ${prediction.day}`);
+    } else {
+        // Fallback cryptic hints when no major surges coming
+        const crypticHints = [
+            "\"The streets whisper of changes coming... but I see only shadows now.\"",
+            "\"Once I knew all the secrets... but time has clouded my vision.\"", 
+            "\"The winds of change blow... but which direction, I cannot say.\"",
+            "\"Market forces move like tides... sometimes high, sometimes low.\"",
+            "\"Trust your instincts, young dealer... they serve you better than an old woman's words.\""
+        ];
+        
+        const hint = crypticHints[Math.floor(Math.random() * crypticHints.length)];
+        addMessage(`👵 ${hint}`, 'event');
+        
+        // Sometimes give small cash bonus
+        if (Math.random() < 0.3) {
+            const cashBonus = 20 + Math.floor(Math.random() * 50);
+            gameState.player.cash += cashBonus;
+            addMessage(`The old lady presses $${cashBonus} into your hand and vanishes.`, 'success');
+        }
+    }
+    
     const hints = [
-        // Market hints (cryptic predictions about price movements)
+        // Keep original structure for compatibility
         {
             type: 'market_hint',
-            messages: [
-                "\"The white powder flows like snow... but winter brings scarcity,\" she cackles.",
-                "\"The needle's song grows loud... when the music stops, prices drop,\" she whispers.",
-                "\"Green leaves wither when badges shine bright... wise ones sell before the storm,\" she mutters.",
-                "\"Crystal dreams shatter easily... when they do, the shards cost more,\" she croaks.",
-                "\"The brown earth feeds many... but drought comes to the hungry,\" she says mysteriously.",
-                "\"Little pills dance in circles... but the dance floor empties when lights flash,\" she warns.",
-                "\"Bitter smoke clears minds... yet clearer skies bring higher prices,\" she chuckles.",
-                "\"Sweet rock melts fast... when heat comes, rocks become rare,\" she predicts."
-            ],
+            messages: ["Prediction given above"],
             effects: () => {
-                // Cryptic but accurate market prediction
-                const drug = getRandomDrug();
-                if (drug && Math.random() < 0.7) { // 70% chance the hint is accurate
-                    const direction = Math.random() < 0.5 ? 'up' : 'down';
-                    const multiplier = direction === 'up' ? (1.4 + Math.random() * 0.8) : (0.4 + Math.random() * 0.4);
-                    
-                    // Schedule the price change for 1-2 days later
-                    const daysAhead = 1 + Math.floor(Math.random() * 2);
-                    const targetDay = gameState.player.day + daysAhead;
-                    
-                    if (!gameState.scheduledEvents) gameState.scheduledEvents = [];
-                    gameState.scheduledEvents.push({
-                        day: targetDay,
-                        type: 'price_change',
-                        drug: drug.name,
-                        multiplier: multiplier,
-                        direction: direction
-                    });
-                    
-                    console.log(`Old lady scheduled ${drug.name} to ${direction === 'up' ? 'surge' : 'crash'} on day ${targetDay}`);
-                }
+                // No additional effects needed - predictions are explicit now
             }
         },
         // Police raid warnings (cryptic warnings about busts)
