@@ -805,9 +805,9 @@ function travelToDirect(fullLocationName) {
     checkGuaranteedSurges();
     
     if (isIntercity) {
-        addMessage(`✈️ Traveled to ${fullLocationName} for free! Day ${gameState.player.day}.`, 'success');
+        addMessage(`✈️ ${fullLocationName}`, 'success');
     } else {
-        addMessage(`🚶 Traveled to ${fullLocationName}. Day ${gameState.player.day}.`, 'success');
+        addMessage(`🚶 ${fullLocationName}`, 'success');
     }
     addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
     
@@ -845,21 +845,14 @@ function travelToDirect(fullLocationName) {
 }
 
 function exitTravelMode() {
-    navigationState.isNavigating = false;
-    navigationState.currentMode = 'normal';
-    
     // Restore normal game output
     const gameOutput = document.getElementById('gameOutput');
     gameOutput.innerHTML = `
-        <div class="welcome-message">
-            <p>Welcome to Packet Pushers!</p>
-            <p>You owe the loan shark $${gameState.player.debt.toLocaleString()} with daily interest.</p>
-            <p>You have ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left.</p>
-            <p>Use the clickable interface to buy, sell, and manage your operations.</p>
+        <div class="status-summary">
+            <div class="debt-warning">💀 Debt: $${gameState.player.debt.toLocaleString()}</div>
+            <div class="time-remaining">⏰ ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left</div>
         </div>
     `;
-    
-    // Remove useless message
 }
 
 // Combat system consolidation class
@@ -1309,50 +1302,84 @@ let gameState = {
     gameOver: false
 };
 
-// Navigation state
-let navigationState = {
+// Performance optimization - Cache DOM elements
+const domCache = {
+    playerCash: null,
+    playerBank: null,
+    playerNetWorth: null,
+    currentCity: null,
+    currentLocation: null,
+    inventorySpace: null,
+    marketPrices: null,
+    inventoryList: null,
+    gameOutput: null
+};
+
+// Initialize DOM cache
+function initDOMCache() {
+    domCache.playerCash = document.getElementById('playerCash');
+    domCache.playerBank = document.getElementById('playerBank');
+    domCache.playerNetWorth = document.getElementById('playerNetWorth');
+    domCache.currentCity = document.getElementById('currentCity');
+    domCache.currentLocation = document.getElementById('currentLocation');
+    domCache.inventorySpace = document.getElementById('inventorySpace');
+    domCache.marketPrices = document.getElementById('marketPrices');
+    domCache.inventoryList = document.getElementById('inventoryList');
+    domCache.gameOutput = document.getElementById('gameOutput');
+}
+
+// Simplified navigation - no keyboard navigation  
+let navigationState = { 
+    currentMode: 'normal', 
     isNavigating: false,
-    currentMode: 'normal', // 'normal', 'market', 'inventory', 'travel', 'quantity', 'charts', 'history'
     selectedIndex: 0,
     selectedItem: null,
     quantity: 1,
-    actionType: null // 'buy', 'sell', 'travel', 'charts', 'history'
-};
+    actionType: null
+}; // Compatibility stub
 
 // Game characters with fun spin-off names
 const gameCharacters = {
     // Law enforcement
     officers: [
-        { name: 'Officer Hardnose', emoji: '👮', type: 'tough' },
-        { name: 'Deputy Donut', emoji: '🍩', type: 'corrupt' },
-        { name: 'Detective Persistent', emoji: '🔍', type: 'smart' },
-        { name: 'Sergeant Brawny', emoji: '💪', type: 'strong' },
-        { name: 'Captain Straightlace', emoji: '🎖️', type: 'by_the_book' }
+        { name: 'Officer Hardass', emoji: '👮', type: 'tough' }, // The legendary original Dope Wars cop
+        { name: 'Deputy O\'Leary', emoji: '🍩', type: 'corrupt' },
+        { name: 'Detective Rock', emoji: '🔍', type: 'smart' },
+        { name: 'Sergeant Steele', emoji: '💪', type: 'strong' },
+        { name: 'Chief Murphy', emoji: '🎖️', type: 'by_the_book' }
     ],
     
-    // Criminals and dealers
+    // Street dealers and criminals (authentic Dope Wars underworld)
     dealers: [
         { name: 'Slick Eddie', emoji: '🕴️', type: 'smooth' },
-        { name: 'Big Tony', emoji: '🤵', type: 'intimidating' },
+        { name: 'The Pusher', emoji: '👨‍💼', type: 'intimidating' },
         { name: 'Sneaky Pete', emoji: '🥷', type: 'shifty' },
-        { name: 'Mad Dog Mike', emoji: '🐕', type: 'aggressive' },
-        { name: 'Whisper Wilson', emoji: '🤫', type: 'secretive' }
+        { name: 'Mad Dog Murphy', emoji: '🐕', type: 'aggressive' },
+        { name: 'Fast Tony', emoji: '🏃', type: 'quick' },
+        { name: 'Crazy Joe', emoji: '🤪', type: 'unpredictable' },
+        { name: 'Sticky Fingers Sam', emoji: '👋', type: 'thief' },
+        { name: 'Two-Bit Charlie', emoji: '💵', type: 'small_time' },
+        { name: 'Big Mike', emoji: '💪', type: 'muscle' }
     ],
     
     // Street characters
     informants: [
-        { name: 'Chatty Charlie', emoji: '🗣️', type: 'talkative' },
-        { name: 'Nervous Nelly', emoji: '😰', type: 'anxious' },
-        { name: 'Wise Willie', emoji: '🧠', type: 'knowledgeable' },
-        { name: 'Shifty Sam', emoji: '👁️', type: 'suspicious' }
+        { name: 'Stoolie Steve', emoji: '🗣️', type: 'talkative' },
+        { name: 'Nervous Nick', emoji: '😰', type: 'anxious' },
+        { name: 'The Informant', emoji: '🧠', type: 'knowledgeable' },
+        { name: 'Eyes McGee', emoji: '👁️', type: 'watchful' }
     ],
     
-    // Loan sharks and money people
+    // Loan sharks (authentic Dope Wars financial underworld)
     loanSharks: [
-        { name: 'Vinny "The Vise"', emoji: '🔧', type: 'pressure' },
-        { name: 'Bones McGillicuddy', emoji: '💀', type: 'threatening' },
-        { name: 'Sal "Interest" Soprano', emoji: '💰', type: 'greedy' },
-        { name: 'Tommy "Two-Percent"', emoji: '📈', type: 'calculating' }
+        { name: 'Dishonest Harry', emoji: '🎩', type: 'primary', interestRate: 0.05, description: 'Your first loan shark, relatively reasonable terms' },
+        { name: 'Loansharky Pete', emoji: '🦈', type: 'standard', interestRate: 0.07, description: 'Slightly higher rates but fair collections' },
+        { name: 'The Shark', emoji: '💀', type: 'dangerous', interestRate: 0.10, description: 'Higher rates, violent collection methods' },
+        { name: 'Bone Crusher Tony', emoji: '🔨', type: 'violent', interestRate: 0.12, description: 'Breaks bones first, asks questions later' },
+        { name: 'Fast Eddie', emoji: '⚡', type: 'quick', interestRate: 0.08, description: 'Quick loans, quick collections' },
+        { name: 'Big Sal', emoji: '👔', type: 'boss', interestRate: 0.15, description: 'The boss of all loan sharks - highest rates' },
+        { name: 'Interest Izzy', emoji: '💰', type: 'calculating', interestRate: 0.09, description: 'Calculates every penny owed' },
+        { name: 'Vinny the Vise', emoji: '🔧', type: 'pressure', interestRate: 0.11, description: 'Squeezes until you pay' }
     ],
     
     // Doctors and medical
@@ -1467,11 +1494,9 @@ function initGame() {
     
     // Command input removed - using clickable interface only
     
-    // Add keyboard event listeners
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    // Keyboard navigation removed - touch/mouse only
     
-    addMessage('Game initialized. Type "help" for commands.', 'success');
+    // Remove unnecessary initialization message
     console.log('After game init, player cash:', gameState.player.cash);
 }
 
@@ -1484,7 +1509,7 @@ function handleInput() {
 // Command processing disabled - using clickable interface only
 function processCommand() {
     // Disabled for clickable interface
-    addMessage('Command interface disabled. Use the clickable controls instead.', 'info');
+    addMessage('Use buttons to play', 'info');
 }
 
 // Help system
@@ -1915,7 +1940,7 @@ function handleTravel(parts) {
             return;
         }
         
-        addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}. Day ${gameState.player.day}.`, 'success');
+        addMessage(`🚶 ${targetDistrict}`, 'success');
         addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
         playSound('slidein'); // 🚶 sound
         
@@ -2006,7 +2031,7 @@ function handlePayDebt(parts) {
         debtAfter: gameState.player.debt
     });
     
-    addMessage(`💵 Paid $${actualPayment} to the loan shark!`, 'success');
+    addMessage(`💵 Paid $${actualPayment} to Dishonest Harry!`, 'success');
     addMessage(`💰 Remaining debt: $${gameState.player.debt.toLocaleString()}`, 'event');
     playSound('cashreg');
     
@@ -2145,6 +2170,12 @@ function showMobileDebtInterface() {
     }
     
     debtHtml += `
+                <button class="mobile-item debt-action" onclick="showLoanSharkSelection()">
+                    <div class="mobile-item-info">
+                        <div class="mobile-item-name">💰 Borrow Money</div>
+                        <div class="mobile-item-price">Choose your loan shark</div>
+                    </div>
+                </button>
                 <button class="mobile-item debt-action" onclick="showDebtHistory()">
                     <div class="mobile-item-info">
                         <div class="mobile-item-name">📋 View History</div>
@@ -2475,14 +2506,151 @@ function payOffDebtCompletely() {
 function exitDebtInterface() {
     const gameOutput = document.getElementById('gameOutput');
     gameOutput.innerHTML = `
-        <div class="welcome-message">
-            <p>Welcome to Packet Pushers!</p>
-            <p>You owe the loan shark $${gameState.player.debt.toLocaleString()} with daily interest.</p>
-            <p>You have ${gameState.player.maxDays - gameState.player.day + 1} days remaining.</p>
-            <p>Use the controls to navigate the market.</p>
+        <div class="status-summary">
+            <div class="debt-warning">💀 Debt: $${gameState.player.debt.toLocaleString()}</div>
+            <div class="time-remaining">⏰ ${gameState.player.maxDays - gameState.player.day + 1} days left</div>
         </div>
     `;
     playSound('touchsound');
+}
+
+// Loan shark borrowing system (authentic Dope Wars style)
+function showLoanSharkSelection() {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '💰 BORROW MONEY';
+    
+    let loanSharkHtml = `
+        <div class="loan-shark-interface">
+            <div class="loan-intro">
+                <h3>🏦 The Underground Banking System</h3>
+                <p>Choose your loan shark wisely - each has different terms and collection methods.</p>
+                <p><strong>Your Cash:</strong> $${gameState.player.cash.toLocaleString()}</p>
+                <p><strong>Current Debt:</strong> $${gameState.player.debt.toLocaleString()}</p>
+            </div>
+            <div class="loan-shark-list">`;
+    
+    // Show available loan sharks
+    gameCharacters.loanSharks.forEach((shark, index) => {
+        const maxLoan = shark.type === 'primary' ? 10000 : 
+                       shark.type === 'standard' ? 7500 :
+                       shark.type === 'dangerous' ? 15000 : 
+                       shark.type === 'boss' ? 25000 : 5000;
+        
+        const dailyRate = (shark.interestRate * 100).toFixed(1);
+        
+        loanSharkHtml += `
+            <div class="mobile-item loan-shark-option" onclick="selectLoanShark(${index})">
+                <div class="mobile-item-info">
+                    <div class="mobile-item-name">${shark.emoji} ${shark.name}</div>
+                    <div class="mobile-item-description">${shark.description}</div>
+                    <div class="loan-terms">
+                        <strong>Max Loan:</strong> $${maxLoan.toLocaleString()} | 
+                        <strong>Daily Interest:</strong> ${dailyRate}%
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    loanSharkHtml += `
+            </div>
+            <div class="loan-actions">
+                <button class="mobile-action-btn" onclick="closeMobileModal()">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = loanSharkHtml;
+    showMobileModalWithUtility(modal);
+}
+
+function selectLoanShark(sharkIndex) {
+    const selectedShark = gameCharacters.loanSharks[sharkIndex];
+    const maxLoan = selectedShark.type === 'primary' ? 10000 : 
+                   selectedShark.type === 'standard' ? 7500 :
+                   selectedShark.type === 'dangerous' ? 15000 : 
+                   selectedShark.type === 'boss' ? 25000 : 5000;
+    
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = `💰 BORROW FROM ${selectedShark.name.toUpperCase()}`;
+    
+    const dailyRate = (selectedShark.interestRate * 100).toFixed(1);
+    
+    modalBody.innerHTML = `
+        <div class="loan-amount-interface">
+            <div class="shark-info">
+                <h3>${selectedShark.emoji} ${selectedShark.name}</h3>
+                <p>${selectedShark.description}</p>
+                <p><strong>Daily Interest Rate:</strong> ${dailyRate}%</p>
+                <p><strong>Maximum Loan:</strong> $${maxLoan.toLocaleString()}</p>
+            </div>
+            
+            <div class="loan-amount-selector">
+                <h4>Select Loan Amount:</h4>
+                <div class="loan-quick-amounts">
+                    <button class="mobile-action-btn" onclick="borrowAmount(${maxLoan * 0.25}, '${selectedShark.name}', ${selectedShark.interestRate})">$${(maxLoan * 0.25).toLocaleString()}</button>
+                    <button class="mobile-action-btn" onclick="borrowAmount(${maxLoan * 0.5}, '${selectedShark.name}', ${selectedShark.interestRate})">$${(maxLoan * 0.5).toLocaleString()}</button>
+                    <button class="mobile-action-btn" onclick="borrowAmount(${maxLoan * 0.75}, '${selectedShark.name}', ${selectedShark.interestRate})">$${(maxLoan * 0.75).toLocaleString()}</button>
+                    <button class="mobile-action-btn primary" onclick="borrowAmount(${maxLoan}, '${selectedShark.name}', ${selectedShark.interestRate})">$${maxLoan.toLocaleString()} (MAX)</button>
+                </div>
+                
+                <div class="custom-amount">
+                    <input type="number" id="customLoanAmount" placeholder="Custom amount" min="100" max="${maxLoan}">
+                    <button class="mobile-action-btn" onclick="borrowCustomAmount('${selectedShark.name}', ${selectedShark.interestRate}, ${maxLoan})">Borrow Custom</button>
+                </div>
+            </div>
+            
+            <div class="loan-warning">
+                <p><em>⚠️ ${selectedShark.name} expects daily payments. Missing payments result in ${selectedShark.type === 'violent' ? 'physical consequences' : selectedShark.type === 'dangerous' ? 'serious problems' : 'increased interest'}.</em></p>
+            </div>
+            
+            <button class="mobile-action-btn" onclick="showLoanSharkSelection()">← Back to Loan Sharks</button>
+        </div>
+    `;
+}
+
+function borrowAmount(amount, sharkName, interestRate) {
+    gameState.player.cash += amount;
+    gameState.player.debt += amount;
+    
+    // Store loan shark info for different interest rates in future
+    if (!gameState.player.loanHistory) gameState.player.loanHistory = [];
+    gameState.player.loanHistory.push({
+        shark: sharkName,
+        amount: amount,
+        interestRate: interestRate,
+        day: gameState.player.day
+    });
+    
+    addMessage(`💰 Borrowed $${amount.toLocaleString()} from ${sharkName}!`, 'success');
+    addMessage(`📈 Daily interest: ${(interestRate * 100).toFixed(1)}%`, 'warning');
+    
+    closeMobileModal();
+    updateDisplay();
+    playSound('cashreg');
+}
+
+function borrowCustomAmount(sharkName, interestRate, maxLoan) {
+    const input = document.getElementById('customLoanAmount');
+    const amount = parseInt(input.value);
+    
+    if (isNaN(amount) || amount < 100) {
+        addMessage('❌ Minimum loan is $100', 'error');
+        return;
+    }
+    
+    if (amount > maxLoan) {
+        addMessage(`❌ ${sharkName} won't lend more than $${maxLoan.toLocaleString()}`, 'error');
+        return;
+    }
+    
+    borrowAmount(amount, sharkName, interestRate);
 }
 
 function showDebtPayment() {
@@ -3675,91 +3843,12 @@ function showCities() {
 }
 
 // Navigation System
-function handleKeyDown(e) {
-    // Handle navigation keys
-    switch (e.key) {
-        case 'Escape':
-            if (navigationState.currentMode === 'normal') {
-                // If in normal mode, open menu
-                toggleMenu();
-            } else {
-                // If in any navigation mode, exit navigation
-                exitNavigation();
-            }
-            break;
-        case 't':
-        case 'T':
-            if (navigationState.currentMode === 'normal') {
-                enterTravelMode();
-            }
-            break;
-        case 'c':
-        case 'C':
-            if (navigationState.currentMode === 'normal') {
-                enterChartsMode();
-            }
-            break;
-        case 'ArrowUp':
-            if (navigationState.isNavigating) {
-                navigateUp();
-                e.preventDefault();
-            }
-            break;
-        case 'ArrowDown':
-            if (navigationState.isNavigating) {
-                navigateDown();
-                e.preventDefault();
-            }
-            break;
-        case 'ArrowLeft':
-            if (navigationState.currentMode === 'quantity') {
-                decreaseQuantity();
-                e.preventDefault();
-            }
-            break;
-        case 'ArrowRight':
-            if (navigationState.currentMode === 'quantity') {
-                increaseQuantity();
-                e.preventDefault();
-            }
-            break;
-        case 'Enter':
-            if (navigationState.isNavigating) {
-                confirmSelection();
-                e.preventDefault();
-            }
-            break;
-        case '+':
-        case '=':
-            if (navigationState.currentMode === 'quantity') {
-                increaseQuantity();
-                e.preventDefault();
-            }
-            break;
-        case '-':
-        case '_':
-            if (navigationState.currentMode === 'quantity') {
-                decreaseQuantity();
-                e.preventDefault();
-            }
-            break;
-    }
-}
-
-function handleKeyUp() {
-    // Handle any key up events if needed
-}
+// Keyboard navigation removed - touch/mouse interface only
 
 
 function enterTravelMode() {
-    navigationState.isNavigating = true;
-    navigationState.currentMode = 'travel';
-    navigationState.selectedIndex = 0;
-    navigationState.actionType = 'travel';
-    
     showTravelModal();
-    addMessage('Travel mode activated. Click on a destination to travel.', 'success');
-    playSound('touchsound'); // Navigation sound
+    playSound('touchsound');
 }
 
 function showTravelModal() {
@@ -3892,8 +3981,7 @@ function showTravelModal() {
             const destination = option.dataset.destination;
             travelToDirect(destination);
             closeMobileModal();
-            navigationState.isNavigating = false;
-            navigationState.currentMode = 'normal';
+            // Navigation simplified
         });
     });
     
@@ -3901,23 +3989,153 @@ function showTravelModal() {
     playSound('touchsound');
 }
 
-function enterChartsMode() {
-    // Toggle charts mode if already active
-    if (navigationState.currentMode === 'charts') {
-        exitNavigation();
-        addMessage('Charts mode deactivated.', 'info');
+function showChartsModal() {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '📊 PRICE CHARTS';
+    
+    let chartsHtml = `
+        <div class="charts-interface">
+            <div class="drug-selector">
+                <h3>📈 Price Chart Analysis</h3>
+                <div class="dropdown-container">
+                    <label for="drugDropdown">Select Drug:</label>
+                    <select id="drugDropdown" class="drug-dropdown" onchange="showDrugChart(this.value)">
+                        <option value="">Choose a drug to analyze...</option>`;
+    
+    // Add all drugs as dropdown options
+    gameState.drugs.forEach(drug => {
+        const price = gameState.currentPrices[drug.name];
+        chartsHtml += `
+            <option value="${drug.name}">${drug.name} - $${price.toLocaleString()}</option>
+        `;
+    });
+    
+    chartsHtml += `
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-display" id="chartDisplay">
+                <div class="chart-placeholder">
+                    <h3>📈 Price History Graph</h3>
+                    <p>Select a drug above to view its price chart</p>
+                    <div class="empty-chart">
+                        <div class="chart-axis-y">
+                            <div class="axis-label">Price</div>
+                            <div class="axis-values">
+                                <div>High</div>
+                                <div>Med</div>
+                                <div>Low</div>
+                            </div>
+                        </div>
+                        <div class="chart-area">
+                            <div class="chart-grid">
+                                <div class="grid-line"></div>
+                                <div class="grid-line"></div>
+                                <div class="grid-line"></div>
+                            </div>
+                            <div class="chart-message">No data selected</div>
+                        </div>
+                        <div class="chart-axis-x">
+                            <div class="axis-label">Days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = chartsHtml;
+    showMobileModalWithUtility(modal);
+    playSound('touchsound');
+}
+
+function showDrugChart(drugName) {
+    const chartDisplay = document.getElementById('chartDisplay');
+    
+    if (!drugName || drugName === '') {
+        // Show empty chart placeholder
+        chartDisplay.innerHTML = `
+            <div class="chart-placeholder">
+                <h3>📈 Price History Graph</h3>
+                <p>Select a drug above to view its price chart</p>
+                <div class="empty-chart">
+                    <div class="chart-message">No data selected</div>
+                </div>
+            </div>
+        `;
         return;
     }
     
-    navigationState.isNavigating = true;
-    navigationState.currentMode = 'charts';
-    navigationState.selectedIndex = 0;
-    navigationState.actionType = 'charts';
+    const drug = findDrugByName(drugName);
+    if (!drug) return;
     
-    showNavigationHint('Click on a drug in the market prices to view its price chart');
-    NavigationHighlighter.highlightMarketItem(navigationState.selectedIndex);
-    addMessage('Charts mode activated. Click on a drug to view its price chart.', 'success');
-    playSound('touchsound'); // Navigation sound
+    const history = gameState.priceHistory[drug.name] || [];
+    const currentPrice = gameState.currentPrices[drug.name];
+    
+    if (history.length === 0) {
+        // Add current day to history
+        history.push({
+            day: gameState.player.day,
+            price: currentPrice,
+            location: gameState.player.location
+        });
+        gameState.priceHistory[drug.name] = history;
+    }
+    
+    // Calculate chart data
+    const maxPrice = Math.max(...history.map(h => h.price), currentPrice);
+    const minPrice = Math.min(...history.map(h => h.price), currentPrice);
+    const priceRange = maxPrice - minPrice || 1;
+    
+    let chartHtml = `
+        <div class="chart-active">
+            <h3>📈 ${drug.name} Price History</h3>
+            <div class="chart-stats">
+                <span class="stat-current">Current: $${currentPrice.toLocaleString()}</span>
+                <span class="stat-high">High: $${maxPrice.toLocaleString()}</span>
+                <span class="stat-low">Low: $${minPrice.toLocaleString()}</span>
+            </div>
+            
+            <div class="price-chart">
+                <div class="chart-axis-y">
+                    <div class="y-label">$${maxPrice.toLocaleString()}</div>
+                    <div class="y-label">$${Math.round((maxPrice + minPrice) / 2).toLocaleString()}</div>
+                    <div class="y-label">$${minPrice.toLocaleString()}</div>
+                </div>
+                
+                <div class="chart-graph">`;
+    
+    // Create visual bars for each day
+    history.forEach((entry, index) => {
+        const barHeight = Math.max(10, ((entry.price - minPrice) / priceRange) * 100);
+        const [city] = entry.location.split(' - ');
+        const cityAbbr = city.substring(0, 3).toUpperCase();
+        
+        chartHtml += `
+            <div class="chart-bar-container">
+                <div class="chart-bar" style="height: ${barHeight}%"></div>
+                <div class="bar-label">D${entry.day}</div>
+                <div class="bar-price">$${entry.price.toLocaleString()}</div>
+                <div class="bar-location">${cityAbbr}</div>
+            </div>
+        `;
+    });
+    
+    chartHtml += `
+                </div>
+                
+                <div class="chart-axis-x">
+                    <div class="x-label">Days</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chartDisplay.innerHTML = chartHtml;
 }
 
 
@@ -5309,6 +5527,7 @@ function executeBuyFromModal() {
 // Add click handlers for existing market and inventory items
 function updateMarketDisplay() {
     const marketPrices = document.getElementById('marketPrices');
+    if (!marketPrices) return;
     marketPrices.innerHTML = '';
     
     gameState.drugs.forEach(drug => {
@@ -5364,27 +5583,12 @@ function updateMarketDisplay() {
             </div>
         `;
         
-        // Add click and keyboard handlers for both mobile and desktop
+        // Add click handler for the whole item (also opens buy modal)
         const handleInteraction = () => {
-            // Check current mode and handle accordingly
-            if (navigationState.currentMode === 'charts') {
-                // Show price chart for this drug
-                showPriceGraph(drug.name);
-                // Exit charts mode after showing chart
-                exitNavigation();
-            } else {
-                // Default behavior - show buy modal
-                showBuyModal(drug.name, price, currentAmount);
-            }
+            showBuyModal(drug.name, price, currentAmount);
         };
         
         itemDiv.addEventListener('click', handleInteraction);
-        itemDiv.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleInteraction();
-            }
-        });
         
         marketPrices.appendChild(itemDiv);
     });
@@ -5392,6 +5596,7 @@ function updateMarketDisplay() {
 
 function updateInventoryDisplay() {
     const inventoryList = document.getElementById('inventoryList');
+    if (!inventoryList) return;
     inventoryList.innerHTML = '';
     
     const inventory = Object.keys(gameState.player.inventory);
@@ -5435,12 +5640,6 @@ function updateInventoryDisplay() {
         };
         
         itemDiv.addEventListener('click', handleInteraction);
-        itemDiv.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleInteraction();
-            }
-        });
         
         inventoryList.appendChild(itemDiv);
     });
@@ -5645,11 +5844,9 @@ function showDesktopInventoryItemInterface(drugName) {
 function exitInventoryItemInterface() {
     const gameOutput = document.getElementById('gameOutput');
     gameOutput.innerHTML = `
-        <div class="welcome-message">
-            <p>Welcome to Packet Pushers!</p>
-            <p>You owe the loan shark $${gameState.player.debt.toLocaleString()} with daily interest.</p>
-            <p>You have ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left.</p>
-            <p>Use the clickable interface to buy, sell, and manage your operations.</p>
+        <div class="status-summary">
+            <div class="debt-warning">💀 Debt: $${gameState.player.debt.toLocaleString()}</div>
+            <div class="time-remaining">⏰ ${GAME_CONSTANTS.PLAYER.MAX_DAYS - gameState.player.day + 1} days left</div>
         </div>
     `;
     playSound('touchsound');
@@ -7259,9 +7456,7 @@ function updateDisplay() {
     const playerName = document.getElementById('playerName');
     const playerCash = document.getElementById('playerCash');
     const playerBank = document.getElementById('playerBank');
-    const playerDebt = document.getElementById('playerDebt');
     const playerNetWorth = document.getElementById('playerNetWorth');
-    const currentDay = document.getElementById('currentDay');
     const currentCity = document.getElementById('currentCity');
     const currentLocation = document.getElementById('currentLocation');
     const inventorySpace = document.getElementById('inventorySpace');
@@ -7269,9 +7464,7 @@ function updateDisplay() {
     if (playerName) playerName.textContent = gameState.player.name || 'Anonymous Dealer';
     if (playerCash) playerCash.textContent = `$${gameState.player.cash}`;
     if (playerBank) playerBank.textContent = `$${gameState.player.bankBalance || 0}`;
-    if (playerDebt) playerDebt.textContent = `$${gameState.player.debt}`;
     if (playerNetWorth) playerNetWorth.textContent = formatCurrency(calculateNetWorth());
-    if (currentDay) currentDay.textContent = `${gameState.player.day}`;
     
     // Update city and location separately
     const [city, district] = gameState.player.location.split(' - ');
@@ -7280,7 +7473,10 @@ function updateDisplay() {
     
     if (inventorySpace) inventorySpace.textContent = `${getCurrentInventorySize()}/${getCurrentMaxInventory()}`;
     
-    // Update market prices
+    // Update compact status bar
+    updateStatusBar();
+    
+    // Update market display  
     updateMarketDisplay();
     
     // Update inventory display
@@ -7288,6 +7484,26 @@ function updateDisplay() {
     
     // Update location-specific service buttons
     updateLocationServiceButtons();
+}
+
+// Update compact status bar
+function updateStatusBar() {
+    const statusDebt = document.getElementById('statusDebt');
+    const statusCash = document.getElementById('statusCash');  
+    const statusTime = document.getElementById('statusTime');
+    const statusLocation = document.getElementById('statusLocation');
+    const statusInventory = document.getElementById('statusInventory');
+    
+    if (statusDebt) statusDebt.textContent = `💀 $${gameState.player.debt.toLocaleString()} DEBT`;
+    if (statusCash) statusCash.textContent = `💰 $${gameState.player.cash.toLocaleString()} CASH`;
+    if (statusTime) statusTime.textContent = `⏰ DAY ${gameState.player.day}/${gameState.player.maxDays}`;
+    
+    const [city, district] = gameState.player.location.split(' - ');
+    if (statusLocation) statusLocation.textContent = `📍 ${district || city}`;
+    
+    const inventoryCount = getCurrentInventorySize();
+    const maxInventory = getCurrentMaxInventory();
+    if (statusInventory) statusInventory.textContent = `🎒 ${inventoryCount}/${maxInventory}`;
 }
 
 // Update location-specific service buttons based on current location
@@ -7541,7 +7757,7 @@ function newGame() {
     // Initialize game
     initGame();
     
-    addMessage('New game started! Good luck, dealer.', 'success');
+    addMessage('🎮 New game started', 'success');
     playSound('slidein'); // Game start sound
 }
 

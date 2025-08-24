@@ -13,13 +13,21 @@
 }
 
 :root {
-    --bg-color: #000000;
-    --text-color: #00FF00;
-    --accent-color: #FFA500;
-    --white-color: #FFFFFF;
-    --border-color: #00CC00;
-    --debt-color: #FF4444;
-    --shadow-color: rgba(0, 255, 0, 0.3);
+    /* Cyberpunk Color Scheme */
+    --bg-color: #0a0a0f;
+    --bg-gradient: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+    --panel-bg: rgba(15, 25, 40, 0.8);
+    --text-color: #00d4ff;
+    --accent-color: #ff0080;
+    --secondary-accent: #8000ff;
+    --white-color: #ffffff;
+    --border-color: #00aaff;
+    --debt-color: #ff3366;
+    --success-color: #00ff88;
+    --warning-color: #ffaa00;
+    --shadow-color: rgba(0, 212, 255, 0.4);
+    --glow-color: rgba(255, 0, 128, 0.6);
+    --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 /* Confirmation Dialog Styles */
@@ -106,13 +114,14 @@
 
 body {
     font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace;
-    background-color: var(--bg-color);
+    background: var(--bg-gradient);
     color: var(--text-color);
     line-height: 1.6;
-    letter-spacing: 0.03em; /* Slightly more condensed */
-    overflow: hidden; /* Prevent any scrolling */
+    letter-spacing: 0.02em;
+    overflow: hidden;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 /* Prevent scrolling when modal is open */
@@ -132,24 +141,49 @@ body.modal-open {
     flex-direction: column;
 }
 
-/* Header */
+/* Compact Header with ASCII */
 .game-header {
     text-align: center;
-    padding: 10px 0;
+    padding: 4px 0;
     border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
-    height: 80px;
+    height: auto;
+    min-height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
 }
 
-.game-header h1 {
-    font-size: 1.8rem;
+.header-ascii {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-size: 0.4rem;
     color: var(--accent-color);
-    text-shadow: 0 0 8px var(--accent-color);
-    margin-bottom: 4px;
-    line-height: 1.2;
+    text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--glow-color);
+    margin: 0;
+    animation: titlePulse 3s ease-in-out infinite alternate;
+    line-height: 0.9;
+    text-align: center;
+    white-space: pre;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .header-ascii {
+        font-size: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-ascii {
+        font-size: 0.2rem;
+        line-height: 0.8;
+    }
+}
+
+@keyframes titlePulse {
+    from { text-shadow: 0 0 20px var(--accent-color), 0 0 40px var(--glow-color); }
+    to { text-shadow: 0 0 30px var(--accent-color), 0 0 60px var(--glow-color), 0 0 80px var(--secondary-accent); }
 }
 
 .subtitle {
@@ -159,16 +193,16 @@ body.modal-open {
     line-height: 1.2;
 }
 
-/* Main Layout - Responsive Grid System */
+/* Restored Working Layout */
 .game-layout {
     display: grid;
-    grid-template-columns: 1fr; /* Mobile-first */
+    grid-template-columns: 1fr;
     grid-template-rows: auto auto auto auto;
-    gap: 15px;
+    gap: 8px;
     flex: 1;
     padding: 8px;
     overflow: hidden;
-    min-height: 0; /* Important for flex child */
+    min-height: 0;
     grid-template-areas: 
         "player-status"
         "market-prices"
@@ -189,10 +223,10 @@ body.modal-open {
     }
 }
 
-/* Desktop Layout - Enhanced 3-column for large screens */
+/* Desktop Layout - Better Proportions */
 @media (min-width: 1200px) {
     .game-layout {
-        grid-template-columns: 1fr 350px 300px;
+        grid-template-columns: 1fr 400px 400px;
         grid-template-rows: 1fr auto;
         gap: 8px;
         grid-template-areas: 
@@ -271,15 +305,44 @@ body.modal-open {
     }
 }
 
-/* Main Panel - Game Log */
-.main-panel {
-    grid-area: main-log;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0.8);
+/* Main Content Area - Market Display */
+.main-content {
+    grid-area: main-content;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+}
+
+@media (min-width: 1200px) {
+    .main-content {
+        grid-template-columns: 2fr 1fr;
+        grid-template-areas: "market-area inventory-area";
+    }
+}
+
+.market-area {
+    grid-area: market-area;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--panel-shadow);
+    padding: 12px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.inventory-area {
+    grid-area: inventory-area;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--panel-shadow);
+    padding: 12px;
+    overflow-y: auto;
     min-height: 0;
 }
 
@@ -311,11 +374,52 @@ body.modal-open {
     margin-bottom: 8px;
 }
 
-.welcome-message {
+/* Compact Status Bar */
+.status-bar {
+    grid-area: status-bar;
+    display: flex;
+    gap: 8px;
+    background: var(--panel-bg);
     border: 1px solid var(--border-color);
-    padding: 10px;
-    margin-bottom: 15px;
-    background-color: rgba(0, 255, 0, 0.05);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: space-between;
+    min-height: 40px;
+    flex-wrap: wrap;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.status-debt {
+    color: var(--debt-color);
+    text-shadow: 0 0 8px var(--debt-color);
+}
+
+.status-cash {
+    color: var(--success-color);
+    text-shadow: 0 0 8px var(--success-color);
+}
+
+.status-time {
+    color: var(--warning-color);
+    text-shadow: 0 0 8px var(--warning-color);
+}
+
+.status-location {
+    color: var(--text-color);
+    text-shadow: 0 0 5px var(--text-color);
 }
 
 /* Enhanced message categorization with visual hierarchy */
@@ -451,26 +555,177 @@ body.modal-open {
 }
 
 /* Individual UI Elements */
+/* Removed - stats integrated into status bar */
+
 .stats-panel {
     grid-area: player-status;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--panel-shadow), 0 0 15px var(--shadow-color);
     padding: 12px;
     overflow-y: auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
+    transition: box-shadow 0.3s ease;
+}
+
+.stats-panel:hover {
+    box-shadow: var(--panel-shadow), 0 0 25px var(--glow-color);
+}
+
+.player-status-section {
+    flex-shrink: 0;
+}
+
+.inventory-panel {
+    margin-top: 8px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .market-panel {
     grid-area: market-prices;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--panel-shadow), 0 0 15px var(--shadow-color);
     padding: 12px;
     overflow-y: auto;
     min-height: 0;
+    transition: box-shadow 0.3s ease;
+}
+
+.market-panel:hover {
+    box-shadow: var(--panel-shadow), 0 0 25px var(--glow-color);
+}
+
+.market-list {
+    font-size: 0.8rem;
+}
+
+.market-item-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: flex-end;
+}
+
+.market-btn {
+    background: var(--border-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 35px;
+}
+
+.buy-btn {
+    background: var(--success-color);
+    flex: 2;
+}
+
+.buy-btn:hover {
+    background: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.chart-btn {
+    background: var(--warning-color);
+    color: var(--bg-color);
+    flex: 1;
+}
+
+.chart-btn:hover {
+    background: var(--accent-color);
+    transform: scale(1.05);
+}
+
+/* Market Grid Cards */
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.drug-card {
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.05));
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 80px;
+    position: relative;
+}
+
+.drug-card:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(128, 0, 255, 0.1));
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.drug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.drug-name {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.drug-price {
+    color: var(--white-color);
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.drug-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.drug-btn {
+    background: var(--border-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.2s;
+}
+
+.drug-btn:hover {
+    background: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.drug-owned {
+    color: var(--warning-color);
+    font-size: 0.7rem;
+    text-align: center;
+    margin-top: 2px;
 }
 
 .inventory-panel {
@@ -485,20 +740,38 @@ body.modal-open {
 }
 
 /* Enhanced panel heading hierarchy */
+/* Compact Panel Headers */
 .stats-panel h3,
 .market-panel h3,
 .inventory-panel h3 {
     color: var(--accent-color);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: bold;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-align: center;
     border-bottom: 2px solid var(--accent-color);
     padding-bottom: 6px;
-    text-shadow: 0 0 3px var(--accent-color);
-    letter-spacing: 0.05em;
+    text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--glow-color);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    position: relative;
 }
+
+.stats-panel h3::after,
+.market-panel h3::after,
+.inventory-panel h3::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    box-shadow: 0 0 10px var(--accent-color);
+}
+
+/* Removed panel header effects for compactness */
 
 /* Secondary headings within panels */
 .panel-section-heading {
@@ -521,10 +794,18 @@ body.modal-open {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
-    padding: 4px 0;
-    font-size: 0.82rem;
-    border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+    margin-bottom: 10px;
+    padding: 8px 0;
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(0, 170, 255, 0.2);
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.stat-line:hover {
+    background: rgba(0, 170, 255, 0.05);
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 .stat-line:last-child {
@@ -580,13 +861,109 @@ body.modal-open {
     letter-spacing: 0em; /* Normal spacing for readability */
 }
 
+/* Compact Market Cards */
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    padding: 0;
+}
+
+.market-card {
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.05));
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.market-card:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(128, 0, 255, 0.1));
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+}
+
 .market-item {
     display: flex;
     flex-direction: column;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(0, 170, 255, 0.2);
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.market-item-content {
+    display: grid;
+    grid-template-columns: 1fr 50px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.drug-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.drug-name-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.item-name {
+    color: var(--text-color);
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-weight: 500;
+    text-align: left;
+    flex: 1;
+    min-width: 120px;
+}
+
+.item-price {
+    color: var(--white-color);
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.drug-ownership {
+    font-size: 0.8em;
+    color: var(--warning-color);
+}
+
+/* Old chart button styles removed */
+.chart-btn {
+    display: none !important;
+}
+
+.market-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+    transition: left 0.6s;
+}
+
+.market-item:hover::before {
+    left: 100%;
 }
 
 .market-item-header {
@@ -935,7 +1312,10 @@ body.modal-open {
 
 .market-item:hover,
 .market-item:focus {
-    background-color: rgba(0, 255, 0, 0.1);
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(128, 0, 255, 0.1));
+    border-color: var(--border-color);
+    box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .market-item:focus {
@@ -983,8 +1363,16 @@ body.modal-open {
 }
 
 .price-up {
-    color: #00FF00;
+    color: var(--success-color);
     font-weight: bold;
+    text-shadow: 0 0 8px var(--success-color);
+    animation: priceFlash 0.5s ease-out;
+}
+
+@keyframes priceFlash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); text-shadow: 0 0 15px var(--success-color); }
+    100% { transform: scale(1); }
 }
 
 .price-up::after {
@@ -998,8 +1386,10 @@ body.modal-open {
 }
 
 .price-down {
-    color: #FF4444;
+    color: var(--debt-color);
     font-weight: bold;
+    text-shadow: 0 0 8px var(--debt-color);
+    animation: priceFlash 0.5s ease-out;
 }
 
 .price-down::after {
@@ -1529,11 +1919,7 @@ body.modal-open {
     background: var(--accent-color);
 }
 
-/* Navigation System */
-.navigation-mode {
-    border: 2px solid var(--accent-color) !important;
-    box-shadow: 0 0 10px var(--shadow-color);
-}
+/* Navigation system removed */
 
 .navigation-hint {
     position: fixed;
@@ -1663,28 +2049,50 @@ body.modal-open {
 }
 
 .quick-btn {
-    background-color: transparent;
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.1));
     border: 1px solid var(--border-color);
     color: var(--text-color);
     font-family: inherit;
     font-size: 0.9rem;
+    font-weight: 500;
     padding: 12px 16px;
     cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.3s;
-    min-width: 44px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100px;
     min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.quick-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.quick-btn:hover::before {
+    left: 100%;
 }
 
 .quick-btn:hover, 
 .quick-btn:active,
 .quick-btn:focus {
-    background-color: var(--border-color);
-    color: var(--bg-color);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, var(--border-color), var(--secondary-accent));
+    color: var(--white-color);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px var(--glow-color);
+    border-color: var(--accent-color);
 }
 
 .quick-btn:focus {
@@ -1998,30 +2406,9 @@ textarea:focus {
     top: 6px;
 }
 
-/* Better keyboard navigation for mobile items */
-.mobile-item[tabindex] {
-    cursor: pointer;
-}
+/* Keyboard navigation removed */
 
-.mobile-item[tabindex]:focus {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
-    background-color: rgba(0, 255, 0, 0.15);
-}
-
-/* Simplified keyboard navigation hints */
-.keyboard-hint {
-    font-size: 0.7rem;
-    color: rgba(0, 255, 0, 0.4);
-    margin-top: 4px;
-    font-style: italic;
-    display: none; /* Hidden by default - mouse/touch primary */
-}
-
-/* Show hints only when keyboard is being used */
-body.keyboard-user .keyboard-hint {
-    display: block;
-}
+/* Keyboard hints removed */
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
@@ -2044,69 +2431,7 @@ body.keyboard-user .keyboard-hint {
     }
 }
 
-/* Keyboard help styles */
-.keyboard-help {
-    max-width: 100%;
-}
-
-.keyboard-help h3 {
-    color: var(--accent-color);
-    margin: 0 0 12px 0;
-    font-size: 1.1rem;
-}
-
-.shortcut-list {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.shortcut-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 0;
-}
-
-.shortcut-item kbd {
-    background-color: var(--border-color);
-    color: var(--bg-color);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.8rem;
-    font-weight: bold;
-    min-width: 24px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.shortcut-item span {
-    color: var(--text-color);
-    flex: 1;
-}
-
-.help-text {
-    background-color: rgba(0, 255, 0, 0.05);
-    border: 1px solid var(--border-color);
-    padding: 12px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    line-height: 1.4;
-}
-
-.help-text p {
-    margin: 4px 0;
-}
-
-.help-text kbd {
-    background-color: var(--border-color);
-    color: var(--bg-color);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
+/* Keyboard help removed */
 .mobile-item-list {
     display: flex;
     flex-direction: column;
@@ -2260,25 +2585,39 @@ body.keyboard-user .keyboard-hint {
     transform: translateY(-2px);
 }
 
-/* Enhanced Action Buttons Section with Visual Hierarchy */
+/* Compact Action Controls */
 .desktop-controls {
-    grid-area: action-buttons;
-    display: block;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: rgba(0, 255, 0, 0.02);
-    flex-shrink: 0;
+    padding: 8px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0 0 8px 8px;
+}
+
+.desktop-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.location-services {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0, 170, 255, 0.2);
 }
 
 /* Primary action group */
 .desktop-actions {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
     padding: 8px 4px;
     margin-bottom: 8px;
+    align-items: center;
 }
 
 /* Action group labels for better organization */
@@ -2358,39 +2697,93 @@ body.keyboard-user .keyboard-hint {
     border-top: 1px solid rgba(0, 255, 0, 0.2);
 }
 
+/* Compact Action Buttons */
+.action-btn {
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.1));
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Unified Button Hover Effects */
+.action-btn:hover,
+.desktop-btn:hover,
+.quick-btn:hover,
+.chart-btn:hover {
+    background: linear-gradient(135deg, var(--border-color), var(--secondary-accent)) !important;
+    color: var(--white-color) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px var(--glow-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.action-btn.service {
+    background: linear-gradient(135deg, rgba(255, 170, 0, 0.2), rgba(255, 0, 128, 0.1));
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+.action-btn.service:hover {
+    background: linear-gradient(135deg, var(--warning-color), var(--accent-color));
+    color: var(--white-color);
+}
+
 .desktop-btn {
-    background-color: transparent;
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.1));
     border: 1px solid var(--border-color);
     color: var(--text-color);
     font-family: inherit;
     font-size: 0.85rem;
-    padding: 12px 16px;
+    font-weight: 600;
+    padding: 8px 12px;
     cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.3s;
-    min-width: 44px;
-    min-height: 44px;
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.desktop-btn:hover,
-.desktop-btn:focus {
-    background-color: var(--border-color);
-    color: var(--bg-color);
-    transform: translateY(-1px);
+.desktop-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
 }
+
+/* Removed duplicate hover effects - using unified system */
 
 .desktop-btn:focus {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
 }
 
-.desktop-btn .hotkey {
-    color: var(--accent-color);
-    font-weight: bold;
-}
+/* Hotkey styling removed - no keyboard shortcuts */
 
 /* Click-to-select visual feedback - removed tooltips */
 .market-item, .inventory-item {
@@ -2412,18 +2805,32 @@ body.keyboard-user .keyboard-hint {
     width: 100%;
 }
 
-.game-title h1 {
-    font-size: 3rem;
+.ascii-title {
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-size: 0.6rem;
     color: var(--accent-color);
-    text-shadow: 0 0 20px var(--accent-color);
-    margin-bottom: 10px;
-    animation: titleGlow 3s ease-in-out infinite alternate;
+    text-shadow: 0 0 15px var(--accent-color), 0 0 30px var(--glow-color);
+    margin: 0 0 20px 0;
+    animation: titlePulse 3s ease-in-out infinite alternate;
+    line-height: 1;
+    text-align: center;
+    white-space: pre;
+    overflow: hidden;
 }
 
-@keyframes titleGlow {
-    from { text-shadow: 0 0 20px var(--accent-color); }
-    to { text-shadow: 0 0 30px var(--accent-color), 0 0 40px var(--accent-color); }
+@media (max-width: 768px) {
+    .ascii-title {
+        font-size: 0.4rem;
+    }
 }
+
+@media (max-width: 480px) {
+    .ascii-title {
+        font-size: 0.3rem;
+    }
+}
+
+/* ASCII title animation uses existing titlePulse */
 
 .game-subtitle {
     font-size: 1.2rem;
@@ -2993,6 +3400,84 @@ body.keyboard-user .keyboard-hint {
     padding: 10px;
 }
 
+/* Loan Shark Interface */
+.loan-shark-interface,
+.loan-amount-interface {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+}
+
+.loan-intro,
+.shark-info {
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.1), rgba(128, 0, 255, 0.1));
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.loan-shark-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.loan-shark-option {
+    border: 2px solid var(--border-color) !important;
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.05)) !important;
+    transition: all 0.3s !important;
+}
+
+.loan-shark-option:hover {
+    border-color: var(--accent-color) !important;
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.2), rgba(128, 0, 255, 0.1)) !important;
+    box-shadow: 0 4px 16px rgba(255, 0, 128, 0.3) !important;
+    transform: translateY(-2px) !important;
+}
+
+.loan-terms {
+    font-size: 0.85rem;
+    color: var(--warning-color);
+    margin-top: 6px;
+    font-weight: bold;
+}
+
+.loan-quick-amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.custom-amount {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.custom-amount input {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+.loan-warning {
+    background: rgba(255, 51, 102, 0.1);
+    border: 1px solid var(--debt-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    text-align: center;
+    color: var(--debt-color);
+}
+
 .debt-status {
     background-color: rgba(255, 68, 68, 0.1);
     border: 1px solid var(--debt-color);
@@ -3195,4 +3680,81 @@ body.keyboard-user .keyboard-hint {
     opacity: 0.8;
     font-style: italic;
     display: block;
+}
+
+/* Charts Modal Styling */
+.charts-interface {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+}
+
+.drug-selector {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.dropdown-container {
+    margin-top: 15px;
+}
+
+.dropdown-container label {
+    display: block;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.drug-dropdown {
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.drug-dropdown:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(255, 0, 128, 0.3);
+}
+
+.drug-dropdown option {
+    background: var(--panel-bg);
+    color: var(--text-color);
+    padding: 8px;
+}
+
+.chart-display {
+    flex: 1;
+    min-height: 200px;
+}
+
+.chart-placeholder {
+    text-align: center;
+    color: var(--text-color);
+    padding: 20px;
+}
+
+.empty-chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 150px;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    margin-top: 15px;
+    background: rgba(0, 170, 255, 0.05);
+}
+
+.chart-message {
+    color: var(--text-color);
+    font-style: italic;
+    opacity: 0.7;
 }

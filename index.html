@@ -165,14 +165,42 @@
         </div>
 
         <header class="game-header">
-            <h1>PACKET PUSHERS</h1>
+            <pre class="header-ascii">
+██████╗  █████╗  ██████╗██╗  ██╗███████╗████████╗
+██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
+██████╔╝███████║██║     █████╔╝ █████╗     ██║   
+██╔═══╝ ██╔══██║██║     ██╔═██╗ ██╔══╝     ██║   
+██║     ██║  ██║╚██████╗██║  ██╗███████╗   ██║   
+╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
+
+██████╗ ██╗   ██╗███████╗██╗  ██╗███████╗██████╗ ███████╗
+██╔══██╗██║   ██║██╔════╝██║  ██║██╔════╝██╔══██╗██╔════╝
+██████╔╝██║   ██║███████╗███████║█████╗  ██████╔╝███████╗
+██╔═══╝ ██║   ██║╚════██║██╔══██║██╔══╝  ██╔══██╗╚════██║
+██║     ╚██████╔╝███████║██║  ██║███████╗██║  ██║███████║
+╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
+            </pre>
             <div class="subtitle">Terminal Market v2.5.1</div>
         </header>
 
         <main class="start-screen" id="startScreen">
             <div class="start-content">
                 <div class="game-title">
-                    <h1>PACKET PUSHERS</h1>
+                    <pre class="ascii-title">
+██████╗  █████╗  ██████╗██╗  ██╗███████╗████████╗
+██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
+██████╔╝███████║██║     █████╔╝ █████╗     ██║   
+██╔═══╝ ██╔══██║██║     ██╔═██╗ ██╔══╝     ██║   
+██║     ██║  ██║╚██████╗██║  ██╗███████╗   ██║   
+╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
+
+██████╗ ██╗   ██╗███████╗██╗  ██╗███████╗██████╗ ███████╗
+██╔══██╗██║   ██║██╔════╝██║  ██║██╔════╝██╔══██╗██╔════╝
+██████╔╝██║   ██║███████╗███████║█████╗  ██████╔╝███████╗
+██╔═══╝ ██║   ██║╚════██║██╔══██║██╔══╝  ██╔══██╗╚════██║
+██║     ╚██████╔╝███████║██║  ██║███████╗██║  ██║███████║
+╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
+                    </pre>
                     <p class="game-subtitle">Terminal Market Simulator</p>
                     <div class="game-description">
                         <p>Pay off your $5,000 debt and build your fortune in 30 days.</p>
@@ -201,8 +229,8 @@
                 
                 <footer class="start-footer">
                     <div class="controls-info">
-                        <p><strong>Desktop:</strong> Use mouse clicks or keyboard shortcuts (B/S/T)</p>
-                        <p><strong>Mobile:</strong> Tap the quick action buttons</p>
+                        <p><strong>Desktop:</strong> Click to interact with all elements</p>
+                        <p><strong>Mobile:</strong> Tap to interact with all elements</p>
                     </div>
                     
                     <!-- SEO Content -->
@@ -232,118 +260,56 @@
         </main>
 
         <div class="game-layout" id="gameLayout" style="display: none;">
+            <!-- Compact Status Display -->
             <div class="main-panel" role="region" aria-label="Game Log and Messages">
                 <div class="game-output" id="gameOutput" role="log" aria-live="polite" aria-label="Game messages and events" tabindex="0">
-                    <div class="welcome-message" role="status">
-                        <p>Welcome to Packet Pushers!</p>
-                        <p>You owe the loan shark $5,000 with daily interest.</p>
-                        <p>You have 30 days to pay off your debt and make your fortune.</p>
-                        <p>Use the clickable interface to buy, sell, and navigate.</p>
+                    <div class="status-summary">
+                        <div class="debt-warning">💀 Debt: $5,000</div>
+                        <div class="time-remaining">⏰ 30 days left</div>
                     </div>
                 </div>
                 
-                
+                <!-- Compact Action Bar -->
                 <div class="desktop-controls" id="desktopControls" role="region" aria-label="Game Actions">
                     <nav class="desktop-actions" role="navigation" aria-label="Primary game controls">
-                        <button class="desktop-btn" onclick="enterTravelMode()" aria-label="Enter travel mode to change locations (Hotkey: T)" tabindex="0">
-                            <span class="hotkey" aria-hidden="true">T</span>RAVEL
-                        </button>
-                        <button class="desktop-btn" onclick="enterChartsMode()" aria-label="View price charts and market trends (Hotkey: C)" tabindex="0">
-                            <span class="hotkey" aria-hidden="true">C</span>HARTS
-                        </button>
-                        <button class="desktop-btn" onclick="showDebtManagement()" aria-label="Manage debt and loan payments (Hotkey: D)" tabindex="0">
-                            <span class="hotkey" aria-hidden="true">D</span>EBT
-                        </button>
-                        <button class="desktop-btn" onclick="showStatus()" aria-label="View player status and statistics" tabindex="0">
-                            STATUS
-                        </button>
-                        <button class="desktop-btn" onclick="toggleMenu()" aria-label="Open game menu with save/load options" tabindex="0">
-                            MENU
-                        </button>
+                        <button class="action-btn" onclick="enterTravelMode()">✈️ TRAVEL</button>
+                        <button class="action-btn" onclick="showDebtManagement()">🏦 DEBT</button>
+                        <button class="action-btn" onclick="showChartsModal()">📊 CHARTS</button>
+                        <button class="action-btn" onclick="toggleMenu()">⚙️ MENU</button>
                     </nav>
                     
-                    <!-- Location-specific service buttons -->
+                    <!-- Location Services -->
                     <div class="location-services" id="locationServices" role="region" aria-label="Location Services">
-                        <button class="service-btn" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;" aria-label="Visit weapons shop to buy combat equipment" tabindex="0">
-                            🔫 WEAPONS
-                        </button>
-                        <button class="service-btn" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;" aria-label="Visit clothes shop to increase carrying capacity" tabindex="0">
-                            🧥 CLOTHES
-                        </button>
-                        <button class="service-btn" id="bankBtn" onclick="showBankInterface()" style="display: none;" aria-label="Visit bank to deposit or withdraw money" tabindex="0">
-                            🏦 BANK
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="mobile-controls" id="mobileControls" role="region" aria-label="Mobile Game Actions">
-                    <nav class="quick-actions" role="navigation" aria-label="Mobile game controls">
-                        <button class="quick-btn" onclick="showQuickBuy()" aria-label="Buy drugs from current market" tabindex="0">📱 BUY</button>
-                        <button class="quick-btn" onclick="showQuickSell()" aria-label="Sell drugs from inventory" tabindex="0">💰 SELL</button>
-                        <button class="quick-btn" onclick="showQuickTravel()" aria-label="Travel to different locations" tabindex="0">🚗 TRAVEL</button>
-                        <button class="quick-btn" onclick="showQuickCharts()" aria-label="View price charts" tabindex="0">📊 CHARTS</button>
-                        <button class="quick-btn" onclick="showDebtManagement()" aria-label="Manage loan and debt" tabindex="0">💳 DEBT</button>
-                        <button class="quick-btn" onclick="showQuickMenu()" aria-label="Open game menu" tabindex="0">⚙️ MENU</button>
-                    </nav>
-                    
-                    <!-- Mobile location-specific service buttons -->
-                    <div class="mobile-location-services" id="mobileLocationServices" role="region" aria-label="Mobile Location Services">
-                        <button class="quick-btn" id="mobileWeaponShopBtn" onclick="visitWeaponShop()" style="display: none;" aria-label="Visit weapons shop" tabindex="0">
-                            🔫 WEAPONS
-                        </button>
-                        <button class="quick-btn" id="mobileClothesShopBtn" onclick="visitCoatShop()" style="display: none;" aria-label="Visit clothes shop" tabindex="0">
-                            🧥 CLOTHES
-                        </button>
-                        <button class="quick-btn" id="mobileBankBtn" onclick="showBankInterface()" style="display: none;" aria-label="Visit bank" tabindex="0">
-                            🏦 BANK
-                        </button>
+                        <button class="action-btn service" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;">🔫 WEAPONS</button>
+                        <button class="action-btn service" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;">🧥 CLOTHES</button>
+                        <button class="action-btn service" id="bankBtn" onclick="showBankInterface()" style="display: none;">🏦 BANK</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Player Status Panel -->
+            <!-- Compact Player Info -->
             <div class="stats-panel" role="region" aria-label="Player Status Information">
                 <div class="player-status-section">
-                    <h3 id="player-status-heading">PLAYER STATUS</h3>
+                    <h3 id="player-status-heading">STATUS</h3>
                     <div class="stat-line">
-                        <span class="stat-label">Name:</span>
-                        <span class="stat-value" id="playerName">Anonymous Dealer</span>
+                        <span class="stat-label">💰 Cash:</span>
+                        <span class="stat-value" id="playerCash">$2,000</span>
                     </div>
                     <div class="stat-line">
-                        <span class="stat-label">Cash:</span>
-                        <span class="stat-value" id="playerCash">$500</span>
-                    </div>
-                    <div class="stat-line">
-                        <span class="stat-label">Bank:</span>
+                        <span class="stat-label">🏦 Bank:</span>
                         <span class="stat-value" id="playerBank">$0</span>
                     </div>
                     <div class="stat-line">
-                        <span class="stat-label">Debt:</span>
-                        <span class="stat-value debt" id="playerDebt">$5,000</span>
-                    </div>
-                    <div class="stat-line">
-                        <span class="stat-label">Net Worth:</span>
-                        <span class="stat-value" id="playerNetWorth">-$4,500</span>
-                    </div>
-                    <div class="stat-line">
-                        <span class="stat-label">Day:</span>
-                        <span class="stat-value" id="currentDay">1</span>
-                    </div>
-                    <div class="stat-line">
-                        <span class="stat-label">City:</span>
-                        <span class="stat-value" id="currentCity">New York</span>
-                    </div>
-                    <div class="stat-line">
-                        <span class="stat-label">Location:</span>
+                        <span class="stat-label">📍 Location:</span>
                         <span class="stat-value" id="currentLocation">Brooklyn Docks</span>
                     </div>
                     <div class="stat-line">
-                        <span class="stat-label">Inventory:</span>
+                        <span class="stat-label">🎒 Inventory:</span>
                         <span class="stat-value" id="inventorySpace">0/100</span>
                     </div>
                 </div>
 
-                <!-- Inventory Panel -->
+                <!-- Compact Inventory -->
                 <div class="inventory-panel" role="region" aria-label="Player Inventory">
                     <h3 id="inventory-heading">INVENTORY</h3>
                     <div class="inventory-list" id="inventoryList" role="list" aria-labelledby="inventory-heading" aria-live="polite">
@@ -352,9 +318,9 @@
                 </div>
             </div>
 
-            <!-- Market Prices Panel -->
+            <!-- Compact Market -->
             <div class="market-panel" role="region" aria-label="Current Market Prices">
-                <h3 id="market-prices-heading">MARKET PRICES</h3>
+                <h3 id="market-prices-heading">MARKET</h3>
                 <div class="market-list" id="marketPrices" role="list" aria-labelledby="market-prices-heading" aria-live="polite">
                     <!-- Market prices will be populated by JavaScript -->
                 </div>
