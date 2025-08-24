@@ -109,7 +109,7 @@
 }
 
 * {
-    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace !important;
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', 'Lucida Console', monospace;
 }
 
 body {
@@ -156,7 +156,7 @@ body.modal-open {
 }
 
 .header-ascii {
-    font-family: 'Roboto Mono', 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-family: 'Roboto Mono', 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace !important;
     font-size: 0.4rem;
     color: var(--accent-color);
     text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--glow-color);
@@ -190,11 +190,10 @@ body.modal-open {
 @supports not (unicode-bidi: embed) {
     .header-ascii,
     .ascii-title {
-        font-family: 'Consolas', 'Courier New', monospace;
+        font-family: 'Roboto Mono', monospace;
         letter-spacing: 0.05em;
     }
 }
-
 @keyframes titlePulse {
     from { text-shadow: 0 0 20px var(--accent-color), 0 0 40px var(--glow-color); }
     to { text-shadow: 0 0 30px var(--accent-color), 0 0 60px var(--glow-color), 0 0 80px var(--secondary-accent); }
@@ -2907,7 +2906,7 @@ textarea:focus {
 }
 
 .ascii-title {
-    font-family: 'Roboto Mono', 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-family: 'Roboto Mono', monospace;
     font-size: 0.6rem;
     color: var(--accent-color);
     text-shadow: 0 0 15px var(--accent-color), 0 0 30px var(--glow-color);
