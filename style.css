@@ -3864,6 +3864,47 @@ textarea:focus {
     opacity: 0.7;
 }
 
+/* Police/Mugger Encounter Modal Styling */
+.police-encounter {
+    padding: 20px;
+    text-align: center;
+}
+
+.encounter-situation {
+    background: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(255, 0, 128, 0.05));
+    border: 1px solid var(--debt-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.encounter-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.encounter-btn {
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(128, 0, 255, 0.1));
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 80px;
+}
+
+.encounter-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.2), rgba(128, 0, 255, 0.1));
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 0, 128, 0.3);
+}
+
 /* Line Chart Styling */
 .line-chart {
     margin-top: 15px;

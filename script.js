@@ -6365,14 +6365,125 @@ function handlePoliceEvent() {
     addMessage(`🚔 ${officer.emoji} ${officer.name} spotted you!`, 'event');
     
     const hasInventory = Object.keys(gameState.player.inventory).length > 0;
-    const hasCocaine = gameState.player.inventory['Cocaine'] > 0;
-    const hasHeroin = gameState.player.inventory['Heroin'] > 0;
     
     if (!hasInventory) {
         addMessage(`${officer.name}: "${getCharacterDialogue(officer, 'search')}"`, 'event');
         addMessage('You have nothing illegal on you. The officer lets you go.', 'success');
+        playSound('whew');
         return;
     }
+    
+    // Show police encounter modal with strategic choices
+    showPoliceEncounterModal(officer);
+}
+
+function showPoliceEncounterModal(officer) {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '🚔 POLICE ENCOUNTER';
+    
+    const hasWeapon = gameState.player.weapon;
+    const inventoryValue = calculateInventoryValue();
+    const bribeAmount = Math.floor(gameState.player.cash * 0.3);
+    const canBribe = gameState.player.cash >= bribeAmount && officer.type !== 'by_the_book';
+    
+    let encounterHtml = `
+        <div class="police-encounter">
+            <div class="encounter-situation">
+                <h3>${officer.emoji} ${officer.name}</h3>
+                <p><strong>"You're under arrest! You have illegal substances!"</strong></p>
+                <p>You have $${inventoryValue.toLocaleString()} worth of contraband!</p>
+                <p><em>Officer ${officer.name} is ${officer.type}. Choose wisely!</em></p>
+            </div>
+            
+            <div class="encounter-choices">
+                <button class="encounter-btn" onclick="policeChoice('run', '${officer.name}', '${officer.type}')">
+                    🏃 <strong>RUN</strong><br>
+                    <small>Try to escape (${hasWeapon ? 'moderate' : 'low'} chance)</small>
+                </button>
+                
+                <button class="encounter-btn" onclick="policeChoice('stay', '${officer.name}', '${officer.type}')">
+                    🤚 <strong>STAY</strong><br>
+                    <small>${canBribe ? `Surrender (bribe: $${bribeAmount.toLocaleString()})` : 'Surrender (arrest likely)'}</small>
+                </button>
+                
+                <button class="encounter-btn" onclick="policeChoice('fight', '${officer.name}', '${officer.type}')">
+                    ${hasWeapon ? '🔫' : '👊'} <strong>FIGHT</strong><br>
+                    <small>${hasWeapon ? `Use weapon` : 'Bare hands (very risky)'}</small>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = encounterHtml;
+    showMobileModalWithUtility(modal);
+}
+
+function policeChoice(choice, officerName, officerType) {
+    closeMobileModal();
+    
+    switch (choice) {
+        case 'run':
+            const runSuccess = gameState.player.weapon ? Math.random() < 0.6 : Math.random() < 0.3;
+            if (runSuccess) {
+                addMessage(`🏃 You escaped from ${officerName}!`, 'success');
+                playSound('whew');
+                gameState.player.health = Math.max(10, (gameState.player.health || 100) - 5);
+            } else {
+                addMessage(`🚫 ${officerName} caught you!`, 'error');
+                gameState.player.inventory = {};
+                gameState.player.day += 4;
+                gameState.player.health = Math.max(10, (gameState.player.health || 100) - 15);
+                playSound('jaildoor');
+            }
+            break;
+        case 'stay':
+            const bribeAmount = Math.floor(gameState.player.cash * 0.3);
+            if (gameState.player.cash >= bribeAmount && officerType !== 'by_the_book' && Math.random() < 0.7) {
+                gameState.player.cash -= bribeAmount;
+                addMessage(`💵 Bribed ${officerName} successfully!`, 'success');
+                playSound('cashreg');
+            } else {
+                addMessage(`🚫 Arrested and everything confiscated!`, 'error');
+                gameState.player.inventory = {};
+                gameState.player.day += 3;
+                playSound('jaildoor');
+            }
+            break;
+        case 'fight':
+            if (gameState.player.weapon) {
+                if (Math.random() < 0.7) {
+                    addMessage(`⚔️ You fought ${officerName} with your weapon and won!`, 'success');
+                    playSound('gun');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 10);
+                } else {
+                    addMessage(`⚔️ You lost the fight!`, 'error');
+                    gameState.player.inventory = {};
+                    gameState.player.day += 5;
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 25);
+                    playSound('jaildoor');
+                }
+            } else {
+                if (Math.random() < 0.2) {
+                    addMessage(`👊 You fought with bare hands and won!`, 'success');
+                    playSound('hrdpunch');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 20);
+                } else {
+                    addMessage(`👊 You lost badly fighting with bare hands!`, 'error');
+                    gameState.player.inventory = {};
+                    gameState.player.day += 6;
+                    gameState.player.health = Math.max(5, (gameState.player.health || 100) - 35);
+                    playSound('jaildoor');
+                }
+            }
+            break;
+    }
+    updateDisplay();
+}
+
+// Combat interface for player choices
     
     // Special handling for high-value drugs
     if (hasCocaine || hasHeroin) {
