@@ -173,18 +173,7 @@ body.modal-open {
     -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 768px) {
-    .header-ascii {
-        font-size: 0.25rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .header-ascii {
-        font-size: 0.2rem;
-        line-height: 0.8;
-    }
-}
+/* Mobile responsive code removed - desktop version for all devices */
 
 /* Windows Unicode character fix */
 @supports not (unicode-bidi: embed) {
@@ -223,126 +212,50 @@ body.modal-open {
 }
 
 /* Tablet Layout - 2-column for intermediate screens */
-@media (min-width: 768px) {
-    .game-layout {
-        grid-template-columns: 1fr 300px;
-        grid-template-rows: 1fr 1fr auto;
-        gap: 12px;
-        grid-template-areas: 
-            "main-log player-status"
-            "main-log market-prices"
-            "action-buttons action-buttons";
-    }
+/* Responsive code removed - desktop layout for all */
+
+/* Desktop Layout for All Devices */
+.game-layout {
+    grid-template-columns: 1fr 400px 400px;
+    grid-template-rows: 1fr;
+    gap: 8px;
+    grid-template-areas: 
+        "main-log player-status market-prices";
 }
 
-/* Desktop Layout - Left Column with Fixed Bottom Buttons */
-@media (min-width: 1200px) {
-    .game-layout {
-        grid-template-columns: 1fr 400px 400px;
-        grid-template-rows: 1fr;
-        gap: 8px;
-        grid-template-areas: 
-            "main-log player-status market-prices";
-    }
-    
-    .main-panel {
-        display: grid;
-        grid-template-rows: 1fr auto;
-        height: 100%;
-        min-height: 0;
-        overflow: hidden;
-    }
-    
-    .game-output {
-        overflow-y: auto !important;
-        overflow-x: hidden;
-        padding: 12px;
-        background-color: rgba(0, 0, 0, 0.9);
-        min-height: 200px;
-    }
-    
-    .desktop-controls {
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        padding: 16px;
-        border-top: 1px solid var(--border-color);
-        background: var(--panel-bg);
-        min-height: 240px;
-        max-height: 240px;
-        gap: 20px;
-    }
+.main-panel {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.game-output {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.9);
+    min-height: 200px;
+}
+
+.desktop-controls {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    min-height: 240px;
+    max-height: 240px;
+    gap: 20px;
 }
 
 /* Mobile Touch Improvements */
-@media (max-width: 768px) {
-    /* Increase touch targets for mobile */
-    .quick-btn, .desktop-btn, .mobile-item {
-        min-height: 48px; /* Minimum touch target size */
-        min-width: 48px;
-        padding: 14px 18px; /* Increased from 12px 16px */
-        font-size: 0.9rem;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
-    }
-    
-    /* Improve button spacing on mobile */
-    .quick-actions {
-        gap: 12px; /* Increased from 8px */
-    }
-    
-    /* Better mobile panel spacing */
-    .game-layout {
-        gap: 10px; /* Increased from 8px */
-        padding: 8px; /* Increased from 6px */
-    }
-    
-    /* Mobile-specific text sizes */
-    .game-output {
-        font-size: 0.85rem; /* Increased from 0.8rem for better readability */
-        line-height: 1.5; /* Increased from 1.4 */
-    }
-    
-    .stat-line {
-        font-size: 0.8rem; /* Increased from 0.75rem */
-        padding: 2px 0; /* Added padding for better spacing */
-    }
-    
-    /* Better mobile scrolling */
-    .game-output, .stats-panel, .market-panel {
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        scroll-behavior: smooth;
-    }
-    
-    /* Enhanced mobile item touch feedback */
-    .mobile-item {
-        min-height: 56px; /* Increased for better touch */
-        padding: 16px 20px; /* Better padding */
-        transition: all 0.15s ease;
-    }
-    
-    .mobile-item:active {
-        transform: scale(0.98);
-        background-color: rgba(0, 255, 0, 0.25); /* More visible feedback */
-    }
-}
 
 /* Tablet improvements */
-@media (min-width: 768px) and (max-width: 1199px) {
-    .quick-btn, .desktop-btn {
-        min-height: 44px;
-        padding: 10px 14px;
-    }
-}
 
 /* Ultra-wide desktop optimization */
-@media (min-width: 1600px) {
-    .game-layout {
-        grid-template-columns: 1fr 380px 320px;
-        gap: 10px;
-    }
-}
 
 /* Main Content Area - Market Display */
 .main-content {
@@ -354,12 +267,6 @@ body.modal-open {
     min-height: 0;
 }
 
-@media (min-width: 1200px) {
-    .main-content {
-        grid-template-columns: 2fr 1fr;
-        grid-template-areas: "market-area inventory-area";
-    }
-}
 
 .market-area {
     grid-area: market-area;
@@ -1336,31 +1243,6 @@ body.modal-open {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-    .travel-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 6px;
-    }
-    
-    .travel-option {
-        padding: 10px 6px;
-        font-size: 0.8em;
-        min-height: 50px;
-    }
-    
-    .banking-grid,
-    .debt-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 8px;
-    }
-    
-    .banking-grid-item,
-    .debt-grid-item {
-        padding: 12px 8px;
-        font-size: 0.9em;
-        min-height: 55px;
-    }
-}
 
 .market-item:last-child {
     border-bottom: none;
@@ -1660,141 +1542,11 @@ body.modal-open {
 }
 
 /* Enhanced panel padding for larger screens */
-@media (min-width: 1600px) {
-    .stats-panel,
-    .market-panel {
-        padding: 16px;
-    }
-    
-    .inventory-panel {
-        padding: 16px;
-    }
-    
-    .desktop-btn {
-        font-size: 0.9rem;
-        padding: 8px 12px;
-        min-width: 70px;
-    }
-}
 
 /* Mobile and tablet responsive adjustments */
-@media (max-width: 767px) {
-    body {
-        overflow: auto; /* Allow scrolling on mobile */
-    }
-    
-    .container {
-        height: auto;
-        min-height: 100vh;
-        padding: 5px;
-    }
-    
-    .game-header {
-        height: auto;
-        padding: 15px 0;
-    }
-    
-    .game-header h1 {
-        font-size: 1.6rem;
-    }
-    
-    .stats-panel,
-    .market-panel {
-        min-width: auto;
-        min-height: auto;
-        overflow-y: visible;
-    }
-    
-    .inventory-panel {
-        min-width: auto;
-        min-height: auto;
-        overflow-y: visible;
-        margin-top: 8px;
-    }
-    
-    .main-panel {
-        min-height: 200px;
-        max-height: 60vh;
-    }
-    
-    .game-output {
-        overflow-y: auto;
-        max-height: none;
-    }
-    
-    .command-input {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-    
-    .menu-content,
-    .leaderboard-content {
-        margin: 20px;
-        padding: 20px;
-        max-width: calc(100% - 40px);
-    }
-}
 
 /* Tablet-specific improvements */
-@media (min-width: 768px) and (max-width: 1199px) {
-    .container {
-        height: auto;
-        min-height: 100vh;
-        padding: 8px;
-    }
-    
-    .game-header h1 {
-        font-size: 1.8rem;
-    }
-    
-    .main-panel {
-        min-height: 300px;
-        max-height: 70vh;
-    }
-    
-    .game-output {
-        overflow-y: auto;
-        max-height: none;
-    }
-}
 
-@media (max-width: 480px) {
-    .stats-panel,
-    .market-panel {
-        min-width: auto;
-        padding: 10px;
-    }
-    
-    .inventory-panel {
-        min-width: auto;
-        padding: 10px;
-        margin-top: 8px;
-    }
-    
-    .game-output {
-        height: 250px;
-        font-size: 0.8rem;
-        padding: 10px;
-    }
-    
-    .input-section {
-        padding: 8px;
-    }
-    
-    .command-input {
-        font-size: 16px;
-        padding: 8px;
-    }
-    
-    .desktop-controls {
-        padding: 6px;
-    }
-    
-    .desktop-btn {
-        font-size: 0.75rem;
-        padding: 4px 6px;
-        min-width: 50px;
-    }
-}
 
 /* Text effects for retro feel */
 .text-glow {
@@ -2363,25 +2115,7 @@ body.modal-open {
 }
 
 /* Mobile modal responsive improvements */
-@media (max-width: 768px) {
-    .mobile-modal-content {
-        width: 95%;
-        margin: 15px;
-        max-height: 90vh; /* More space on mobile */
-    }
-}
 
-@media (max-height: 600px) {
-    /* For short screens (landscape mobile) */
-    .mobile-modal-content {
-        max-height: 95vh;
-        margin: 5px;
-    }
-    
-    .modal-body {
-        padding: 10px;
-    }
-}
 
 .modal-header {
     display: flex;
@@ -2470,25 +2204,8 @@ textarea:focus {
 /* Keyboard hints removed */
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
-    :root {
-        --text-color: #FFFFFF;
-        --bg-color: #000000;
-        --border-color: #FFFFFF;
-        --accent-color: #FFFF00;
-    }
-}
 
 /* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
 
 /* Keyboard help removed */
 .mobile-item-list {
@@ -2922,17 +2639,7 @@ textarea:focus {
     -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 768px) {
-    .ascii-title {
-        font-size: 0.4rem;
-    }
-}
 
-@media (max-width: 480px) {
-    .ascii-title {
-        font-size: 0.3rem;
-    }
-}
 
 /* ASCII title animation uses existing titlePulse */
 
@@ -3067,73 +2774,10 @@ textarea:focus {
 }
 
 /* Enhanced hover states for desktop */
-@media (min-width: 1200px) {
-    .market-item:hover, .inventory-item:hover {
-        background-color: rgba(0, 255, 0, 0.1);
-        cursor: pointer;
-    }
-    
-    .start-actions {
-        flex-direction: row;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    .start-btn {
-        min-width: 180px;
-    }
-}
 
 /* Control visibility based on screen size */
-@media (min-width: 768px) {
-    .desktop-controls {
-        display: block;
-    }
-    
-    .mobile-controls {
-        display: none;
-    }
-}
 
-@media (max-width: 767px) {
-    .mobile-controls {
-        display: block;
-    }
-    
-    .desktop-controls {
-        display: none;
-    }
-    
-    .command-input {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-    
-    .mobile-modal-content {
-        width: 95%;
-        margin: 20px;
-    }
-}
 
-@media (max-width: 480px) {
-    .quick-actions {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .quick-btn {
-        width: 100%;
-        padding: 12px;
-        font-size: 1rem;
-    }
-    
-    .mobile-item {
-        padding: 15px;
-    }
-    
-    .mobile-item-name {
-        font-size: 1.1rem;
-    }
-}
 
 /* Mobile Chart Styles */
 .mobile-chart-container {

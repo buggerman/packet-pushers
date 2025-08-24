@@ -1316,11 +1316,66 @@ let gameState = {
             'Presidio': { services: ['hospital'] }, // Former military base
             'Metro': { services: [] }
         },
-        'Detroit': {
-            'Detroit Airport': { services: [] },
-            'Corktown': { services: ['weapons'] }, // Industrial/rough area
-            'Greektown': { services: ['clothes'] }, // Commercial district
-            'Belle Isle': { services: ['bank'] } // Scenic area with upscale services
+        'Derby': {
+            'East Midlands': { services: [] }, // Airport
+            'Allenton': { services: ['weapons'] }, // Industrial area
+            'Alvaston': { services: ['clothes'] }, // Residential area
+            'Normanton': { services: [] },
+            'Shelton Lock': { services: ['bank'] }, // Affluent area
+            'Oakwood': { services: ['hospital'] },
+            'Chellaston': { services: ['clothes'] },
+            'Bus': { services: [] }
+        },
+        'Sydney': {
+            'Kingsford Smith': { services: [] }, // Airport
+            'Kings Cross': { services: ['weapons'] }, // Red light district
+            'Darling Harbour': { services: ['clothes', 'bank'] }, // Tourist area
+            'North Sydney': { services: ['bank'] }, // Business district
+            'Bondi Beach': { services: ['clothes'] }, // Beach area
+            'Bennelong Point': { services: [] }, // Opera House area
+            'Manly': { services: ['hospital'] }, // Beach suburb
+            'Bus': { services: [] }
+        },
+        'Paris': {
+            'Charles De Gaulle': { services: [] }, // Airport
+            'Montmartre': { services: ['clothes'] }, // Artist district
+            'Clichy': { services: ['weapons'] }, // Industrial suburb
+            'Bois de Boulogne': { services: [] }, // Park
+            'Champs-Elysees': { services: ['bank', 'clothes'] }, // Luxury shopping
+            'Marais': { services: ['hospital'] }, // Historic district
+            'Quartier Latin': { services: ['clothes'] }, // Student area
+            'Metro': { services: [] }
+        },
+        'Toronto': {
+            'Lester B. Pearson International': { services: [] }, // Airport
+            'Parkdale': { services: ['weapons'] }, // Rough area
+            'Jane / Finch': { services: ['weapons'] }, // Notorious area
+            'Downtown': { services: ['bank', 'clothes'] }, // Business district
+            'Scarborough': { services: ['clothes'] }, // Suburban area
+            'North York': { services: ['bank'] }, // Business area
+            'The Beaches': { services: ['hospital'] }, // Upscale beach area
+            'TTC': { services: [] }
+        },
+        'Johannesburg': {
+            'Johannesburg International': { services: [] }, // Airport
+            'Hillbrow': { services: ['weapons'] }, // Notorious area
+            'Malvern': { services: ['clothes'] }, // Residential area
+            'Yeoville': { services: ['weapons'] }, // Rough area
+            'Berea': { services: [] },
+            'Mellville': { services: ['bank'] }, // Business area
+            'Marshalltown': { services: ['hospital'] }, // Central area
+            'Minibus taxi': { services: [] }
+        },
+        'Montreal': {
+            'Dorval International': { services: [] }, // Airport
+            'N.D.G.': { services: ['clothes'] }, // Residential area
+            'Dorchester Square': { services: ['bank'] }, // Downtown area
+            'Old Port': { services: ['clothes'] }, // Tourist area
+            'Mount Royal': { services: ['hospital'] }, // Upscale area
+            'Berri Park': { services: [] },
+            'Cote-des-Neiges': { services: ['weapons'] }, // Diverse area
+            'Metro': { services: [] }
+        }
         },
         'Boston': {
             'Logan Airport': { services: [] },
@@ -7847,6 +7902,32 @@ function updateDisplay() {
     });
 }
 
+function showEndGameButton() {
+    // Add END GAME button to the action bar on Day 30
+    const locationServices = document.getElementById('locationServices');
+    if (locationServices && !document.getElementById('endGameBtn')) {
+        const endGameBtn = document.createElement('button');
+        endGameBtn.className = 'action-btn service';
+        endGameBtn.id = 'endGameBtn';
+        endGameBtn.onclick = () => endGame();
+        endGameBtn.innerHTML = '🏁 END GAME';
+        endGameBtn.style.background = 'linear-gradient(135deg, rgba(255, 0, 128, 0.3), rgba(255, 170, 0, 0.2))';
+        endGameBtn.style.borderColor = '#ff0080';
+        endGameBtn.style.color = '#ff0080';
+        endGameBtn.style.fontWeight = 'bold';
+        locationServices.appendChild(endGameBtn);
+    }
+    
+    // Disable travel button on Day 30
+    const travelBtn = document.querySelector('button[onclick="enterTravelMode()"]');
+    if (travelBtn) {
+        travelBtn.disabled = true;
+        travelBtn.style.opacity = '0.5';
+        travelBtn.innerHTML = '🚫 NO TRAVEL';
+        travelBtn.onclick = () => addMessage('🚫 No more travel on the final day! Time to settle accounts.', 'error');
+    }
+}
+
 // Update compact status bar
 function updateStatusBar() {
     const statusDebt = document.getElementById('statusDebt');
@@ -7981,10 +8062,26 @@ function isActionAllowed(actionName = 'action') {
 
 // Centralized day advancement and interest application
 function advanceDayAndApplyInterest() {
+    // Check for Day 29 warning BEFORE advancing
+    if (gameState.player.day === 29 && !gameState.lastDayWarningShown) {
+        addMessage('🚨 LAST DAY WARNING: Tomorrow is your final day! Unload your stash and settle your debts!', 'warning');
+        playSound('lastday');
+        gameState.lastDayWarningShown = true;
+    }
+    
     gameState.player.day += 1;
     
-    // Check if game should end after advancing day
-    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+    // On Day 30, show end game option instead of forcing end
+    if (gameState.player.day === GAME_CONSTANTS.PLAYER.MAX_DAYS && !gameState.endGameButtonShown) {
+        addMessage('🏁 Final day reached! You may continue playing or end the game when ready.', 'warning');
+        addMessage('📊 Use the END GAME button to finish and see your final score.', 'info');
+        gameState.endGameButtonShown = true;
+        showEndGameButton();
+    }
+    
+    // Only force end if player goes beyond day 30 without choosing to end
+    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS + 1) {
+        console.log(`Force ending: Day ${gameState.player.day} - player didn't use end button`);
         endGame();
         return 0;
     }
@@ -8026,13 +8123,6 @@ function advanceDayAndApplyInterest() {
 // Centralized game end checking function
 function checkGameEnd() {
     console.log(`Checking game end: Day ${gameState.player.day} vs MAX_DAYS ${GAME_CONSTANTS.PLAYER.MAX_DAYS}`);
-    
-    // Add last day warning on Day 29
-    if (gameState.player.day === 29 && !gameState.lastDayWarningShown) {
-        addMessage('🚨 LAST DAY WARNING: Tomorrow is your final day! Unload your stash and settle your debts!', 'warning');
-        playSound('lastday');
-        gameState.lastDayWarningShown = true;
-    }
     
     // Game ends after Day 30 (when day becomes 31)
     if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
