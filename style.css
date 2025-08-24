@@ -156,7 +156,7 @@ body.modal-open {
 }
 
 .header-ascii {
-    font-family: 'Roboto Mono', 'JetBrains Mono', 'Consolas', 'DejaVu Sans Mono', 'Liberation Mono', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace !important;
+    font-family: monospace !important;
     font-size: 0.4rem;
     color: var(--accent-color);
     text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--glow-color);
@@ -2906,10 +2906,10 @@ textarea:focus {
 }
 
 .ascii-title {
-    font-family: 'Roboto Mono', monospace;
+    font-family: monospace;
     font-size: 0.6rem;
     color: var(--accent-color);
-    text-shadow: 0 0 15px var(--accent-color), 0 0 30px var(--glow-color);
+    text-shadow: 0 0 15px var(--accent-color), 0 0 10px var(--glow-color);
     margin: 0 0 20px 0;
     animation: titlePulse 3s ease-in-out infinite alternate;
     line-height: 1;
