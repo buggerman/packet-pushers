@@ -1286,6 +1286,16 @@ let gameState = {
             'Brooklyn': { services: ['weapons'] }, // Industrial area
             'Subway': { services: [] }
         },
+        'London': {
+            'Heathrow': { services: [] }, // Airport
+            'Camden': { services: ['clothes', 'weapons'] }, // Alternative area
+            'Kensington': { services: ['bank', 'clothes'] }, // Upscale area
+            'Hyde Park': { services: [] },
+            'East End': { services: ['weapons'] }, // Traditional rough area
+            'Canary Wharf': { services: ['bank'] }, // Financial district
+            'Richmond': { services: ['hospital'] }, // Suburban area
+            'Tube': { services: [] }
+        },
         'Los Angeles': {
             'L.A.X.': { services: [] }, // Airport
             'South Central': { services: ['weapons'] }, // Rough neighborhood
