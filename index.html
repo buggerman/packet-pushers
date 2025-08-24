@@ -54,8 +54,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- JetBrains Mono Font -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Roboto Mono and JetBrains Mono Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -269,7 +269,7 @@
                     </div>
                 </div>
                 
-                <!-- Compact Action Bar -->
+                <!-- Action buttons fixed at bottom of left column -->
                 <div class="desktop-controls" id="desktopControls" role="region" aria-label="Game Actions">
                     <nav class="desktop-actions" role="navigation" aria-label="Primary game controls">
                         <button class="action-btn" onclick="enterTravelMode()">✈️ TRAVEL</button>
@@ -283,6 +283,7 @@
                         <button class="action-btn service" id="weaponShopBtn" onclick="visitWeaponShop()" style="display: none;">🔫 WEAPONS</button>
                         <button class="action-btn service" id="clothesShopBtn" onclick="visitCoatShop()" style="display: none;">🧥 CLOTHES</button>
                         <button class="action-btn service" id="bankBtn" onclick="showBankInterface()" style="display: none;">🏦 BANK</button>
+                        <button class="action-btn service" id="hospitalBtn" onclick="visitHospital()" style="display: none;">🏥 HOSPITAL</button>
                     </div>
                 </div>
             </div>
@@ -292,12 +293,28 @@
                 <div class="player-status-section">
                     <h3 id="player-status-heading">STATUS</h3>
                     <div class="stat-line">
+                        <span class="stat-label">📅 Day:</span>
+                        <span class="stat-value" id="currentDay">1/30</span>
+                    </div>
+                    <div class="stat-line">
                         <span class="stat-label">💰 Cash:</span>
                         <span class="stat-value" id="playerCash">$2,000</span>
                     </div>
                     <div class="stat-line">
                         <span class="stat-label">🏦 Bank:</span>
                         <span class="stat-value" id="playerBank">$0</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">💀 Debt:</span>
+                        <span class="stat-value debt" id="playerDebt">$5,000</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">💎 Net Worth:</span>
+                        <span class="stat-value" id="playerNetWorth">($3,000)</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">❤️ Health:</span>
+                        <span class="stat-value" id="playerHealth">100%</span>
                     </div>
                     <div class="stat-line">
                         <span class="stat-label">📍 Location:</span>

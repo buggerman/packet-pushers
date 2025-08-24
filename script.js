@@ -801,7 +801,10 @@ function travelToDirect(fullLocationName) {
     // Check for scheduled events from old lady predictions
     checkScheduledEvents();
     
-    // Check for guaranteed price surges
+    // Generate new market prices first
+    generateMarketPrices();
+    
+    // Then check for guaranteed price surges (after regular price generation)
     checkGuaranteedSurges();
     
     if (isIntercity) {
@@ -810,9 +813,6 @@ function travelToDirect(fullLocationName) {
         addMessage(`🚶 ${fullLocationName}`, 'success');
     }
     addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
-    
-    // Generate new market prices (this will trigger market updates)
-    generateMarketPrices();
     
     // Update location services
     updateLocationServiceButtons();
@@ -1300,12 +1300,16 @@ const domCache = {
     playerCash: null,
     playerBank: null,
     playerNetWorth: null,
+    playerHealth: null,
+    playerDebt: null,
+    currentDay: null,
     currentCity: null,
     currentLocation: null,
     inventorySpace: null,
     marketPrices: null,
     inventoryList: null,
-    gameOutput: null
+    gameOutput: null,
+    gameSubtitle: null
 };
 
 // Initialize DOM cache
@@ -1313,12 +1317,16 @@ function initDOMCache() {
     domCache.playerCash = document.getElementById('playerCash');
     domCache.playerBank = document.getElementById('playerBank');
     domCache.playerNetWorth = document.getElementById('playerNetWorth');
+    domCache.playerHealth = document.getElementById('playerHealth');
+    domCache.playerDebt = document.getElementById('playerDebt');
+    domCache.currentDay = document.getElementById('currentDay');
     domCache.currentCity = document.getElementById('currentCity');
     domCache.currentLocation = document.getElementById('currentLocation');
     domCache.inventorySpace = document.getElementById('inventorySpace');
     domCache.marketPrices = document.getElementById('marketPrices');
     domCache.inventoryList = document.getElementById('inventoryList');
     domCache.gameOutput = document.getElementById('gameOutput');
+    domCache.gameSubtitle = document.getElementById('gameSubtitle');
 }
 
 // Simplified navigation - no keyboard navigation  
@@ -4148,6 +4156,119 @@ function showDrugChart(drugName) {
     `;
     
     chartDisplay.innerHTML = chartHtml;
+}
+
+// Hospital system with quack doctors
+function visitHospital() {
+    if (!requireLocationService('hospital', 'hospital')) return;
+    
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '🏥 HOSPITAL';
+    
+    const currentHealth = gameState.player.health || 100;
+    const healthDeficit = 100 - currentHealth;
+    const treatmentCost = Math.floor(healthDeficit * 50); // $50 per health point
+    
+    const doctor = getRandomCharacter('doctors');
+    const isQuack = Math.random() < 0.3; // 30% chance of quack doctor
+    
+    let hospitalHtml = `
+        <div class="hospital-interface">
+            <div class="hospital-status">
+                <h3>🏥 Emergency Medical Center</h3>
+                <p><strong>Current Health:</strong> ${currentHealth}%</p>
+                <p><strong>Treatment Needed:</strong> ${healthDeficit} health points</p>
+                <p><strong>Treatment Cost:</strong> $${treatmentCost.toLocaleString()}</p>
+            </div>
+            
+            <div class="doctor-info">
+                <h4>${doctor.emoji} Dr. ${doctor.name}</h4>
+                <p><em>"${getCharacterDialogue(doctor, 'greeting')}"</em></p>
+                ${isQuack ? '<p class="warning">⚠️ Something seems off about this doctor...</p>' : '<p class="info">This doctor seems professional and trustworthy.</p>'}
+            </div>
+            
+            <div class="hospital-actions">`;
+    
+    if (currentHealth >= 100) {
+        hospitalHtml += `
+                <div class="info-message">
+                    <p>You are in perfect health! No treatment needed.</p>
+                </div>
+                <button class="mobile-action-btn" onclick="closeMobileModal()">Leave Hospital</button>
+        `;
+    } else {
+        hospitalHtml += `
+                <button class="mobile-action-btn ${gameState.player.cash >= treatmentCost ? 'primary' : 'disabled'}" 
+                        onclick="receiveTreatment(${treatmentCost}, ${isQuack ? 'true' : 'false'}, '${doctor.name}')"
+                        ${gameState.player.cash < treatmentCost ? 'disabled' : ''}>
+                    💊 Get Treatment ($${treatmentCost.toLocaleString()})
+                </button>
+                
+                <button class="mobile-action-btn" onclick="closeMobileModal()">
+                    🚪 Leave Hospital
+                </button>
+        `;
+    }
+    
+    hospitalHtml += `
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = hospitalHtml;
+    showMobileModalWithUtility(modal);
+    playSound('doctor');
+}
+
+function receiveTreatment(cost, isQuack, doctorName) {
+    if (gameState.player.cash < cost) {
+        addMessage('❌ Not enough cash for treatment!', 'error');
+        return;
+    }
+    
+    gameState.player.cash -= cost;
+    
+    if (isQuack) {
+        // Quack doctor - steal money/drugs, give minimal healing
+        const healthGain = Math.floor(Math.random() * 20) + 5; // 5-25 health
+        gameState.player.health = Math.min(100, (gameState.player.health || 100) + healthGain);
+        
+        addMessage(`💊 Dr. ${doctorName} gives you suspicious treatment...`, 'event');
+        addMessage(`❤️ You feel slightly better (+${healthGain} health)`, 'success');
+        
+        // Steal some drugs if player has any
+        const inventory = Object.keys(gameState.player.inventory);
+        if (inventory.length > 0 && Math.random() < 0.4) {
+            const drugToSteal = inventory[Math.floor(Math.random() * inventory.length)];
+            const amountToSteal = Math.min(5, gameState.player.inventory[drugToSteal]);
+            gameState.player.inventory[drugToSteal] -= amountToSteal;
+            if (gameState.player.inventory[drugToSteal] <= 0) {
+                delete gameState.player.inventory[drugToSteal];
+            }
+            addMessage(`🥷 Dr. ${doctorName} pockets ${amountToSteal} ${drugToSteal} while you're unconscious!`, 'error');
+        }
+        
+        // Sometimes steal extra money
+        if (Math.random() < 0.3) {
+            const extraFee = Math.floor(Math.random() * 200) + 50;
+            gameState.player.cash = Math.max(0, gameState.player.cash - extraFee);
+            addMessage(`💸 Dr. ${doctorName} charges an "additional fee" of $${extraFee}!`, 'error');
+        }
+        
+        playSound('uhoh');
+    } else {
+        // Legitimate doctor - full healing
+        gameState.player.health = 100;
+        addMessage(`🏥 Dr. ${doctorName} provides excellent treatment!`, 'success');
+        addMessage(`❤️ You feel completely refreshed! (Health: 100%)`, 'success');
+        playSound('doctor');
+    }
+    
+    closeMobileModal();
+    updateDisplay();
 }
 
 
@@ -7485,9 +7606,21 @@ function updateDisplay() {
     const playerName = document.getElementById('playerName');
     
     if (playerName) playerName.textContent = gameState.player.name || 'Anonymous Dealer';
-    if (domCache.playerCash) domCache.playerCash.textContent = `$${gameState.player.cash}`;
-    if (domCache.playerBank) domCache.playerBank.textContent = `$${gameState.player.bankBalance || 0}`;
+    if (domCache.playerCash) domCache.playerCash.textContent = `$${gameState.player.cash.toLocaleString()}`;
+    if (domCache.playerBank) domCache.playerBank.textContent = `$${(gameState.player.bankBalance || 0).toLocaleString()}`;
     if (domCache.playerNetWorth) domCache.playerNetWorth.textContent = formatCurrency(calculateNetWorth());
+    if (domCache.playerDebt) domCache.playerDebt.textContent = `$${gameState.player.debt.toLocaleString()}`;
+    if (domCache.currentDay) domCache.currentDay.textContent = `${gameState.player.day}/${gameState.player.maxDays}`;
+    if (domCache.playerHealth) {
+        const health = gameState.player.health || 100;
+        domCache.playerHealth.textContent = `${health}%`;
+        domCache.playerHealth.className = health > 75 ? 'stat-value' : health > 50 ? 'stat-value warning' : 'stat-value danger';
+    }
+    
+    // Update header subtitle with current player name
+    if (gameState.player.name) {
+        updateHeaderSubtitle(gameState.player.name);
+    }
     
     // Update city and location separately
     const [city, district] = gameState.player.location.split(' - ');
@@ -7528,9 +7661,12 @@ function updateStatusBar() {
 // Update header subtitle with player name
 function updateHeaderSubtitle(playerName) {
     const gameSubtitle = document.getElementById('gameSubtitle');
+    console.log('updateHeaderSubtitle called with:', playerName, 'Element found:', !!gameSubtitle);
+    
     if (gameSubtitle && playerName && playerName !== 'Anonymous Dealer') {
         gameSubtitle.textContent = `${playerName} - Terminal Market v2.5.1`;
-    } else {
+        console.log('Updated header to:', gameSubtitle.textContent);
+    } else if (gameSubtitle) {
         gameSubtitle.textContent = 'Terminal Market v2.5.1';
     }
 }
@@ -7754,6 +7890,7 @@ function newGame() {
         cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
         debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
         bankBalance: 0,
+        health: 100, // Health system (0-100)
         inventory: {},
         location: 'New York - Brooklyn Docks',
         day: 1,
@@ -7765,8 +7902,11 @@ function newGame() {
         purchaseHistory: {} // Track purchase history for profit/loss calculations
     };
     
-    // Update header subtitle with player name
+    // Update header subtitle with player name  
     updateHeaderSubtitle(finalName);
+    
+    // Also update it in the updateDisplay function cache
+    domCache.gameSubtitle = document.getElementById('gameSubtitle');
     
     // Reset game state flags
     gameState.currentPrices = {};
