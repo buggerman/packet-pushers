@@ -840,6 +840,25 @@ function travelToDirect(fullLocationName) {
         playSound('slidein');
     }
     
+    // Random cryptic messages to mess with players (5% chance)
+    if (Math.random() < 0.05) {
+        const crypticMessages = [
+            "💭 You feel like someone is watching you...",
+            "🔮 The numbers on your screen seem to shimmer for a moment...",
+            "👁️ You catch a glimpse of something in your peripheral vision...",
+            "🌀 Reality feels slightly off today...",
+            "📱 Your screen flickers. Was that always there?",
+            "🕳️ The walls seem closer than before...",
+            "⏰ Time moves strangely in this business...",
+            "🎭 Are you the player, or are you being played?",
+            "🔄 This feels familiar. Have you been here before?",
+            "🎪 The circus never ends in this line of work..."
+        ];
+        setTimeout(() => {
+            addMessage(crypticMessages[Math.floor(Math.random() * crypticMessages.length)], 'warning');
+        }, 2000);
+    }
+    
     // Don't clear game output - preserve encounter messages
     updateDisplay();
 }
@@ -5650,6 +5669,22 @@ function executeBuyFromModal() {
     gameState.player.inventory[drug.name] = (gameState.player.inventory[drug.name] || 0) + quantity;
     
     addMessage(`💰 Bought ${quantity} ${drug.name} for $${totalCost.toLocaleString()}!`, 'success');
+    
+    // Cryptic purchase messages (2% chance)
+    if (Math.random() < 0.02) {
+        const purchaseCrypticMessages = [
+            "💫 The transaction ripples through dimensions you cannot see...",
+            "🕸️ Each purchase weaves another thread in the web...",
+            "⚗️ Chemistry becomes destiny in the right hands...",
+            "🔮 You sense this will matter more than you know...",
+            "🎲 The universe keeps score in ways you don't understand...",
+            "👻 Someone from the future is smiling right now..."
+        ];
+        setTimeout(() => {
+            addMessage(purchaseCrypticMessages[Math.floor(Math.random() * purchaseCrypticMessages.length)], 'info');
+        }, 1000);
+    }
+    
     playSound('cashreg');
     updateDisplay();
     
@@ -8025,6 +8060,22 @@ function advanceDayAndApplyInterest() {
     const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
     gameState.player.debt += interest;
     
+    // Cryptic day advancement messages (3% chance)
+    if (Math.random() < 0.03) {
+        const dayCrypticMessages = [
+            "⏳ Time is an illusion. Progress is persistent illusion.",
+            "📅 Each day brings you closer to... what exactly?",
+            "🔄 Déjà vu is just the Matrix rebooting your reality...",
+            "🎯 Every choice echoes across parallel timelines...",
+            "🌙 Night falls, but in whose shadow do you really operate?",
+            "🎮 Press any key to continue existing...",
+            "🔍 The watchers become the watched..."
+        ];
+        setTimeout(() => {
+            addMessage(dayCrypticMessages[Math.floor(Math.random() * dayCrypticMessages.length)], 'warning');
+        }, 2500);
+    }
+    
     // Track interest in debt history if it exists
     if (!gameState.player.debtHistory) gameState.player.debtHistory = [];
     if (interest > 0) {
@@ -8193,6 +8244,21 @@ function newGame() {
     
     addMessage('🎮 New game started', 'success');
     playSound('slidein'); // Game start sound
+    
+    // Cryptic opening message (15% chance)
+    if (Math.random() < 0.15) {
+        const openingCryptic = [
+            "🔮 The game was rigged from the start... but rigged for whom?",
+            "🎭 Welcome to the theater. You think you're the audience, but you're on stage...",
+            "🕳️ Some say there are only 10 types of dealers: those who understand binary and those who don't...",
+            "⚡ Reality.exe has encountered an error. Continue anyway?",
+            "🌀 Loading alternate timeline... Error 404: Original reality not found.",
+            "🎪 Step right up! The greatest show in the underground!"
+        ];
+        setTimeout(() => {
+            addMessage(openingCryptic[Math.floor(Math.random() * openingCryptic.length)], 'info');
+        }, 3000);
+    }
 }
 
 // Alias for backwards compatibility
@@ -8485,6 +8551,21 @@ function checkHighScore(score) {
             localStorage.setItem('packetPushersPlayerName', name.trim());
             saveHighScore(name.trim(), score);
             addMessage(`High score saved! Final score: $${score.toLocaleString()}`, 'success');
+            
+            // Cryptic high score messages (30% chance)
+            if (Math.random() < 0.3) {
+                const highScoreCryptic = [
+                    "🏆 Your name will be remembered... by whom, we cannot say.",
+                    "📜 Another legend enters the eternal ledger...",
+                    "🎯 Achievement unlocked: Existing in the Database of Souls.",
+                    "🔮 The leaderboard sees all, knows all, judges all...",
+                    "👻 Congratulations! You are now part of the permanent record.",
+                    "🎭 The performance is over, but the applause echoes forever..."
+                ];
+                setTimeout(() => {
+                    addMessage(highScoreCryptic[Math.floor(Math.random() * highScoreCryptic.length)], 'event');
+                }, 2000);
+            }
             
             // Show updated leaderboard
             setTimeout(() => {
