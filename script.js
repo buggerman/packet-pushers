@@ -1277,28 +1277,44 @@ let gameState = {
     ],
     locationServices: {
         'New York': {
-            'JFK Airport': { services: [] },
-            'Brooklyn Docks': { services: ['weapons'] }, // Shady docks area
-            'Times Square': { services: ['clothes', 'bank'] }, // Commercial center
-            'Central Park': { services: [] }
+            'John F. Kennedy': { services: [] }, // Airport
+            'Bronx': { services: ['weapons'] }, // Rough area
+            'Queens': { services: ['clothes'] }, // Residential area
+            'Central Park': { services: ['hospital'] }, // Park area
+            'Manhattan': { services: ['bank', 'clothes'] }, // Financial center
+            'Coney Island': { services: [] }, // Beach area
+            'Brooklyn': { services: ['weapons'] }, // Industrial area
+            'Subway': { services: [] }
         },
         'Los Angeles': {
-            'LAX Airport': { services: [] },
-            'Hollywood Hills': { services: ['bank'] }, // Upscale area
-            'Venice Beach': { services: ['clothes'] }, // Trendy area
-            'Compton': { services: ['weapons'] } // Rough neighborhood
+            'L.A.X.': { services: [] }, // Airport
+            'South Central': { services: ['weapons'] }, // Rough neighborhood
+            'Hollywood': { services: ['clothes', 'bank'] }, // Entertainment district
+            'Pasadena': { services: ['hospital'] }, // Suburban area
+            'Beverly Hills': { services: ['bank', 'clothes'] }, // Upscale area
+            'Anaheim': { services: [] },
+            'Glendale': { services: ['clothes'] },
+            'Metro': { services: [] }
         },
         'Chicago': {
-            'O Hare Airport': { services: [] },
-            'The Loop': { services: ['bank', 'clothes'] }, // Financial district
-            'Wicker Park': { services: [] },
-            'South Side': { services: ['weapons'] } // Dangerous area
+            'OHare International': { services: [] }, // Airport
+            'Navy Pier': { services: ['clothes'] }, // Tourist area
+            'Lincoln Park': { services: ['hospital'] }, // Upscale neighborhood
+            'Cabrini Green': { services: ['weapons'] }, // Notorious area
+            'Hyde Park': { services: ['bank'] }, // University area
+            'Bucktown': { services: ['clothes'] }, // Trendy area
+            'Loop': { services: ['bank', 'clothes'] }, // Financial district
+            'CTA': { services: [] }
         },
-        'Miami': {
-            'Miami Airport': { services: [] },
-            'South Beach': { services: ['clothes', 'bank'] }, // Tourist/upscale area
-            'Little Havana': { services: ['weapons'] }, // Cultural district with underground
-            'Biscayne Bay': { services: [] }
+        'San Francisco': {
+            'San Francisco Intl': { services: [] }, // Airport
+            'China Town': { services: ['weapons'] }, // Traditional underground area
+            'Nob Hill': { services: ['bank', 'clothes'] }, // Upscale area
+            'The Mission': { services: ['weapons'] }, // Rough area
+            'The Haight': { services: ['clothes'] }, // Hippie/counterculture area
+            'SoMa': { services: ['bank'] }, // Business district
+            'Presidio': { services: ['hospital'] }, // Former military base
+            'Metro': { services: [] }
         },
         'Detroit': {
             'Detroit Airport': { services: [] },
