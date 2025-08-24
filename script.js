@@ -644,7 +644,8 @@ function showClickableTravelInterface() {
     const gameOutput = document.getElementById('gameOutput');
     const currentLocation = gameState.player.location;
     const [currentCity, currentDistrict] = currentLocation.split(' - ');
-    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
     
     // Build list of available destinations
     const availableDestinations = [];
@@ -1214,7 +1215,7 @@ let gameState = {
         debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
         bankBalance: 0, // Secure money in bank
         inventory: {},
-        location: 'New York - Brooklyn Docks',
+        location: 'New York - John F. Kennedy',
         day: 1,
         maxDays: GAME_CONSTANTS.PLAYER.MAX_DAYS,
         maxInventory: GAME_CONSTANTS.PLAYER.BASE_INVENTORY,
@@ -1971,7 +1972,8 @@ function handleTravel(parts) {
         }
         
         // Check if player is at an airport for inter-city travel
-        const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+        // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
         if (!isAtAirport) {
             addMessage(`You must be at an airport to travel between cities. Go to an airport first.`, 'error');
             playSound('uhoh');
@@ -3820,7 +3822,8 @@ function showCities() {
         citiesText += `&nbsp;&nbsp;${district}${marker} ${serviceEmojis}<br>`;
     });
     
-    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
     
     if (isAtAirport) {
         citiesText += '<br><strong>✈️ Cities:</strong><br>';
@@ -3868,7 +3871,8 @@ function showTravelModal() {
     
     const currentLocation = gameState.player.location;
     const [currentCity, currentDistrict] = currentLocation.split(' - ');
-    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
     
     modalTitle.textContent = '🚗 TRAVEL';
     
@@ -4781,7 +4785,8 @@ function showCityOptions() {
     const gameOutput = document.getElementById('gameOutput');
     const currentLocation = gameState.player.location;
     const [currentCity, currentDistrict] = currentLocation.split(' - ');
-    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
     
     // Build list of available destinations
     const availableDestinations = [];
@@ -5052,7 +5057,8 @@ function showMobileTravelModal() {
     
     const currentLocation = gameState.player.location;
     const [currentCity, currentDistrict] = currentLocation.split(' - ');
-    const isAtAirport = currentDistrict.toLowerCase().includes('airport');
+    // Check if at airport (first district in each city is the airport)
+    const isAtAirport = gameState.cities[currentCity] && gameState.cities[currentCity][0] === currentDistrict;
     
     let itemsHtml = '<div class="mobile-item-list">';
     
@@ -6072,7 +6078,10 @@ function getLocationFlavor(context, weapon = null) {
     const location = gameState.player.location;
     const [, district] = location.split(' - ');
     
-    if (district.toLowerCase().includes('airport')) {
+    // Check if district is an airport (first in city list)
+    const [city] = location.split(' - ');
+    const isAirportDistrict = gameState.cities[city] && gameState.cities[city][0] === district;
+    if (isAirportDistrict) {
         // Airport locations - higher security, more paranoia
         switch(context) {
             case 'police_encounter':
@@ -7908,7 +7917,7 @@ function newGame() {
         bankBalance: 0,
         health: 100, // Health system (0-100)
         inventory: {},
-        location: 'New York - Brooklyn Docks',
+        location: 'New York - John F. Kennedy',
         day: 1,
         maxDays: GAME_CONSTANTS.PLAYER.MAX_DAYS,
         maxInventory: GAME_CONSTANTS.PLAYER.BASE_INVENTORY,
