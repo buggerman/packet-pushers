@@ -1375,7 +1375,6 @@ let gameState = {
             'Berri Park': { services: [] },
             'Cote-des-Neiges': { services: ['weapons'] }, // Diverse area
             'Metro': { services: [] }
-        }
         },
         'Boston': {
             'Logan Airport': { services: [] },
