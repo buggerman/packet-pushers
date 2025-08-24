@@ -201,6 +201,68 @@ body.modal-open {
     }
 }
 
+/* Mobile Touch Improvements */
+@media (max-width: 768px) {
+    /* Increase touch targets for mobile */
+    .quick-btn, .desktop-btn, .mobile-item {
+        min-height: 48px; /* Minimum touch target size */
+        min-width: 48px;
+        padding: 14px 18px; /* Increased from 12px 16px */
+        font-size: 0.9rem;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
+    }
+    
+    /* Improve button spacing on mobile */
+    .quick-actions {
+        gap: 12px; /* Increased from 8px */
+    }
+    
+    /* Better mobile panel spacing */
+    .game-layout {
+        gap: 10px; /* Increased from 8px */
+        padding: 8px; /* Increased from 6px */
+    }
+    
+    /* Mobile-specific text sizes */
+    .game-output {
+        font-size: 0.85rem; /* Increased from 0.8rem for better readability */
+        line-height: 1.5; /* Increased from 1.4 */
+    }
+    
+    .stat-line {
+        font-size: 0.8rem; /* Increased from 0.75rem */
+        padding: 2px 0; /* Added padding for better spacing */
+    }
+    
+    /* Better mobile scrolling */
+    .game-output, .stats-panel, .market-panel {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-behavior: smooth;
+    }
+    
+    /* Enhanced mobile item touch feedback */
+    .mobile-item {
+        min-height: 56px; /* Increased for better touch */
+        padding: 16px 20px; /* Better padding */
+        transition: all 0.15s ease;
+    }
+    
+    .mobile-item:active {
+        transform: scale(0.98);
+        background-color: rgba(0, 255, 0, 0.25); /* More visible feedback */
+    }
+}
+
+/* Tablet improvements */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .quick-btn, .desktop-btn {
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+}
+
 /* Ultra-wide desktop optimization */
 @media (min-width: 1600px) {
     .game-layout {
@@ -1630,6 +1692,177 @@ body.modal-open {
     outline-offset: 2px;
 }
 
+/* Mobile Modal Improvements */
+.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile-modal-content {
+    background-color: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Enhanced mobile item touch targets */
+.mobile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px; /* Increased for better touch */
+    margin-bottom: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: rgba(0, 0, 0, 0.8);
+    min-height: 56px; /* Better touch target */
+    position: relative;
+    -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
+}
+
+/* Better touch feedback */
+.mobile-item:active {
+    transform: scale(0.98);
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
+/* Improved mobile buttons */
+.quick-btn, .mobile-quantity-btn, .mobile-confirm-btn {
+    -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.quick-btn:hover,
+.quick-btn:focus,
+.mobile-quantity-btn:hover,
+.mobile-quantity-btn:focus,
+.mobile-confirm-btn:hover,
+.mobile-confirm-btn:focus {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+    outline: none;
+}
+
+.quick-btn:active,
+.mobile-quantity-btn:active,
+.mobile-confirm-btn:active {
+    transform: translateY(0);
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+}
+
+/* Primary button styling */
+.mobile-confirm-btn,
+.quick-btn.primary {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    font-weight: bold;
+}
+
+.mobile-confirm-btn:hover,
+.mobile-confirm-btn:focus,
+.quick-btn.primary:hover,
+.quick-btn.primary:focus {
+    background-color: var(--white-color);
+    color: var(--bg-color);
+}
+
+/* Better mobile input handling */
+.mobile-quantity-input, input[type="number"] {
+    font-size: 16px; /* Prevents zoom on iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    text-align: center;
+    min-width: 80px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.mobile-quantity-input:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
+}
+
+/* Quantity feedback animation */
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+.quantity-feedback {
+    pointer-events: none;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Mobile-specific modal header */
+.modal-header {
+    padding: 16px 20px 12px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 10;
+}
+
+/* Mobile modal body improvements */
+.modal-body {
+    padding: 16px 20px 20px;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Mobile Modal */
 .mobile-modal {
     position: fixed;
@@ -1717,7 +1950,163 @@ body.modal-open {
     padding: 15px;
 }
 
-/* Mobile Item Lists */
+/* Subtle focus indicators for accessibility (mouse/touch primary) */
+*:focus {
+    outline: 1px solid var(--accent-color) !important;
+    outline-offset: 1px !important;
+}
+
+/* Better focus for interactive elements when needed */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--accent-color) !important;
+    outline-offset: 1px !important;
+    box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.15) !important;
+}
+
+/* Subtle focus within mobile items */
+.mobile-item:focus {
+    outline: 1px solid var(--accent-color);
+    outline-offset: 1px;
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+/* Focus for game output area */
+.game-output:focus {
+    outline: 1px solid var(--border-color);
+    outline-offset: -1px;
+    background-color: rgba(0, 255, 0, 0.02);
+}
+
+/* Skip to content link for screen readers */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--accent-color);
+    color: var(--bg-color);
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 10003;
+    font-weight: bold;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Better keyboard navigation for mobile items */
+.mobile-item[tabindex] {
+    cursor: pointer;
+}
+
+.mobile-item[tabindex]:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    background-color: rgba(0, 255, 0, 0.15);
+}
+
+/* Simplified keyboard navigation hints */
+.keyboard-hint {
+    font-size: 0.7rem;
+    color: rgba(0, 255, 0, 0.4);
+    margin-top: 4px;
+    font-style: italic;
+    display: none; /* Hidden by default - mouse/touch primary */
+}
+
+/* Show hints only when keyboard is being used */
+body.keyboard-user .keyboard-hint {
+    display: block;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --text-color: #FFFFFF;
+        --bg-color: #000000;
+        --border-color: #FFFFFF;
+        --accent-color: #FFFF00;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Keyboard help styles */
+.keyboard-help {
+    max-width: 100%;
+}
+
+.keyboard-help h3 {
+    color: var(--accent-color);
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+}
+
+.shortcut-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.shortcut-item kbd {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 24px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.shortcut-item span {
+    color: var(--text-color);
+    flex: 1;
+}
+
+.help-text {
+    background-color: rgba(0, 255, 0, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.help-text p {
+    margin: 4px 0;
+}
+
+.help-text kbd {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
 .mobile-item-list {
     display: flex;
     flex-direction: column;

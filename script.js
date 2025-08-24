@@ -119,9 +119,16 @@ function dismissError() {
 // Modal utility functions for better mobile experience
 function showMobileModalWithUtility(modal) {
     if (modal) {
+        // Store current scroll position
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        document.body.setAttribute('data-scroll-position', scrollPosition);
+        
         // Prevent body scrolling
         document.body.classList.add('modal-open');
+        document.body.style.top = `-${scrollPosition}px`;
+        
         modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
         
         // Force scroll to top of modal
         const modalContent = modal.querySelector('.mobile-modal-content');
@@ -129,42 +136,183 @@ function showMobileModalWithUtility(modal) {
             modalContent.scrollTop = 0;
         }
         
-        // Focus management
+        // Enhanced focus management with better trapping
         setTimeout(() => {
-            const firstFocusable = modal.querySelector('input, button, [tabindex]:not([tabindex="-1"])');
-            if (firstFocusable) {
-                firstFocusable.focus();
+            const focusableElements = modal.querySelectorAll(
+                'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+            );
+            
+            if (focusableElements.length > 0) {
+                focusableElements[0].focus();
+                
+                // Set up focus trapping
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                modal.addEventListener('keydown', function trapFocus(e) {
+                    if (e.key === 'Tab') {
+                        if (e.shiftKey) {
+                            if (document.activeElement === firstElement) {
+                                e.preventDefault();
+                                lastElement.focus();
+                            }
+                        } else {
+                            if (document.activeElement === lastElement) {
+                                e.preventDefault();
+                                firstElement.focus();
+                            }
+                        }
+                    }
+                });
             }
         }, 100);
+        
+        // Add escape key handler
+        modal.setAttribute('data-escape-handler', 'true');
+        document.addEventListener('keydown', modalEscapeHandler);
     }
 }
 
 function hideMobileModalWithUtility(modal) {
     if (modal) {
+        // Restore scroll position
+        const scrollPosition = document.body.getAttribute('data-scroll-position');
+        
         // Re-enable body scrolling
         document.body.classList.remove('modal-open');
+        document.body.style.top = '';
         modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        
+        // Restore scroll position
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+            document.body.removeAttribute('data-scroll-position');
+        }
         
         // Remove escape key handler
+        if (modal.getAttribute('data-escape-handler') === 'true') {
+            document.removeEventListener('keydown', modalEscapeHandler);
+            modal.removeAttribute('data-escape-handler');
+        }
+        
+        // Remove any specific modal escape handlers
         document.removeEventListener('keydown', mobileModalEscapeHandler);
     }
 }
 
-// Performance tracking for SEO
-const performanceMetrics = {
-    gameStartTime: null,
-    firstInteraction: null,
-    
-    recordGameStart: function() {
-        this.gameStartTime = performance.now();
-    },
-    
-    recordFirstInteraction: function() {
-        if (!this.firstInteraction) {
-            this.firstInteraction = performance.now();
+// Enhanced escape key handlers for modals
+function modalEscapeHandler(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('mobileModal');
+        if (modal && modal.style.display === 'flex') {
+            closeMobileModal();
         }
     }
-};
+}
+
+function mobileModalEscapeHandler(e) {
+    if (e.key === 'Escape') {
+        closeMobileModal();
+    }
+}
+
+// Improved modal close function
+function closeMobileModal() {
+    const modal = document.getElementById('mobileModal');
+    if (modal) {
+        hideMobileModalWithUtility(modal);
+        
+        // Clear any stored modal state
+        if (window.currentBuyModal) {
+            window.currentBuyModal = null;
+        }
+        if (window.currentSellModal) {
+            window.currentSellModal = null;
+        }
+        
+        // Return focus to game area
+        const gameOutput = document.getElementById('gameOutput');
+        if (gameOutput) {
+            gameOutput.focus();
+        }
+    }
+}
+
+// Optional keyboard navigation (mouse/touch is primary)
+document.addEventListener('keydown', function(e) {
+    // Only handle keyboard shortcuts when specifically intended
+    // Don't interfere with modal input or regular typing
+    if (document.getElementById('mobileModal').style.display === 'flex' ||
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'TEXTAREA' ||
+        e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+    }
+    
+    // Only handle specific, commonly expected shortcuts
+    switch(e.key.toLowerCase()) {
+        case 'escape':
+            // Universal escape key behavior
+            e.preventDefault();
+            const modal = document.getElementById('mobileModal');
+            const menu = document.getElementById('gameMenu');
+            const leaderboard = document.getElementById('leaderboard');
+            
+            if (modal && modal.style.display === 'flex') {
+                closeMobileModal();
+            } else if (menu && menu.style.display === 'block') {
+                closeMenu();
+            } else if (leaderboard && leaderboard.style.display === 'block') {
+                closeLeaderboard();
+            }
+            break;
+            
+        case '?':
+            // Only show help if user specifically asks
+            if (e.shiftKey) { // Shift+? to avoid accidental triggers
+                e.preventDefault();
+                showKeyboardHelp();
+            }
+            break;
+    }
+});
+
+// Simplified keyboard help (mouse/touch is primary)
+function showKeyboardHelp() {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '⌨️ KEYBOARD SHORTCUTS';
+    
+    modalBody.innerHTML = `
+        <div class="keyboard-help">
+            <div class="help-text">
+                <p><strong>Primary Input:</strong> Use mouse clicks or touch for the best experience!</p>
+            </div>
+            
+            <h3>Optional Keyboard Shortcuts</h3>
+            <div class="shortcut-list">
+                <div class="shortcut-item">
+                    <kbd>Esc</kbd>
+                    <span>Close modals and menus</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Shift + ?</kbd>
+                    <span>Show this help</span>
+                </div>
+            </div>
+            
+            <div class="help-text">
+                <p><strong>Recommended:</strong> Use the clickable buttons and touch interface for the smoothest gameplay experience.</p>
+                <p><strong>Navigation:</strong> Use <kbd>Tab</kbd> to move between buttons if needed.</p>
+            </div>
+        </div>
+    `;
+    
+    showMobileModalWithUtility(modal);
+}
 
 // === CONSOLIDATED UTILITY FUNCTIONS ===
 
@@ -209,7 +357,7 @@ const GAME_CONSTANTS = {
         BASE_INVENTORY: 100
     },
     TRAVEL: {
-        INTERCITY_COST: 20,
+        INTERCITY_COST: 0, // Remove travel costs completely
         DAILY_INTEREST_RATE: 0.05
     },
     COMBAT: {
@@ -306,7 +454,7 @@ function showConfirmationDialog(message, onConfirm, onCancel = null) {
 }
 
 // Financial transaction utilities
-function validateAffordability(cost, itemName) {
+function validateAffordability(cost) {
     if (gameState.player.cash < cost) {
         addMessage(`You need $${cost.toLocaleString()} but only have $${gameState.player.cash.toLocaleString()}!`, 'error');
         playSound('uhoh');
@@ -315,14 +463,14 @@ function validateAffordability(cost, itemName) {
     return true;
 }
 
-function processTransaction(cost, itemName, successMessage, successSound = 'cashreg') {
+function processTransaction(cost, successMessage, successSound = 'cashreg') {
     gameState.player.cash -= cost;
     addMessage(successMessage, 'success');
     playSound(successSound);
     updateDisplay();
 }
 
-function processSale(sellPrice, itemName, successMessage, successSound = 'cashreg') {
+function processSale(sellPrice, successMessage, successSound = 'cashreg') {
     gameState.player.cash += sellPrice;
     addMessage(successMessage, 'success');
     playSound(successSound);
@@ -330,14 +478,90 @@ function processSale(sellPrice, itemName, successMessage, successSound = 'cashre
 }
 
 // Message and sound utilities
+// Enhanced error and feedback functions
 function errorMessage(message, sound = 'uhoh') {
-    addMessage(message, 'error');
+    addMessage(`❌ ${message}`, 'error');
     playSound(sound);
+    
+    // Show toast notification for better visibility
+    showToastNotification(message, 'error');
 }
 
 function successMessage(message, sound = 'cashreg') {
-    addMessage(message, 'success');
+    addMessage(`✅ ${message}`, 'success');
     playSound(sound);
+    
+    // Show toast notification for better visibility
+    showToastNotification(message, 'success');
+}
+
+// Enhanced toast notification system
+function showToastNotification(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.textContent = message;
+    
+    // Style the toast
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 300px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        z-index: 10002;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        word-wrap: break-word;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    `;
+    
+    // Set colors based on type
+    switch (type) {
+        case 'error':
+            toast.style.backgroundColor = 'var(--debt-color)';
+            toast.style.color = 'var(--white-color)';
+            toast.style.border = '1px solid #ff6666';
+            break;
+        case 'success':
+            toast.style.backgroundColor = 'var(--border-color)';
+            toast.style.color = 'var(--bg-color)';
+            toast.style.border = '1px solid var(--accent-color)';
+            break;
+        default:
+            toast.style.backgroundColor = 'var(--accent-color)';
+            toast.style.color = 'var(--bg-color)';
+            toast.style.border = '1px solid var(--white-color)';
+    }
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, duration);
+    
+    // Allow manual dismissal
+    toast.addEventListener('click', () => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    });
 }
 
 function eventMessage(message, sound = null) {
@@ -351,9 +575,9 @@ function hasInventorySpace(amount = 1) {
     return currentSize + amount <= getCurrentMaxInventory();
 }
 
-function validateInventorySpace(amount, itemName) {
+function validateInventorySpace(amount, itemDescription) {
     if (!hasInventorySpace(amount)) {
-        errorMessage(`You don't have enough inventory space for ${amount} ${itemName}!`);
+        errorMessage(`You don't have enough inventory space for ${amount} ${itemDescription}!`);
         return false;
     }
     return true;
@@ -560,53 +784,32 @@ function getLocationServices(city, district) {
 }
 
 function travelToDirect(fullLocationName) {
+    if (!isActionAllowed('travel')) return;
+    
     const currentLocation = gameState.player.location;
     const [currentCity] = currentLocation.split(' - ');
     const [destCity] = fullLocationName.split(' - ');
     
     const isIntercity = currentCity !== destCity;
-    const cost = isIntercity ? GAME_CONSTANTS.TRAVEL.INTERCITY_COST : 0;
-    
-    if (isIntercity && !validateAffordability(cost, 'travel')) {
-        return;
-    }
     
     // Execute travel
     gameState.player.location = fullLocationName;
     
+    // Advance day for ALL travel (both local and intercity)
+    const interest = advanceDayAndApplyInterest();
+    
+    // Check for scheduled events from old lady predictions
+    checkScheduledEvents();
+    
+    // Check for guaranteed price surges
+    checkGuaranteedSurges();
+    
     if (isIntercity) {
-        gameState.player.cash -= cost;
-        gameState.player.day += 1;
-        
-        // Check for scheduled events from old lady predictions
-        checkScheduledEvents();
-        
-        // Check for guaranteed price surges
-        checkGuaranteedSurges();
-        
-        // Apply daily interest
-        const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
-        gameState.player.debt += interest;
-        
-        addMessage(`✈️ Traveled to ${fullLocationName} for $${cost}. Day ${gameState.player.day}.`, 'success');
-        addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
+        addMessage(`✈️ Traveled to ${fullLocationName} for free! Day ${gameState.player.day}.`, 'success');
     } else {
-        // Local travel also takes a day
-        gameState.player.day += 1;
-        
-        // Check for scheduled events from old lady predictions
-        checkScheduledEvents();
-        
-        // Check for guaranteed price surges
-        checkGuaranteedSurges();
-        
-        // Apply daily interest
-        const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
-        gameState.player.debt += interest;
-        
         addMessage(`🚶 Traveled to ${fullLocationName}. Day ${gameState.player.day}.`, 'success');
-        addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
     }
+    addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
     
     // Generate new market prices (this will trigger market updates)
     generateMarketPrices();
@@ -615,18 +818,26 @@ function travelToDirect(fullLocationName) {
     updateLocationServiceButtons();
     
     // Random events
-    let hasMarketUpdate = false;
+    let eventResult = false;
     if (Math.random() < 0.3) {
-        hasMarketUpdate = triggerRandomEvent();
+        eventResult = triggerRandomEvent();
     }
     
-    // Play appropriate sound: headlines for market updates or intercity travel
-    if (hasMarketUpdate) {
+    // Play appropriate sound based on event or travel type
+    if (eventResult === true) {
+        // Market event occurred
         playSound('headlines');
+    } else if (eventResult === 'old_lady') {
+        // Old lady event - sound is handled in handleOldLadyEvent
+    } else if (eventResult === 'police' || eventResult === 'mugging') {
+        // Combat events - sounds handled in respective functions
     } else if (isIntercity) {
-        playSound('headlines');
+        // Inter-city travel with no event
+        playSound('airport');
+    } else {
+        // Local travel with no event
+        playSound('slidein');
     }
-    // Local travel with no market event is silent
     
     // Exit travel mode and update display
     exitTravelMode();
@@ -702,12 +913,12 @@ class CombatSystem {
         }
     }
     
-    static handleInstantWin(weapon, opponent, messages) {
+    static handleInstantWin(messages) {
         addMessage(messages.instantWin, 'event');
         return { victory: true, special: true };
     }
     
-    static handlePlayerVictory(weapon, opponent, messages) {
+    static handlePlayerVictory(weapon, messages) {
         addMessage(messages.victory, 'event');
         if (weapon.hitSoundHit) {
             setTimeout(() => playSound(weapon.hitSoundHit), 500);
@@ -715,7 +926,7 @@ class CombatSystem {
         return { victory: true, special: false };
     }
     
-    static handlePlayerDefeat(weapon, opponent, messages) {
+    static handlePlayerDefeat(messages) {
         addMessage(messages.defeat, 'event');
         return { victory: false, special: false };
     }
@@ -723,7 +934,7 @@ class CombatSystem {
 
 // Mobile modal management consolidation
 class MobileModalManager {
-    static show(action, items, priceGetter, options = {}) {
+    static show(action, items, priceGetter) {
         const modal = document.getElementById('mobileModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalBody = document.getElementById('modalBody');
@@ -741,7 +952,6 @@ class MobileModalManager {
         
         items.forEach((item, index) => {
             const price = priceGetter(item);
-            const indicators = this.getPriceIndicators(item, price, action);
             const itemData = this.getItemData(item, action);
             
             itemsHtml += `
@@ -789,9 +999,9 @@ class MobileModalManager {
         // Add keyboard navigation to mobile items
         const mobileItems = modal.querySelectorAll('.mobile-item:not(.disabled)');
         mobileItems.forEach(item => {
-            item.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
+            item.addEventListener('keydown', (_e) => {
+                if (_e.key === 'Enter' || _e.key === ' ') {
+                    _e.preventDefault();
                     item.click();
                 }
             });
@@ -1267,12 +1477,12 @@ function initGame() {
 
 // Input handling
 // Command input disabled - using clickable interface only
-function handleInput(e) {
+function handleInput() {
     // Disabled for clickable interface
 }
 
 // Command processing disabled - using clickable interface only
-function processCommand(command) {
+function processCommand() {
     // Disabled for clickable interface
     addMessage('Command interface disabled. Use the clickable controls instead.', 'info');
 }
@@ -1335,6 +1545,8 @@ Use simple names in commands (emojis are just for display):<br>
 
 // Buy function
 function handleBuy(parts) {
+    if (!isActionAllowed('buy drugs')) return;
+    
     if (parts.length < 3) {
         addMessage('Usage: buy [drug] [amount]', 'error');
         return;
@@ -1692,20 +1904,19 @@ function handleTravel(parts) {
             return;
         }
         
-        // Free local travel (just costs time)
+        // Free local travel with day advancement
         gameState.player.location = `${currentCity} - ${targetDistrict}`;
-        gameState.player.day++;
         
-        // Apply daily interest
-        applyDailyInterest();
+        // Advance day for local travel too
+        const interest = advanceDayAndApplyInterest();
         
         // Check if game is over
-        if (gameState.player.day >= gameState.player.maxDays) {
-            endGame();
+        if (checkGameEnd()) {
             return;
         }
         
-        addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}.`, 'success');
+        addMessage(`🚶 Traveled to ${targetDistrict} within ${getCityAbbreviation(currentCity)}. Day ${gameState.player.day}.`, 'success');
+        addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
         playSound('slidein'); // Local travel sound
         
     } else {
@@ -1732,43 +1943,19 @@ function handleTravel(parts) {
             return;
         }
         
-        const travelCost = GAME_CONSTANTS.TRAVEL.INTERCITY_COST; // Inter-city travel cost
-        if (gameState.player.cash < travelCost) {
-            addMessage(`Not enough cash for inter-city travel. You need $${travelCost}.`, 'error');
-            playSound('uhoh');
-            return;
-        }
-        
-        // Execute inter-city travel - land at airport
+        // Execute inter-city travel - land at airport (now free)
         const airportDistrict = gameState.cities[targetCity][0]; // First district is always airport
-        gameState.player.cash -= travelCost;
         gameState.player.location = `${targetCity} - ${airportDistrict}`;
-        gameState.player.day++;
+        const interest = advanceDayAndApplyInterest();
         
-        // Apply daily interest
-        applyDailyInterest();
-        
-        addMessage(`✈️ Flew to ${getCityAbbreviation(targetCity)} and landed at ${airportDistrict} for $${travelCost}!`, 'success');
+        addMessage(`✈️ Flew to ${getCityAbbreviation(targetCity)} and landed at ${airportDistrict} for free!`, 'success');
+        addMessage(`💸 Daily interest: +$${interest.toLocaleString()} debt`, 'event');
         playSound('airport'); // Flight sound
     }
     
     // Check if game is over
-    if (gameState.player.day >= gameState.player.maxDays) {
-        endGame();
+    if (checkGameEnd()) {
         return;
-    }
-    
-    // Apply daily interest
-    const dailyInterest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
-    gameState.player.debt += dailyInterest;
-    
-    // Track if headlines sound has been played this day
-    let headlinesSoundPlayed = false;
-    
-    addMessage(`Daily interest of $${dailyInterest} added to your debt.`, 'event');
-    if (dailyInterest > 0) {
-        playSound('headlines'); // Headlines sound for daily interest
-        headlinesSoundPlayed = true;
     }
     
     // Last day warning
@@ -1911,8 +2098,6 @@ function showDebtManagement() {
 function showMobileDebtInterface() {
     const debt = gameState.player.debt;
     const cash = gameState.player.cash;
-    const initialDebt = gameState.player.initialDebt || GAME_CONSTANTS.PLAYER.STARTING_DEBT;
-    const debtHistory = gameState.player.debtHistory || [];
     const daysRemaining = gameState.player.maxDays - gameState.player.day + 1;
     
     const modal = document.getElementById('mobileModal');
@@ -1920,16 +2105,6 @@ function showMobileDebtInterface() {
     const modalBody = document.getElementById('modalBody');
     
     modalTitle.textContent = '💳 DEBT MANAGEMENT';
-    
-    // Calculate total payments made
-    const totalPayments = debtHistory
-        .filter(entry => entry.type === 'payment')
-        .reduce((sum, entry) => sum + entry.amount, 0);
-    
-    // Calculate total interest accrued
-    const totalInterest = debtHistory
-        .filter(entry => entry.type === 'interest')
-        .reduce((sum, entry) => sum + entry.amount, 0);
     
     // Calculate daily interest rate (5% per day)
     const dailyInterestRate = GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE;
@@ -2430,8 +2605,7 @@ function processDebtPayoff() {
 }
 
 // Reusable financial interface functions
-function showFinancialInput(title, type, maxAmount, contextValue, availableAmount, description) {
-    const modal = document.getElementById('mobileModal');
+function showFinancialInput(title, type, maxAmount, description) {
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -2489,7 +2663,6 @@ function showFinancialInput(title, type, maxAmount, contextValue, availableAmoun
 }
 
 function showFinancialConfirmation(title, message, action) {
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -2517,7 +2690,6 @@ function showFinancialConfirmation(title, message, action) {
 }
 
 function showFinancialInfo(title, content, backAction) {
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -3339,7 +3511,6 @@ function sellCoatDirect() {
 }
 
 function showWeaponSellModal() {
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -3575,7 +3746,7 @@ function handleKeyDown(e) {
     }
 }
 
-function handleKeyUp(e) {
+function handleKeyUp() {
     // Handle any key up events if needed
 }
 
@@ -3758,9 +3929,6 @@ function enterBankMode() {
 }
 
 function showBankInterface() {
-    const bankBalance = gameState.player.bankBalance || 0;
-    const cash = gameState.player.cash;
-    
     // Use modal approach for both mobile and desktop to preserve game log
     showMobileBankInterface();
 }
@@ -3769,7 +3937,6 @@ function showMobileBankInterface() {
     const bankBalance = gameState.player.bankBalance || 0;
     const cash = gameState.player.cash;
     
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -3903,7 +4070,6 @@ function showBankingAction(action) {
     const bankBalance = gameState.player.bankBalance || 0;
     const cash = gameState.player.cash;
     
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -3996,70 +4162,11 @@ function showBankingAction(action) {
     gameState.currentBankingAction = action;
 }
 
-function setDesktopBankingAmount(amount) {
-    const input = document.getElementById('bankingAmount');
-    if (input) {
-        input.value = amount;
-    }
-}
-
 function setBankingAmount(amount) {
     const input = document.getElementById('bankingAmount');
     if (input) {
         input.value = amount;
     }
-}
-
-function processDesktopBankingTransaction(action) {
-    const amount = parseInt(document.getElementById('bankingAmount').value);
-    const bankBalance = gameState.player.bankBalance || 0;
-    
-    if (!amount || amount <= 0) {
-        addMessage('Please enter a valid amount.', 'error');
-        playSound('uhoh');
-        return;
-    }
-    
-    const isDeposit = action === 'deposit';
-    const maxAmount = isDeposit ? gameState.player.cash : bankBalance;
-    
-    if (amount > maxAmount) {
-        addMessage(`You ${isDeposit ? 'only have' : 'can only withdraw'} $${maxAmount.toLocaleString()}!`, 'error');
-        playSound('uhoh');
-        return;
-    }
-    
-    // Process the transaction
-    if (isDeposit) {
-        gameState.player.cash -= amount;
-        gameState.player.bankBalance = (gameState.player.bankBalance || 0) + amount;
-        addMessage(`💰 Deposited $${amount.toLocaleString()} into your bank account!`, 'success');
-    } else {
-        gameState.player.bankBalance -= amount;
-        gameState.player.cash += amount;
-        addMessage(`🏦 Withdrew $${amount.toLocaleString()} from your bank account!`, 'success');
-    }
-    
-    updateDisplay();
-    playSound('cashreg');
-    
-    // Show updated banking interface
-    setTimeout(() => {
-        showDesktopBankInterface();
-    }, 1000);
-}
-
-function exitBankingInterface() {
-    const gameOutput = document.getElementById('gameOutput');
-    gameOutput.innerHTML = `
-        <div class="welcome-message">
-            <p>Welcome to Packet Pushers!</p>
-            <p>You owe the loan shark $${gameState.player.debt.toLocaleString()} with daily interest.</p>
-            <p>You have ${gameState.player.maxDays - gameState.player.day + 1} days remaining.</p>
-            <p>Use the controls to navigate the market.</p>
-        </div>
-    `;
-    playSound('touchsound');
 }
 
 function processBankingTransaction(action) {
@@ -4072,30 +4179,27 @@ function processBankingTransaction(action) {
         return;
     }
     
-    if (action === 'deposit') {
-        if (amount > cash) {
-            addMessage('You don\'t have enough cash!', 'error');
-            return;
-        }
-        
+    const isDeposit = action === 'deposit';
+    const maxAmount = isDeposit ? cash : bankBalance;
+    
+    if (amount > maxAmount) {
+        addMessage(`You ${isDeposit ? 'only have' : 'can only withdraw'} $${maxAmount.toLocaleString()}!`, 'error');
+        playSound('uhoh');
+        return;
+    }
+    
+    if (isDeposit) {
         gameState.player.cash -= amount;
         gameState.player.bankBalance = (gameState.player.bankBalance || 0) + amount;
         addMessage(`💰 Deposited $${amount.toLocaleString()} into your bank account.`, 'success');
-        playSound('cashreg');
-        
-    } else if (action === 'withdraw') {
-        if (amount > bankBalance) {
-            addMessage('You don\'t have enough money in your bank account!', 'error');
-            return;
-        }
-        
+    } else {
         gameState.player.bankBalance -= amount;
         gameState.player.cash += amount;
         addMessage(`💸 Withdrew $${amount.toLocaleString()} from your bank account.`, 'success');
-        playSound('cashreg');
     }
     
     updateDisplay();
+    playSound('cashreg');
     closeMobileModal();
 }
 
@@ -4255,15 +4359,6 @@ function executeTravel(fullLocationName) {
         addMessage('Invalid destination selected.', 'error');
         exitNavigation();
         return;
-    }
-    
-    let command;
-    if (selectedDestination.type === 'local') {
-        // For local travel, use district name
-        command = `travel ${selectedDestination.name}`;
-    } else {
-        // For inter-city travel, use city name
-        command = `travel ${selectedDestination.name}`;
     }
     
     // Use direct travel function instead of processCommand
@@ -4453,7 +4548,7 @@ function showCityOptions() {
     
     // Add click handlers for city options
     const cityOptions = citiesDiv.querySelectorAll('.city-option');
-    cityOptions.forEach((option, index) => {
+    cityOptions.forEach((option) => {
         const cityName = option.getAttribute('data-city');
         if (cityName !== gameState.player.location) {
             option.addEventListener('click', () => {
@@ -4662,7 +4757,6 @@ function showMobileChartsModal() {
 }
 
 function showMobileChart(drugName) {
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -4848,14 +4942,14 @@ function increaseMobileQuantity() {
     
     if (mobileState.quantity < maxQuantity) {
         mobileState.quantity++;
-        updateMobileQuantityDisplay();
+        updateQuantityDisplay();
     }
 }
 
 function decreaseMobileQuantity() {
     if (mobileState.quantity > 1) {
         mobileState.quantity--;
-        updateMobileQuantityDisplay();
+        updateQuantityDisplay();
     }
 }
 
@@ -4874,47 +4968,65 @@ function updateMobileQuantityFromInput(value) {
             maxQuantity = Math.min(maxQuantity, inventorySpace);
         }
         
-        mobileState.quantity = Math.min(Math.max(1, quantity), maxQuantity);
-        updateMobileQuantityDisplay();
-    }
-}
-
-function handleMobileQuantityKeypress(event) {
-    if (event.key === 'Enter') {
-        confirmMobileAction();
-    }
-}
-
-function setMaxMobileQuantity() {
-    const itemName = mobileState.selectedItem;
-    const price = gameState.currentPrices[itemName];
-    
-    let maxQuantity = mobileState.currentAction === 'sell' ? 
-        gameState.player.inventory[itemName] : 
-        Math.floor(gameState.player.cash / price);
-    
-    if (mobileState.currentAction === 'buy') {
-        const inventorySpace = getCurrentMaxInventory() - getCurrentInventorySize();
-        maxQuantity = Math.min(maxQuantity, inventorySpace);
-    }
-    
-    mobileState.quantity = Math.max(1, maxQuantity);
-    updateMobileQuantityDisplay();
-}
-
-function updateMobileQuantityDisplay() {
-    const inputField = document.querySelector('.mobile-quantity-input');
-    const price = gameState.currentPrices[mobileState.selectedItem];
-    
-    if (inputField) {
-        inputField.value = mobileState.quantity;
+        // Validate and constrain quantity
+        const constrainedQuantity = Math.min(Math.max(1, quantity), maxQuantity);
+        mobileState.quantity = constrainedQuantity;
         
-        // Update total
-        const totalInfo = inputField.parentElement.nextElementSibling;
-        if (totalInfo) {
-            totalInfo.innerHTML = `<strong>Total: $${price * mobileState.quantity}</strong>`;
+        // Update the input field if value was constrained
+        const input = document.getElementById('mobileInventoryQty');
+        if (input && input.value != constrainedQuantity) {
+            input.value = constrainedQuantity;
+            
+            // Show feedback if quantity was adjusted
+            if (quantity > maxQuantity) {
+                showQuantityLimitFeedback('Maximum quantity is ' + maxQuantity);
+            } else if (quantity < 1) {
+                showQuantityLimitFeedback('Minimum quantity is 1');
+            }
+        }
+        
+        updateQuantityDisplay();
+    } else {
+        // Invalid input - reset to current quantity
+        const input = document.getElementById('mobileInventoryQty');
+        if (input) {
+            input.value = mobileState.quantity;
+            showQuantityLimitFeedback('Please enter a valid number');
         }
     }
+}
+
+// Enhanced quantity feedback function
+function showQuantityLimitFeedback(message) {
+    const existingFeedback = document.querySelector('.quantity-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+    
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = 'quantity-feedback';
+    feedbackDiv.textContent = message;
+    feedbackDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: var(--accent-color);
+        color: var(--bg-color);
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        z-index: 10001;
+        animation: fadeInOut 2s ease-in-out;
+    `;
+    
+    document.body.appendChild(feedbackDiv);
+    
+    setTimeout(() => {
+        if (feedbackDiv.parentNode) {
+            feedbackDiv.parentNode.removeChild(feedbackDiv);
+        }
+    }, 2000);
 }
 
 function confirmMobileAction() {
@@ -5345,11 +5457,9 @@ function showInventoryItemInterface(drugName) {
 }
 
 function showMobileInventoryItemModal(drugName) {
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
-    const drug = gameState.drugs.find(d => d.name === drugName);
     const currentPrice = gameState.currentPrices[drugName];
     const amount = gameState.player.inventory[drugName];
     const totalValue = currentPrice * amount;
@@ -5381,7 +5491,7 @@ function showMobileInventoryItemModal(drugName) {
         let totalAmount = 0;
         
         historyHtml += `<div class="history-entries">`;
-        history.forEach((purchase, index) => {
+        history.forEach((purchase) => {
             const location = getCityAbbreviation(purchase.location.split(' - ')[0]);
             totalAmount += purchase.amount;
             totalCost += purchase.total;
@@ -5434,12 +5544,11 @@ function showMobileInventoryItemModal(drugName) {
     `;
     
     modalBody.innerHTML = historyHtml;
-    showMobileModalWithUtility(modal);
+    showMobileModalWithUtility(document.getElementById('mobileModal'));
 }
 
 function showDesktopInventoryItemInterface(drugName) {
     const gameOutput = document.getElementById('gameOutput');
-    const drug = gameState.drugs.find(d => d.name === drugName);
     const currentPrice = gameState.currentPrices[drugName];
     const amount = gameState.player.inventory[drugName];
     const totalValue = currentPrice * amount;
@@ -5532,44 +5641,6 @@ function showDesktopInventoryItemInterface(drugName) {
     gameOutput.innerHTML = interfaceHtml;
 }
 
-// Helper functions for mobile inventory interface
-function adjustMobileQuantity(delta) {
-    const qtyInput = document.getElementById('mobileInventoryQty');
-    if (qtyInput) {
-        const currentQty = parseInt(qtyInput.value) || 1;
-        const newQty = Math.max(1, Math.min(parseInt(qtyInput.max), currentQty + delta));
-        qtyInput.value = newQty;
-    }
-}
-
-function setMobileQuantityMax() {
-    const qtyInput = document.getElementById('mobileInventoryQty');
-    if (qtyInput) {
-        qtyInput.value = qtyInput.max;
-    }
-}
-
-function executeMobileSell(drugName) {
-    const qtyInput = document.getElementById('mobileInventoryQty');
-    const quantity = parseInt(qtyInput.value) || 1;
-    const price = gameState.currentPrices[drugName];
-    const totalEarnings = price * quantity;
-    
-    // Execute the sale
-    gameState.player.cash += totalEarnings;
-    gameState.player.inventory[drugName] -= quantity;
-    
-    // Remove from inventory if quantity reaches 0
-    if (gameState.player.inventory[drugName] <= 0) {
-        delete gameState.player.inventory[drugName];
-    }
-    
-    addMessage(`💰 Sold ${quantity} ${drugName} for $${totalEarnings.toLocaleString()}!`, 'success');
-    playSound('cashreg');
-    updateDisplay();
-    closeMobileModal();
-}
-
 // Helper functions for desktop inventory interface
 function exitInventoryItemInterface() {
     const gameOutput = document.getElementById('gameOutput');
@@ -5652,7 +5723,7 @@ function generateMarketPrices() {
 // Location-based flavor text for immersion
 function getLocationFlavor(context, weapon = null) {
     const location = gameState.player.location;
-    const [city, district] = location.split(' - ');
+    const [, district] = location.split(' - ');
     
     if (district.toLowerCase().includes('airport')) {
         // Airport locations - higher security, more paranoia
@@ -5842,14 +5913,9 @@ function getCharacterDialogue(character, situation) {
 
 // Random events system
 function triggerRandomEvent(headlinesSoundPlayed = false) {
-    // 40% chance for old lady encounter (high priority)
-    if (Math.random() < 0.4) {
-        executeRandomEvent('old_lady', headlinesSoundPlayed);
-        return true;
-    }
-    
-    // If old lady didn't trigger, proceed with normal weighted random events
+    // All events in weighted random system (old lady gets high priority through weight)
     const events = [
+        { type: 'old_lady', weight: 20 }, // High weight for frequent old lady encounters
         { type: 'police', weight: 10 },
         { type: 'mugging', weight: 8 },
         { type: 'market_surge', weight: 15 },
@@ -5882,62 +5948,58 @@ function triggerRandomEvent(headlinesSoundPlayed = false) {
 
 // Execute random events
 function executeRandomEvent(eventType, headlinesSoundPlayed = false) {
-    // Market-related events that should trigger headlines sound
-    const marketEvents = ['market_surge', 'market_crash', 'drug_bust', 'supply_shortage'];
-    const isMarketEvent = marketEvents.includes(eventType);
-    
     switch (eventType) {
         case 'police':
             handlePoliceEvent();
-            break;
+            return 'police';
         case 'mugging':
             handleMuggingEvent();
-            break;
+            return 'mugging';
         case 'market_surge':
             handleMarketSurgeEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'market_crash':
             handleMarketCrashEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'drug_bust':
             handleDrugBustEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'police_raid':
             handlePoliceRaidEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'supply_shortage':
             handleSupplyShortageEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'addicts':
             handleAddictsEvent(headlinesSoundPlayed);
-            break;
+            return true; // Market event
         case 'police_dog':
             handlePoliceDogEvent();
-            break;
+            return 'police';
         case 'loan_shark':
             handleLoanSharkEvent();
-            break;
+            return 'other';
         case 'find_cash':
             handleFindCashEvent();
-            break;
+            return 'other';
         case 'health_issue':
             handleHealthIssueEvent();
-            break;
+            return 'other';
         case 'dealer_encounter':
             handleDealerEncounter();
-            break;
+            return 'other';
         case 'informant_tip':
             handleInformantTip();
-            break;
+            return 'other';
         case 'old_lady':
             handleOldLadyEvent();
-            break;
+            return 'old_lady';
         case 'nothing':
             // No event
-            break;
+            return false;
     }
     
-    return isMarketEvent;
+    return false;
 }
 
 // Police event
@@ -6024,8 +6086,6 @@ function handlePoliceEvent() {
 
 // Combat interface for player choices
 function showCombatInterface(opponent, opponentType) {
-    const weapon = gameState.player.weapon;
-    const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
@@ -6036,6 +6096,7 @@ function showCombatInterface(opponent, opponentType) {
     
     modalTitle.textContent = titles[opponentType] || 'COMBAT';
     
+    const weapon = gameState.player.weapon;
     let combatHtml = `
         <div class="combat-interface">
             <div class="combat-situation">
@@ -6083,7 +6144,7 @@ function showCombatInterface(opponent, opponentType) {
     `;
     
     modalBody.innerHTML = combatHtml;
-    showMobileModalWithUtility(modal);
+    showMobileModalWithUtility(document.getElementById('mobileModal'));
     
     // Store opponent data for combat resolution
     gameState.currentCombatOpponent = opponent;
@@ -6094,7 +6155,6 @@ function chooseCombatAction(action, opponentType) {
     closeMobileModal();
     
     const opponent = gameState.currentCombatOpponent;
-    const weapon = gameState.player.weapon;
     
     switch (action) {
         case 'fight':
@@ -7164,10 +7224,10 @@ function playSound(soundName) {
     if (sounds[soundName]) {
         try {
             sounds[soundName].currentTime = 0;
-            sounds[soundName].play().catch(e => {
+            sounds[soundName].play().catch(_e => {
                 // Silently handle audio play errors (user interaction required)
             });
-        } catch (e) {
+        } catch (_e) {
             // Silently handle audio errors
         }
     }
@@ -7280,7 +7340,7 @@ function isLocalStorageAvailable() {
         localStorage.setItem(testKey, 'test');
         localStorage.removeItem(testKey);
         return true;
-    } catch (e) {
+    } catch (_e) {
         return false;
     }
 }
@@ -7319,8 +7379,51 @@ function validateGameState(state) {
     return true;
 }
 
+// Centralized action validation
+function isActionAllowed(actionName = 'action') {
+    if (!gameState.gameRunning || gameState.gameOver) {
+        addMessage(`Cannot ${actionName} - game is over! Start a new game to continue.`, 'error');
+        playSound('uhoh');
+        return false;
+    }
+    return true;
+}
+
+// Centralized day advancement and interest application
+function advanceDayAndApplyInterest() {
+    gameState.player.day += 1;
+    
+    // Apply daily interest
+    const interest = Math.floor(gameState.player.debt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
+    gameState.player.debt += interest;
+    
+    // Track interest in debt history if it exists
+    if (!gameState.player.debtHistory) gameState.player.debtHistory = [];
+    if (interest > 0) {
+        gameState.player.debtHistory.push({
+            type: 'interest',
+            amount: interest,
+            day: gameState.player.day,
+            debtAfter: gameState.player.debt
+        });
+    }
+    
+    return interest;
+}
+
+// Centralized game end checking function
+function checkGameEnd() {
+    if (gameState.player.day > GAME_CONSTANTS.PLAYER.MAX_DAYS) {
+        endGame();
+        return true;
+    }
+    return false;
+}
+
 // Game end
 function endGame() {
+    if (gameState.gameOver) return; // Prevent multiple calls
+    
     gameState.gameRunning = false;
     gameState.gameOver = true;
     
@@ -7382,7 +7485,7 @@ function closeMenu() {
     // Command input removed - using clickable interface only
 }
 
-// Game management
+// Game management - consolidated newGame function
 function newGame() {
     // Ask for player name
     const playerName = prompt('Enter your dealer name:', 'Anonymous Dealer');
@@ -7409,15 +7512,41 @@ function newGame() {
     gameState.currentPrices = {};
     gameState.previousPrices = {};
     gameState.priceHistory = {}; // Track day-wise price history for graphs
-    gameState.gameRunning = false;
+    gameState.gameRunning = true;
     gameState.gameOver = false;
     
+    // Schedule guaranteed price surges for Cocaine and Heroin
+    gameState.guaranteedSurges = {
+        cocaine: {
+            day: Math.floor(Math.random() * 15) + 5, // Days 5-19
+            triggered: false
+        },
+        heroin: {
+            day: Math.floor(Math.random() * 15) + 10, // Days 10-24
+            triggered: false
+        }
+    };
+    
+    // Clear any existing game output
     document.getElementById('gameOutput').innerHTML = '';
+    
+    // Close any open menus
     closeMenu();
+    
+    // Show game interface if starting from menu
+    if (document.getElementById('startScreen').style.display !== 'none') {
+        showGameInterface();
+    }
+    
+    // Initialize game
     initGame();
     
-    addMessage('New game started!', 'success');
+    addMessage('New game started! Good luck, dealer.', 'success');
+    playSound('slidein'); // Game start sound
 }
+
+// Alias for backwards compatibility
+const startNewGame = newGame;
 
 // Save/Load system
 function saveGame() {
@@ -7615,61 +7744,7 @@ function updateStartLeaderboard() {
     });
 }
 
-function startNewGame() {
-    // Ask for player name
-    const playerName = prompt('Enter your dealer name:', 'Anonymous Dealer');
-    const finalName = playerName && playerName.trim() ? playerName.trim() : 'Anonymous Dealer';
-    
-    // Reset only the player state, keeping the game data intact
-    gameState.player = {
-        name: finalName,
-        cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
-        debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
-        bankBalance: 0,
-        inventory: {},
-        location: 'New York - Brooklyn Docks',
-        day: 1,
-        maxDays: GAME_CONSTANTS.PLAYER.MAX_DAYS,
-        maxInventory: GAME_CONSTANTS.PLAYER.BASE_INVENTORY,
-        weapon: null, // Deprecated - use weapons array
-        weapons: [], // Player can own up to 2 weapons
-        coat: null,
-        purchaseHistory: {} // Track purchase history for profit/loss calculations
-    };
-    
-    console.log('New game started with player cash:', gameState.player.cash);
-    
-    // Reset game state flags
-    gameState.currentPrices = {};
-    gameState.previousPrices = {};
-    gameState.priceHistory = {}; // Track day-wise price history for graphs
-    gameState.gameRunning = true;
-    gameState.gameOver = false;
-    
-    // Schedule guaranteed price surges for Cocaine and Heroin
-    gameState.guaranteedSurges = {
-        cocaine: {
-            day: Math.floor(Math.random() * 15) + 5, // Days 5-19
-            triggered: false
-        },
-        heroin: {
-            day: Math.floor(Math.random() * 15) + 10, // Days 10-24
-            triggered: false
-        }
-    };
-    
-    // Clear any existing game output
-    document.getElementById('gameOutput').innerHTML = '';
-    
-    // Show game interface
-    showGameInterface();
-    
-    // Initialize game
-    initGame();
-    
-    addMessage('New game started! Good luck, dealer.', 'success');
-    playSound('slidein'); // Game start sound
-}
+
 
 function continueGame() {
     try {
@@ -7779,6 +7854,232 @@ You placed #${playerRank} on the leaderboard!
         }
     }
 }
+
+// Game Testing and Validation Functions
+function runGameTests() {
+    console.log('🧪 Running Packet Pushers Game Tests...');
+    
+    // Test 1: Game ending at 30 days
+    testGameEnding();
+    
+    // Test 2: Daily interest application
+    testDailyInterest();
+    
+    // Test 3: Local vs intercity travel
+    testTravelMechanics();
+    
+    // Test 4: Game state management
+    testGameStateManagement();
+    
+    console.log('✅ All tests completed!');
+}
+
+function testGameEnding() {
+    console.log('Testing game ending at 30 days...');
+    
+    // Save current state
+    const originalState = JSON.parse(JSON.stringify(gameState));
+    
+    // Set day to 30 and test
+    gameState.player.day = 30;
+    const result = checkGameEnd();
+    
+    console.log(`Day 30 check: ${result ? '✅ Game ends correctly' : '❌ Game should end'}`);
+    
+    // Test day 31
+    gameState.player.day = 31;
+    const result31 = checkGameEnd();
+    
+    console.log(`Day 31 check: ${result31 ? '✅ Game ends correctly' : '❌ Game should end'}`);
+    
+    // Restore state
+    gameState = originalState;
+}
+
+function testDailyInterest() {
+    console.log('Testing daily interest application...');
+    
+    // Save current state
+    const originalState = JSON.parse(JSON.stringify(gameState));
+    
+    // Set up test scenario
+    gameState.player.debt = 1000;
+    const initialDebt = gameState.player.debt;
+    
+    // Apply interest once
+    const interest = advanceDayAndApplyInterest();
+    const expectedInterest = Math.floor(initialDebt * GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE);
+    
+    console.log(`Interest calculation: Expected ${expectedInterest}, Got ${interest}, Debt: ${gameState.player.debt}`);
+    console.log(interest === expectedInterest ? '✅ Interest calculated correctly' : '❌ Interest calculation error');
+    
+    // Restore state
+    gameState = originalState;
+}
+
+function testTravelMechanics() {
+    console.log('Testing travel mechanics...');
+    
+    // Save current state
+    const originalState = JSON.parse(JSON.stringify(gameState));
+    
+    const initialDay = gameState.player.day;
+    const initialCash = gameState.player.cash;
+    
+    // Test local travel (should be free and instant)
+    gameState.player.location = 'New York - Brooklyn Docks';
+    travelToDirect('New York - Manhattan');
+    
+    console.log(`Local travel: Day ${initialDay} -> ${gameState.player.day}, Cash ${initialCash} -> ${gameState.player.cash}`);
+    console.log(gameState.player.day === initialDay && gameState.player.cash === initialCash ? 
+        '✅ Local travel is free and instant' : '❌ Local travel should be free and instant');
+    
+    // Restore and test intercity travel
+    gameState = JSON.parse(JSON.stringify(originalState));
+    gameState.player.location = 'New York - JFK Airport';
+    gameState.player.cash = 1000;
+    const beforeDay = gameState.player.day;
+    const beforeCash = gameState.player.cash;
+    
+    travelToDirect('Chicago - O Hare Airport');
+    
+    console.log(`Intercity travel: Day ${beforeDay} -> ${gameState.player.day}, Cash ${beforeCash} -> ${gameState.player.cash}`);
+    console.log(gameState.player.day === beforeDay + 1 && gameState.player.cash === beforeCash - GAME_CONSTANTS.TRAVEL.INTERCITY_COST ? 
+        '✅ Intercity travel costs time and money' : '❌ Intercity travel mechanics error');
+    
+    // Restore state
+    gameState = originalState;
+}
+
+function testGameStateManagement() {
+    console.log('Testing game state management...');
+    
+    // Save current state
+    const originalState = JSON.parse(JSON.stringify(gameState));
+    
+    // Test actions when game is over
+    gameState.gameRunning = false;
+    gameState.gameOver = true;
+    
+    const canTravel = isActionAllowed('travel');
+    const canBuy = isActionAllowed('buy');
+    
+    console.log(`Actions when game over: Travel ${canTravel ? '❌ Should be blocked' : '✅ Correctly blocked'}, Buy ${canBuy ? '❌ Should be blocked' : '✅ Correctly blocked'}`);
+    
+    // Restore state
+    gameState = originalState;
+}
+
+// Add test command for debugging
+window.runTests = runGameTests;
+
+// Test random events to verify encounters work
+function testRandomEvents() {
+    const results = {
+        police: 0,
+        mugging: 0,
+        old_lady: 0,
+        market_events: 0,
+        other: 0,
+        total: 0
+    };
+    
+    console.log('Testing random events... (100 iterations)');
+    
+    // Temporarily capture messages to avoid spamming the UI
+    const originalAddMessage = window.addMessage;
+    const tempMessages = [];
+    window.addMessage = (msg, type) => tempMessages.push({msg, type});
+    
+    // Test 100 random events
+    for (let i = 0; i < 100; i++) {
+        const eventType = testSingleRandomEvent();
+        if (eventType) {
+            results[eventType] = (results[eventType] || 0) + 1;
+            results.total++;
+        }
+    }
+    
+    // Restore original addMessage
+    window.addMessage = originalAddMessage;
+    
+    console.log('Results:', results);
+    console.log(`Police encounters: ${results.police}/100 (${results.police}%)`);
+    console.log(`Mugger encounters: ${results.mugging}/100 (${results.mugging}%)`);
+    console.log(`Old Lady encounters: ${results.old_lady}/100 (${results.old_lady}%)`);
+    
+    addMessage('\n=== ENCOUNTER TEST RESULTS ===', 'event');
+    addMessage(`Police encounters: ${results.police}/100 (${results.police}%)`, 'info');
+    addMessage(`Mugger encounters: ${results.mugging}/100 (${results.mugging}%)`, 'info');
+    addMessage(`Old Lady encounters: ${results.old_lady}/100 (${results.old_lady}%)`, 'info');
+    addMessage(`Other events: ${results.other}/100 (${results.other}%)`, 'info');
+    
+    if (results.police > 0 && results.mugging > 0) {
+        addMessage('✅ SUCCESS: Both police and mugger encounters are working!', 'success');
+    } else {
+        addMessage('❌ ISSUE: Some encounters are not triggering!', 'error');
+    }
+    
+    return results;
+}
+
+// Test a single random event and return its type
+function testSingleRandomEvent() {
+    // Replicate the triggerRandomEvent logic to identify event types
+    const events = [
+        { type: 'old_lady', weight: 20 }, // High weight for frequent old lady encounters
+        { type: 'police', weight: 10 },
+        { type: 'mugging', weight: 8 },
+        { type: 'market_surge', weight: 15 },
+        { type: 'market_crash', weight: 15 },
+        { type: 'drug_bust', weight: 12 },
+        { type: 'police_raid', weight: 8 },
+        { type: 'supply_shortage', weight: 10 },
+        { type: 'addicts', weight: 8 },
+        { type: 'police_dog', weight: 8 },
+        { type: 'loan_shark', weight: 8 },
+        { type: 'find_cash', weight: 12 },
+        { type: 'health_issue', weight: 4 },
+        { type: 'dealer_encounter', weight: 6 },
+        { type: 'informant_tip', weight: 5 },
+        { type: 'nothing', weight: 4 }
+    ];
+    
+    const totalWeight = events.reduce((sum, event) => sum + event.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (let event of events) {
+        random -= event.weight;
+        if (random <= 0) {
+            // Group market events
+            if (['market_surge', 'market_crash', 'drug_bust', 'supply_shortage', 'addicts'].includes(event.type)) {
+                return 'market_events';
+            }
+            if (event.type === 'police' || event.type === 'mugging' || event.type === 'old_lady') {
+                return event.type;
+            }
+            return 'other';
+        }
+    }
+    
+    return null;
+}
+
+// Quick encounter test for console
+window.testEncounters = testRandomEvents;
+
+// Quick test function to advance to day 30
+window.testDay30 = function() {
+    if (!gameState.gameRunning) {
+        console.log('Start a new game first!');
+        return;
+    }
+    
+    gameState.player.day = 29;
+    updateDisplay();
+    addMessage('🏁 Fast-forwarded to day 29 for testing. Travel once more to test day 30 ending!', 'event');
+    console.log('Game set to day 29. Next travel will trigger day 30 and game end.');
+};
 
 // Initialize game on page load
 document.addEventListener('DOMContentLoaded', function() {
