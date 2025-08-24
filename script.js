@@ -6865,18 +6865,114 @@ function handleWeaponCombat(officer) {
 
 // Mugging event
 function handleMuggingEvent() {
-    playSound('mugged'); // Authentic mugging sound
+    playSound('mugged');
     const mugger = getRandomCharacter('dealers');
     addMessage(`💰 ${mugger.emoji} ${mugger.name} approaches you menacingly!`, 'event');
     
-    // If player has a weapon, show combat interface
-    if (gameState.player.weapon) {
-        showCombatInterface(mugger, 'mugger');
-        return;
-    }
+    // Show mugger encounter modal with strategic choices
+    showMuggerEncounterModal(mugger);
+}
+
+function showMuggerEncounterModal(mugger) {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
     
-    const cashLoss = Math.floor(gameState.player.cash * 0.1 + Math.random() * 100);
-    gameState.player.cash = Math.max(0, gameState.player.cash - cashLoss);
+    modalTitle.textContent = '💰 MUGGER ENCOUNTER';
+    
+    const hasWeapon = gameState.player.weapon;
+    const cashAmount = gameState.player.cash;
+    const demandAmount = Math.floor(cashAmount * 0.3 + Math.random() * 200);
+    
+    let encounterHtml = `
+        <div class="police-encounter">
+            <div class="encounter-situation">
+                <h3>${mugger.emoji} ${mugger.name}</h3>
+                <p><strong>"Hand over your cash or else!"</strong></p>
+                <p>They want $${demandAmount.toLocaleString()} from your $${cashAmount.toLocaleString()}</p>
+                <p><em>${mugger.name} looks ${mugger.type}. What do you do?</em></p>
+            </div>
+            
+            <div class="encounter-choices">
+                <button class="encounter-btn" onclick="muggerChoice('run', '${mugger.name}', '${mugger.type}', ${demandAmount})">
+                    🏃 <strong>RUN</strong><br>
+                    <small>Try to escape (${hasWeapon ? 'moderate' : 'low'} chance)</small>
+                </button>
+                
+                <button class="encounter-btn" onclick="muggerChoice('pay', '${mugger.name}', '${mugger.type}', ${demandAmount})">
+                    💵 <strong>PAY</strong><br>
+                    <small>Give them $${demandAmount.toLocaleString()} (safe option)</small>
+                </button>
+                
+                <button class="encounter-btn" onclick="muggerChoice('fight', '${mugger.name}', '${mugger.type}', ${demandAmount})">
+                    ${hasWeapon ? '🔫' : '👊'} <strong>FIGHT</strong><br>
+                    <small>${hasWeapon ? `Use weapon` : 'Bare hands (very risky)'}</small>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = encounterHtml;
+    showMobileModalWithUtility(modal);
+}
+
+function muggerChoice(choice, muggerName, muggerType, demandAmount) {
+    closeMobileModal();
+    
+    switch (choice) {
+        case 'run':
+            const runSuccess = gameState.player.weapon ? Math.random() < 0.7 : Math.random() < 0.4;
+            if (runSuccess) {
+                addMessage(`🏃 You escaped from ${muggerName}!`, 'success');
+                playSound('whew');
+                gameState.player.health = Math.max(10, (gameState.player.health || 100) - 3);
+            } else {
+                addMessage(`🚫 ${muggerName} caught you and took extra!`, 'error');
+                const extraLoss = Math.floor(demandAmount * 1.5);
+                gameState.player.cash = Math.max(0, gameState.player.cash - extraLoss);
+                gameState.player.health = Math.max(10, (gameState.player.health || 100) - 10);
+                addMessage(`💸 Lost $${extraLoss} and got beaten up! Health: ${gameState.player.health}%`, 'error');
+                playSound('hrdpunch');
+            }
+            break;
+        case 'pay':
+            gameState.player.cash = Math.max(0, gameState.player.cash - demandAmount);
+            addMessage(`💵 You paid ${muggerName} $${demandAmount.toLocaleString()}`, 'warning');
+            addMessage(`${muggerName}: "Smart choice. Now get lost!"`, 'event');
+            playSound('cashreg');
+            break;
+        case 'fight':
+            if (gameState.player.weapon) {
+                if (Math.random() < 0.8) {
+                    addMessage(`⚔️ You fought ${muggerName} with your weapon and won!`, 'success');
+                    addMessage('The mugger runs away!', 'success');
+                    playSound('gun');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 5);
+                } else {
+                    addMessage(`⚔️ You fought but ${muggerName} got your weapon!`, 'error');
+                    gameState.player.weapon = null;
+                    gameState.player.cash = Math.max(0, gameState.player.cash - demandAmount * 2);
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 20);
+                    addMessage(`💸 Lost weapon and $${demandAmount * 2}! Health: ${gameState.player.health}%`, 'error');
+                    playSound('hrdpunch');
+                }
+            } else {
+                if (Math.random() < 0.3) {
+                    addMessage(`👊 You fought ${muggerName} with bare hands and won!`, 'success');
+                    playSound('hrdpunch');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 15);
+                } else {
+                    addMessage(`👊 ${muggerName} beat you up badly!`, 'error');
+                    gameState.player.cash = Math.max(0, gameState.player.cash - demandAmount * 2);
+                    gameState.player.health = Math.max(5, (gameState.player.health || 100) - 25);
+                    addMessage(`💸 Lost $${demandAmount * 2} and got beaten! Health: ${gameState.player.health}%`, 'error');
+                    playSound('hrdpunch');
+                }
+            }
+            break;
+    }
+    updateDisplay();
+}
     
     if (mugger.type === 'aggressive') {
         addMessage(`${mugger.name}: "Hand over your cash or else!"`, 'event');
