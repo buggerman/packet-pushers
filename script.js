@@ -7525,6 +7525,16 @@ function updateStatusBar() {
     if (statusInventory) statusInventory.textContent = `🎒 ${inventoryCount}/${maxInventory}`;
 }
 
+// Update header subtitle with player name
+function updateHeaderSubtitle(playerName) {
+    const gameSubtitle = document.getElementById('gameSubtitle');
+    if (gameSubtitle && playerName && playerName !== 'Anonymous Dealer') {
+        gameSubtitle.textContent = `${playerName} - Terminal Market v2.5.1`;
+    } else {
+        gameSubtitle.textContent = 'Terminal Market v2.5.1';
+    }
+}
+
 // Update location-specific service buttons based on current location
 function updateLocationServiceButtons() {
     const currentLocation = gameState.player.location;
@@ -7730,9 +7740,13 @@ function closeMenu() {
 
 // Game management - consolidated newGame function
 function newGame() {
-    // Ask for player name
-    const playerName = prompt('Enter your dealer name:', 'Anonymous Dealer');
-    const finalName = playerName && playerName.trim() ? playerName.trim() : 'Anonymous Dealer';
+    // Ask for player name with saved name as default
+    const savedName = localStorage.getItem('packetPushersPlayerName') || 'Anonymous Dealer';
+    const playerName = prompt('Enter your dealer name:', savedName);
+    const finalName = playerName && playerName.trim() ? playerName.trim() : savedName;
+    
+    // Store player name globally for high scores
+    localStorage.setItem('packetPushersPlayerName', finalName);
     
     // Reset only the player state, keeping the game data intact
     gameState.player = {
@@ -7750,6 +7764,9 @@ function newGame() {
         coat: null,
         purchaseHistory: {} // Track purchase history for profit/loss calculations
     };
+    
+    // Update header subtitle with player name
+    updateHeaderSubtitle(finalName);
     
     // Reset game state flags
     gameState.currentPrices = {};
@@ -8071,8 +8088,11 @@ function checkHighScore(score) {
     const leaderboard = getLeaderboard();
     
     if (leaderboard.length < 10 || score > leaderboard[leaderboard.length - 1].score) {
-        const name = prompt('🎉 HIGH SCORE! 🎉\n\nEnter your name for the leaderboard:');
+        const savedName = localStorage.getItem('packetPushersPlayerName') || gameState.player.name || 'Anonymous Dealer';
+        const name = prompt('🎉 HIGH SCORE! 🎉\n\nEnter your name for the leaderboard:', savedName);
         if (name && name.trim()) {
+            // Update stored name if changed
+            localStorage.setItem('packetPushersPlayerName', name.trim());
             saveHighScore(name.trim(), score);
             addMessage(`High score saved! Final score: $${score.toLocaleString()}`, 'success');
             
