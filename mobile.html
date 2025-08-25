@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Packet Pushers Mobile - Retro Terminal Drug Trading Game</title>
+    <meta name="title" content="Packet Pushers Mobile - Retro Terminal Drug Trading Game">
+    <meta name="description" content="Play Packet Pushers on mobile - the ultimate retro terminal-style drug trading game optimized for mobile devices.">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Custom Terminal Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><rect x='2' y='2' width='28' height='28' fill='%23001122' stroke='%2300aaff' stroke-width='1'/><text x='16' y='12' text-anchor='middle' fill='%2300d4ff' font-family='monospace' font-size='8' font-weight='bold'>PP</text><text x='16' y='22' text-anchor='middle' fill='%23ff0080' font-family='monospace' font-size='6'>💊</text></svg>">
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- JetBrains Mono Font -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Mobile-specific CSS -->
+    <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Initializing Terminal Market...</div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar" id="loadingProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <div class="start-content">
+                <div class="mobile-ascii-logo">
+                    <pre>
+██████╗  █████╗  ██████╗██╗  ██╗███████╗████████╗
+██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
+██████╔╝███████║██║     █████╔╝ █████╗     ██║   
+██╔═══╝ ██╔══██║██║     ██╔═██╗ ██╔══╝     ██║   
+██║     ██║  ██║╚██████╗██║  ██╗███████╗   ██║   
+╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
+
+██████╗ ██╗   ██╗███████╗██╗  ██╗███████╗██████╗ ███████╗
+██╔══██╗██║   ██║██╔════╝██║  ██║██╔════╝██╔══██╗██╔════╝
+██████╔╝██║   ██║███████╗███████║█████╗  ██████╔╝███████╗
+██╔═══╝ ██║   ██║╚════██║██╔══██║██╔══╝  ██╔══██╗╚════██║
+██║     ╚██████╔╝███████║██║  ██║███████╗██║  ██║███████║
+╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
+                    </pre>
+                    <div class="mobile-subtitle">Terminal Market Mobile v2.5.1</div>
+                </div>
+                
+                <div class="game-description">
+                    <p>Pay off your $5,000 debt and build your fortune in 30 days.</p>
+                    <p>Navigate the dangerous world of street commerce.</p>
+                </div>
+                
+                <div class="start-actions">
+                    <button class="start-btn primary" onclick="startMobileGame()">
+                        🎮 NEW GAME
+                    </button>
+                    <button class="start-btn secondary" id="continueBtn" onclick="continueGame()" style="display: none;">
+                        ⏯️ CONTINUE
+                    </button>
+                    <button class="start-btn secondary" onclick="showStartLeaderboard()">
+                        🏆 HIGH SCORES
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header with hamburger menu -->
+        <div class="mobile-header" id="gameHeader" style="display: none;">
+            <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleSlideMenu()">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </button>
+            <div class="mobile-title">PACKET PUSHERS</div>
+            <div style="width: 41px;"></div> <!-- Spacer for centering -->
+        </div>
+
+        <!-- Scrollable game log area -->
+        <div class="mobile-game-log" id="mobileGameLog" style="display: none;">
+            <div class="status-summary">
+                <div class="debt-warning">💀 Debt: $<span id="mobileDebt">5,000</span></div>
+                <div class="time-remaining">⏰ Day <span id="mobileDay">1</span>/30</div>
+            </div>
+            <div class="log-content" id="gameOutput">Welcome to Packet Pushers Mobile!<br>Starting your criminal enterprise...</div>
+        </div>
+
+        <!-- Market+Inventory hybrid section -->
+        <div class="mobile-market-inventory" id="mobileMarketInventory" style="display: none;">
+            <div class="market-inventory-tabs">
+                <button class="tab-button active" id="marketTab" onclick="switchTab('market')">MARKET</button>
+                <button class="tab-button" id="inventoryTab" onclick="switchTab('inventory')">INVENTORY</button>
+            </div>
+            
+            <div class="tab-content active" id="marketContent">
+                <div class="market-list" id="marketList">
+                    <!-- Market items will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="inventoryContent">
+                <div class="inventory-list" id="inventoryList">
+                    <div class="empty-message">No items in inventory</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide-in menu overlay -->
+        <div class="menu-overlay" id="menuOverlay" onclick="toggleSlideMenu()"></div>
+
+        <!-- Slide-in menu -->
+        <div class="slide-menu" id="slideMenu">
+            <!-- Menu header with close button -->
+            <div class="menu-header">
+                <div class="menu-title">MENU</div>
+                <button class="menu-close" onclick="toggleSlideMenu()">✕</button>
+            </div>
+            
+            <!-- Status section -->
+            <div class="menu-status">
+                <h3>STATUS</h3>
+                <div class="stat-line">
+                    <span class="stat-label">📅 Day:</span>
+                    <span class="stat-value" id="currentDay">1/30</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">💰 Cash:</span>
+                    <span class="stat-value" id="playerCash">$2,000</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">🏦 Bank:</span>
+                    <span class="stat-value" id="playerBank">$0</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">💀 Debt:</span>
+                    <span class="stat-value debt" id="playerDebt">$5,000</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">💎 Net Worth:</span>
+                    <span class="stat-value" id="playerNetWorth">($3,000)</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">❤️ Health:</span>
+                    <span class="stat-value" id="playerHealth">100%</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">📍 Location:</span>
+                    <span class="stat-value" id="currentLocation">New York - John F. Kennedy</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">🎒 Inventory:</span>
+                    <span class="stat-value" id="inventorySpace">0/100</span>
+                </div>
+            </div>
+
+            <!-- Actions section -->
+            <div class="menu-actions">
+                <h3>ACTIONS</h3>
+                
+                <button class="action-button" onclick="showMobileTravelModal(); toggleSlideMenu();">
+                    ✈️ TRAVEL
+                </button>
+                
+                <button class="action-button" onclick="showMobileDebtModal(); toggleSlideMenu();">
+                    🏦 DEBT MANAGEMENT
+                </button>
+                
+                <button class="action-button" onclick="showMobileBankModal(); toggleSlideMenu();">
+                    💰 BANK
+                </button>
+                
+                <button class="action-button" onclick="showMobileStatsModal(); toggleSlideMenu();">
+                    📊 STATS
+                </button>
+
+                <!-- Location Services -->
+                <div id="locationServices" style="margin-top: 1rem;">
+                    <button class="action-button service" id="weaponShopBtn" onclick="showMobileWeaponShop(); toggleSlideMenu();" style="display: none;">
+                        🔫 WEAPONS
+                    </button>
+                    <button class="action-button service" id="clothesShopBtn" onclick="showMobileCoatShop(); toggleSlideMenu();" style="display: none;">
+                        🧥 CLOTHES
+                    </button>
+                    <button class="action-button service" id="hospitalBtn" onclick="showMobileHospital(); toggleSlideMenu();" style="display: none;">
+                        🏥 HOSPITAL
+                    </button>
+                </div>
+
+                <button class="action-button" onclick="showMobileMenu(); toggleSlideMenu();" style="margin-top: 1rem;">
+                    ⚙️ GAME MENU
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Modal -->
+        <div class="mobile-modal" id="mobileModal" style="display: none;">
+            <div class="mobile-modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Modal</h3>
+                    <button class="modal-close" onclick="closeMobileModal()">✕</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile-specific JavaScript functionality
+        let isMobile = true; // Flag for mobile version
+        let isMobileVersion = true; // Prevent main script initialization
+        let mobileCurrentTab = 'market';
+
+        function toggleSlideMenu() {
+            const slideMenu = document.getElementById('slideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const hamburger = document.getElementById('hamburgerMenu');
+            
+            const isOpen = slideMenu.classList.contains('open');
+            
+            if (isOpen) {
+                slideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+                hamburger.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            } else {
+                slideMenu.classList.add('open');
+                menuOverlay.classList.add('active');
+                hamburger.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function switchTab(tab) {
+            const marketTab = document.getElementById('marketTab');
+            const inventoryTab = document.getElementById('inventoryTab');
+            const marketContent = document.getElementById('marketContent');
+            const inventoryContent = document.getElementById('inventoryContent');
+
+            mobileCurrentTab = tab;
+
+            if (tab === 'market') {
+                marketTab.classList.add('active');
+                inventoryTab.classList.remove('active');
+                marketContent.classList.add('active');
+                inventoryContent.classList.remove('active');
+            } else {
+                inventoryTab.classList.add('active');
+                marketTab.classList.remove('active');
+                inventoryContent.classList.add('active');
+                marketContent.classList.remove('active');
+            }
+        }
+
+        function showMobileModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = content;
+            document.getElementById('mobileModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileModal() {
+            document.getElementById('mobileModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Mobile-specific modal functions
+        function showMobileTravelModal() {
+            // This will be populated with travel destinations
+            showMobileModal('TRAVEL', '<p>Select destination:</p><div id="travelDestinations"></div>');
+            populateTravelDestinations();
+        }
+
+        function showMobileDebtModal() {
+            const debtAmount = gameState.player.debt;
+            const cash = gameState.player.cash;
+            const content = `
+                <p><strong>Current Debt:</strong> $${debtAmount.toLocaleString()}</p>
+                <p><strong>Daily Interest:</strong> 10%</p>
+                <p><strong>Your Cash:</strong> $${cash.toLocaleString()}</p>
+                <div style="margin-top: 1rem;">
+                    <button class="action-button" onclick="payDebt(1000)">Pay $1,000</button>
+                    <button class="action-button" onclick="payDebt(5000)">Pay $5,000</button>
+                    <button class="action-button" onclick="payOffDebt()">Pay Off All</button>
+                </div>
+            `;
+            showMobileModal('DEBT MANAGEMENT', content);
+        }
+
+        function showMobileBankModal() {
+            const bankBalance = gameState.player.bankBalance;
+            const cash = gameState.player.cash;
+            const content = `
+                <p><strong>Bank Balance:</strong> $${bankBalance.toLocaleString()}</p>
+                <p><strong>Cash on Hand:</strong> $${cash.toLocaleString()}</p>
+                <div style="margin-top: 1rem;">
+                    <button class="action-button" onclick="bankDeposit(1000)">Deposit $1,000</button>
+                    <button class="action-button" onclick="bankWithdraw(1000)">Withdraw $1,000</button>
+                    <button class="action-button" onclick="bankDeposit(gameState.player.cash)">Deposit All Cash</button>
+                </div>
+            `;
+            showMobileModal('BANK', content);
+        }
+
+        function showMobileStatsModal() {
+            const player = gameState.player;
+            const netWorth = player.cash + player.bankBalance - player.debt;
+            const content = `
+                <div class="stats-grid">
+                    <p><strong>Day:</strong> ${player.day}/${player.maxDays}</p>
+                    <p><strong>Cash:</strong> $${player.cash.toLocaleString()}</p>
+                    <p><strong>Bank:</strong> $${player.bankBalance.toLocaleString()}</p>
+                    <p><strong>Debt:</strong> $${player.debt.toLocaleString()}</p>
+                    <p><strong>Net Worth:</strong> $${netWorth.toLocaleString()}</p>
+                    <p><strong>Location:</strong> ${player.location}</p>
+                    <p><strong>Inventory:</strong> ${getCurrentInventoryCount()}/${player.maxInventory}</p>
+                </div>
+            `;
+            showMobileModal('PLAYER STATS', content);
+        }
+
+        function showMobileMenu() {
+            const content = `
+                <button class="action-button" onclick="newGame(); closeMobileModal();">New Game</button>
+                <button class="action-button" onclick="saveGame(); closeMobileModal();">Save Game</button>
+                <button class="action-button" onclick="loadGame(); closeMobileModal();">Load Game</button>
+                <button class="action-button" onclick="showLeaderboard(); closeMobileModal();">Leaderboard</button>
+            `;
+            showMobileModal('GAME MENU', content);
+        }
+
+        // Mobile-specific game functions
+        function startMobileGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameHeader').style.display = 'flex';
+            document.getElementById('mobileGameLog').style.display = 'block';
+            document.getElementById('mobileMarketInventory').style.display = 'flex';
+            
+            // Wait for main script to load if needed
+            if (typeof gameState === 'undefined') {
+                addMessage("Loading game data...", 'info');
+                setTimeout(startMobileGame, 100);
+                return;
+            }
+            
+            // Reset game state for new game
+            gameState.player = {
+                cash: 2000,
+                debt: 5000,
+                bankBalance: 0,
+                inventory: {},
+                location: 'New York - John F. Kennedy',
+                day: 1,
+                maxDays: 30,
+                maxInventory: 100,
+                weapon: null,
+                weapons: [],
+                coat: null,
+                purchaseHistory: {},
+                debtHistory: [],
+                initialDebt: 5000
+            };
+            gameState.gameRunning = true;
+            gameState.gameOver = false;
+            
+            // Generate initial market prices
+            gameState.currentPrices = gameState.drugs.map(drug => ({
+                name: drug.name,
+                price: Math.floor(drug.basePrice * (0.5 + Math.random()))
+            }));
+            
+            // Try to use main game's price generator if available
+            if (typeof generateMarketPrices === 'function') {
+                try {
+                    generateMarketPrices();
+                } catch (e) {
+                    console.log('Main generateMarketPrices failed, using fallback');
+                }
+            }
+            
+            // Initialize locations if needed
+            if (typeof initializeLocations === 'function') {
+                initializeLocations();
+            }
+            
+            addMessage("Welcome to Packet Pushers Mobile!", 'success');
+            addMessage(`Starting in ${gameState.player.location}`, 'info');
+            addMessage("You have $2,000 cash and $5,000 debt.", 'warning');
+            addMessage("Pay off your debt in 30 days or face the consequences!", 'warning');
+            
+            updateMobileDisplay();
+        }
+
+        function continueGame() {
+            // Load saved game and start
+            if (typeof loadGame === 'function') {
+                loadGame();
+                startNewGame();
+            }
+        }
+
+        function showStartLeaderboard() {
+            // Show leaderboard modal
+            showMobileModal('HIGH SCORES', '<div id="leaderboardContent">Loading...</div>');
+            // Populate leaderboard
+            if (typeof updateLeaderboard === 'function') {
+                updateLeaderboard();
+            }
+        }
+
+        // Update mobile display elements
+        function updateMobileDisplay() {
+            if (typeof gameState === 'undefined') return;
+
+            // Update status summary
+            document.getElementById('mobileDebt').textContent = gameState.player.debt.toLocaleString();
+            document.getElementById('mobileDay').textContent = gameState.player.day;
+
+            // Update menu stats
+            document.getElementById('currentDay').textContent = `${gameState.player.day}/${gameState.player.maxDays}`;
+            document.getElementById('playerCash').textContent = `$${gameState.player.cash.toLocaleString()}`;
+            document.getElementById('playerBank').textContent = `$${gameState.player.bankBalance.toLocaleString()}`;
+            document.getElementById('playerDebt').textContent = `$${gameState.player.debt.toLocaleString()}`;
+            
+            const netWorth = gameState.player.cash + gameState.player.bankBalance - gameState.player.debt;
+            document.getElementById('playerNetWorth').textContent = `$${netWorth.toLocaleString()}`;
+            document.getElementById('currentLocation').textContent = gameState.player.location;
+            
+            const inventoryCount = getCurrentInventoryCount();
+            document.getElementById('inventorySpace').textContent = `${inventoryCount}/${gameState.player.maxInventory}`;
+
+            // Update market and inventory
+            updateMobileMarket();
+            updateMobileInventory();
+            updateLocationServices();
+        }
+
+        function updateMobileMarket() {
+            const marketList = document.getElementById('marketList');
+            if (!marketList) return;
+
+            marketList.innerHTML = '';
+            
+            // Check if gameState and currentPrices exist
+            if (typeof gameState !== 'undefined' && gameState.currentPrices && gameState.currentPrices.length > 0) {
+                gameState.currentPrices.forEach(drug => {
+                    const item = document.createElement('div');
+                    item.className = 'market-item';
+                    item.onclick = () => showMobileBuyModal(drug);
+                    item.innerHTML = `
+                        <div>
+                            <div class="item-name">${drug.name}</div>
+                        </div>
+                        <div class="item-price">$${drug.price.toLocaleString()}</div>
+                    `;
+                    marketList.appendChild(item);
+                });
+            } else {
+                // Show loading or error message if no market data
+                marketList.innerHTML = '<div class="empty-message">Loading market data...</div>';
+                
+                // Try to generate market prices if gameState exists but no prices
+                if (typeof gameState !== 'undefined' && gameState.drugs && !gameState.currentPrices) {
+                    gameState.currentPrices = gameState.drugs.map(drug => ({
+                        name: drug.name,
+                        price: Math.floor(drug.basePrice * (0.5 + Math.random()))
+                    }));
+                    
+                    // Retry updating market
+                    setTimeout(() => updateMobileMarket(), 100);
+                }
+            }
+        }
+
+        function updateMobileInventory() {
+            const inventoryList = document.getElementById('inventoryList');
+            if (!inventoryList || !gameState) return;
+
+            inventoryList.innerHTML = '';
+            
+            const hasItems = Object.keys(gameState.player.inventory).length > 0;
+            
+            if (!hasItems) {
+                inventoryList.innerHTML = '<div class="empty-message">No items in inventory</div>';
+                return;
+            }
+
+            Object.entries(gameState.player.inventory).forEach(([drugName, quantity]) => {
+                if (quantity > 0) {
+                    const currentPrice = getCurrentDrugPrice(drugName);
+                    const item = document.createElement('div');
+                    item.className = 'inventory-item';
+                    item.onclick = () => showMobileSellModal(drugName, quantity);
+                    item.innerHTML = `
+                        <div>
+                            <div class="item-name">${drugName}</div>
+                            <div class="item-quantity">${quantity} units</div>
+                        </div>
+                        <div class="item-price">$${currentPrice ? currentPrice.toLocaleString() : '0'} each</div>
+                    `;
+                    inventoryList.appendChild(item);
+                }
+            });
+        }
+
+        function showMobileBuyModal(drug) {
+            const maxAffordable = Math.floor(gameState.player.cash / drug.price);
+            const inventorySpace = gameState.player.maxInventory - getCurrentInventoryCount();
+            const maxCanBuy = Math.min(maxAffordable, inventorySpace);
+            
+            if (maxCanBuy <= 0) {
+                addMessage("You can't afford any or have no inventory space!", 'error');
+                return;
+            }
+
+            const content = `
+                <p><strong>${drug.name}</strong></p>
+                <p><strong>Price:</strong> $${drug.price.toLocaleString()} each</p>
+                <p><strong>Max affordable:</strong> ${maxCanBuy}</p>
+                <div style="margin-top: 1rem;">
+                    <button class="action-button" onclick="buyDrugMobile('${drug.name}', 1); closeMobileModal();">Buy 1</button>
+                    <button class="action-button" onclick="buyDrugMobile('${drug.name}', 5); closeMobileModal();">Buy 5</button>
+                    <button class="action-button" onclick="buyDrugMobile('${drug.name}', 10); closeMobileModal();">Buy 10</button>
+                    <button class="action-button" onclick="buyDrugMobile('${drug.name}', ${maxCanBuy}); closeMobileModal();">Buy Max (${maxCanBuy})</button>
+                </div>
+            `;
+            showMobileModal('BUY ' + drug.name.toUpperCase(), content);
+        }
+
+        function showMobileSellModal(drugName, quantity) {
+            const currentPrice = getCurrentDrugPrice(drugName);
+            
+            const content = `
+                <p><strong>${drugName}</strong></p>
+                <p><strong>Current Price:</strong> $${currentPrice ? currentPrice.toLocaleString() : '0'} each</p>
+                <p><strong>You have:</strong> ${quantity} units</p>
+                <div style="margin-top: 1rem;">
+                    <button class="action-button" onclick="sellDrugMobile('${drugName}', 1); closeMobileModal();">Sell 1</button>
+                    <button class="action-button" onclick="sellDrugMobile('${drugName}', 5); closeMobileModal();">Sell 5</button>
+                    <button class="action-button" onclick="sellDrugMobile('${drugName}', 10); closeMobileModal();">Sell 10</button>
+                    <button class="action-button" onclick="sellDrugMobile('${drugName}', ${quantity}); closeMobileModal();">Sell All (${quantity})</button>
+                </div>
+            `;
+            showMobileModal('SELL ' + drugName.toUpperCase(), content);
+        }
+
+        // Mobile trading functions
+        function buyDrugMobile(drugName, amount) {
+            const drug = gameState.currentPrices.find(d => d.name === drugName);
+            if (!drug) return;
+
+            const totalCost = drug.price * amount;
+            const inventorySpace = gameState.player.maxInventory - getCurrentInventoryCount();
+
+            if (totalCost > gameState.player.cash) {
+                addMessage("Not enough cash!", 'error');
+                return;
+            }
+
+            if (amount > inventorySpace) {
+                addMessage("Not enough inventory space!", 'error');
+                return;
+            }
+
+            // Execute the purchase
+            gameState.player.cash -= totalCost;
+            gameState.player.inventory[drugName] = (gameState.player.inventory[drugName] || 0) + amount;
+
+            addMessage(`Bought ${amount} ${drugName} for $${totalCost.toLocaleString()}`, 'success');
+            updateMobileDisplay();
+        }
+
+        function sellDrugMobile(drugName, amount) {
+            const currentAmount = gameState.player.inventory[drugName] || 0;
+            
+            if (amount > currentAmount) {
+                addMessage("You don't have that much!", 'error');
+                return;
+            }
+
+            const currentPrice = getCurrentDrugPrice(drugName);
+            if (!currentPrice) return;
+
+            const totalRevenue = currentPrice * amount;
+
+            // Execute the sale
+            gameState.player.cash += totalRevenue;
+            gameState.player.inventory[drugName] -= amount;
+
+            if (gameState.player.inventory[drugName] <= 0) {
+                delete gameState.player.inventory[drugName];
+            }
+
+            addMessage(`Sold ${amount} ${drugName} for $${totalRevenue.toLocaleString()}`, 'success');
+            updateMobileDisplay();
+        }
+
+        // Helper functions
+        function getCurrentInventoryCount() {
+            if (!gameState) return 0;
+            return Object.values(gameState.player.inventory).reduce((total, amount) => total + amount, 0);
+        }
+
+        function getCurrentDrugPrice(drugName) {
+            if (!gameState || !gameState.currentPrices) return 0;
+            const drug = gameState.currentPrices.find(d => d.name === drugName);
+            return drug ? drug.price : 0;
+        }
+
+        function updateLocationServices() {
+            // Show/hide location-specific services
+            const services = getLocationServices();
+            
+            document.getElementById('weaponShopBtn').style.display = 
+                services.includes('weapons') ? 'block' : 'none';
+            document.getElementById('clothesShopBtn').style.display = 
+                services.includes('clothes') ? 'block' : 'none';
+            document.getElementById('hospitalBtn').style.display = 
+                services.includes('hospital') ? 'block' : 'none';
+        }
+
+        function getLocationServices() {
+            if (!gameState || !gameState.locationServices) return [];
+            
+            const [city, location] = gameState.player.location.split(' - ');
+            const cityServices = gameState.locationServices[city];
+            
+            if (cityServices && cityServices[location]) {
+                return cityServices[location].services || [];
+            }
+            
+            return [];
+        }
+
+        // Ensure gameState is initialized for mobile
+        function ensureGameState() {
+            if (typeof gameState === 'undefined') {
+                // Create minimal gameState for mobile
+                window.gameState = {
+                    drugs: [
+                        { name: '🧪 Acid', basePrice: 1000, volatility: 0.9 },
+                        { name: '❄️ Cocaine', basePrice: 15000, volatility: 0.2 },
+                        { name: '🟫 Hash', basePrice: 150, volatility: 0.7 },
+                        { name: '💉 Heroin', basePrice: 5000, volatility: 0.3 },
+                        { name: '💊 Molly', basePrice: 10, volatility: 0.9 },
+                        { name: '🧊 Ice', basePrice: 311, volatility: 0.8 },
+                        { name: '🌺 Opium', basePrice: 548, volatility: 0.7 },
+                        { name: '🪨 Crack', basePrice: 1000, volatility: 0.6 },
+                        { name: '🌵 Peyote', basePrice: 122, volatility: 0.9 },
+                        { name: '🍄 Mushrooms', basePrice: 600, volatility: 0.8 },
+                        { name: '⚡ Speed', basePrice: 70, volatility: 0.9 },
+                        { name: '🌿 Weed', basePrice: 300, volatility: 0.8 },
+                        { name: '🦄 Special K', basePrice: 471, volatility: 0.7 }
+                    ],
+                    player: {
+                        cash: 2000,
+                        debt: 5000,
+                        bankBalance: 0,
+                        inventory: {},
+                        location: 'New York - John F. Kennedy',
+                        day: 1,
+                        maxDays: 30,
+                        maxInventory: 100,
+                        weapon: null,
+                        weapons: [],
+                        coat: null,
+                        purchaseHistory: {},
+                        debtHistory: [],
+                        initialDebt: 5000
+                    },
+                    currentPrices: [],
+                    gameRunning: false,
+                    gameOver: false,
+                    locationServices: {}
+                };
+            }
+        }
+
+        // Initialize the mobile interface
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure gameState exists
+            ensureGameState();
+            
+            // Check for saved game
+            if (localStorage.getItem('packetPushersGameState')) {
+                document.getElementById('continueBtn').style.display = 'block';
+            }
+
+            // Hide loading screen after a short delay
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loadingScreen');
+                loadingScreen.style.display = 'none';
+            }, 1500);
+
+            // Prevent iOS zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        });
+
+        // Handle swipe gestures to open/close menu
+        let startX = 0;
+        let startY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!startX || !startY) {
+                return;
+            }
+
+            const xDiff = startX - e.touches[0].clientX;
+            const yDiff = startY - e.touches[0].clientY;
+
+            // Only trigger if horizontal swipe is stronger than vertical
+            if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                const slideMenu = document.getElementById('slideMenu');
+                
+                // Swipe right to open menu (if starting from left edge)
+                if (xDiff < -50 && startX < 50 && !slideMenu.classList.contains('open')) {
+                    toggleSlideMenu();
+                }
+                
+                // Swipe left to close menu (if menu is open)
+                if (xDiff > 50 && slideMenu.classList.contains('open')) {
+                    toggleSlideMenu();
+                }
+            }
+
+            // Reset values
+            startX = 0;
+            startY = 0;
+        });
+
+        // Override addMessage function for mobile
+        function addMessage(message, type = 'info') {
+            const gameOutput = document.getElementById('gameOutput');
+            if (!gameOutput) return;
+
+            const messageClass = type === 'error' ? 'error-message' : 
+                                type === 'success' ? 'success-message' : 
+                                type === 'warning' ? 'warning-message' : 'event-message';
+
+            gameOutput.innerHTML += `<span class="${messageClass}">${message}</span><br>`;
+            gameOutput.scrollTop = gameOutput.scrollHeight;
+        }
+    </script>
+
+    <!-- Load the main game script -->
+    <script src="script.js"></script>
+</body>
+</html>

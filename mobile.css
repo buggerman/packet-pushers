@@ -1,0 +1,782 @@
+/* Packet Pushers Mobile - Retro Terminal Style */
+
+:root {
+    /* Cyberpunk Color Scheme */
+    --bg-color: #0a0a0f;
+    --bg-gradient: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+    --panel-bg: rgba(15, 25, 40, 0.9);
+    --text-color: #00d4ff;
+    --accent-color: #ff0080;
+    --secondary-accent: #8000ff;
+    --white-color: #ffffff;
+    --border-color: #00aaff;
+    --debt-color: #ff3366;
+    --success-color: #00ff88;
+    --warning-color: #ffaa00;
+    --shadow-color: rgba(0, 212, 255, 0.4);
+    --glow-color: rgba(255, 0, 128, 0.6);
+    --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    overflow-x: hidden;
+}
+
+.mobile-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+}
+
+/* Start Screen */
+.start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--bg-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.start-content {
+    text-align: center;
+    max-width: 90%;
+}
+
+.mobile-ascii-logo {
+    margin-bottom: 2rem;
+}
+
+.mobile-ascii-logo pre {
+    color: var(--accent-color);
+    font-size: 0.4rem;
+    line-height: 0.8;
+    margin: 0;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.mobile-subtitle {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    opacity: 0.8;
+}
+
+.game-description {
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+.game-description p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.start-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.start-btn {
+    background: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem 2rem;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 50px;
+}
+
+.start-btn.primary {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.start-btn.primary:hover {
+    background: var(--white-color);
+    border-color: var(--white-color);
+    box-shadow: 0 0 20px var(--glow-color);
+    transform: translateY(-2px);
+}
+
+.start-btn.secondary:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--shadow-color);
+    transform: translateY(-2px);
+}
+
+/* Header with hamburger menu */
+.mobile-header {
+    background: var(--panel-bg);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 100;
+}
+
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+}
+
+.hamburger-line {
+    width: 25px;
+    height: 3px;
+    background: var(--text-color);
+    margin: 2px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+}
+
+.hamburger-menu.active .hamburger-line:nth-child(1) {
+    transform: rotate(-45deg) translate(-6px, 6px);
+}
+
+.hamburger-menu.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active .hamburger-line:nth-child(3) {
+    transform: rotate(45deg) translate(-6px, -6px);
+}
+
+.mobile-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    text-align: center;
+    flex-grow: 1;
+}
+
+/* Scrollable game log area */
+.mobile-game-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-bottom: 2px solid var(--border-color);
+    min-height: 0;
+}
+
+.log-content {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.status-summary {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.debt-warning {
+    color: var(--debt-color);
+    font-weight: bold;
+}
+
+.time-remaining {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+
+/* Market+Inventory hybrid section */
+.mobile-market-inventory {
+    background: var(--panel-bg);
+    border-top: 2px solid var(--border-color);
+    padding: 1rem;
+    max-height: 40vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.market-inventory-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.tab-button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.75rem;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    background: rgba(255, 0, 128, 0.1);
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.market-list, .inventory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.market-item, .inventory-item {
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.market-item:hover, .inventory-item:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+
+.item-name {
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.item-price {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.item-quantity {
+    color: var(--warning-color);
+    font-size: 0.9rem;
+}
+
+/* Slide-in menu */
+.slide-menu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 85%;
+    max-width: 320px;
+    height: 100vh;
+    background: var(--bg-color);
+    border-right: 2px solid var(--border-color);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+    transition: left 0.3s ease;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+}
+
+.slide-menu.open {
+    left: 0;
+}
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Menu header with close button */
+.menu-header {
+    background: var(--panel-bg);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.menu-title {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.menu-close {
+    background: none;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.menu-close:hover, .menu-close:focus {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-color);
+    transform: rotate(90deg);
+}
+
+/* Status section in slide menu */
+.menu-status {
+    background: var(--panel-bg);
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.menu-status h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.stat-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.stat-label {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.stat-value.debt {
+    color: var(--debt-color);
+}
+
+/* Buttons section in slide menu */
+.menu-actions {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.menu-actions h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.action-button {
+    width: 100%;
+    background: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+}
+
+.action-button:hover, .action-button:focus {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--glow-color);
+    transform: translateY(-2px);
+}
+
+.action-button.service {
+    background: var(--secondary-accent);
+    border-color: var(--secondary-accent);
+}
+
+.action-button.service:hover {
+    background: var(--white-color);
+    border-color: var(--white-color);
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Loading and error states */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--text-color);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: var(--panel-bg);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: var(--accent-color);
+    transition: width 0.3s;
+}
+
+/* Message styling for game log */
+.event-message {
+    color: var(--text-color);
+}
+
+.error-message {
+    color: var(--debt-color);
+}
+
+.success-message {
+    color: var(--success-color);
+}
+
+.warning-message {
+    color: var(--warning-color);
+}
+
+.travel-message {
+    color: var(--accent-color);
+}
+
+/* Modal styles (for compatibility with main game) */
+.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.mobile-modal-content {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    background: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.modal-body {
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .mobile-ascii-logo pre {
+        font-size: 0.35rem;
+        line-height: 0.7;
+    }
+    
+    .mobile-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .game-description p {
+        font-size: 0.85rem;
+    }
+    
+    .start-btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    .mobile-header {
+        padding: 0.5rem;
+    }
+    
+    .mobile-title {
+        font-size: 1rem;
+    }
+    
+    .mobile-game-log {
+        padding: 0.5rem;
+    }
+    
+    .mobile-market-inventory {
+        padding: 0.5rem;
+    }
+    
+    .market-item, .inventory-item {
+        padding: 0.75rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .slide-menu {
+        width: 90%;
+    }
+    
+    .status-summary {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .mobile-ascii-logo pre {
+        font-size: 0.32rem;
+        line-height: 0.65;
+    }
+    
+    .mobile-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .mobile-header {
+        padding: 0.375rem;
+    }
+    
+    .mobile-game-log {
+        padding: 0.375rem;
+    }
+    
+    .mobile-market-inventory {
+        padding: 0.375rem;
+    }
+    
+    .status-summary {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .slide-menu {
+        width: 92%;
+    }
+}
+
+@media (max-width: 320px) {
+    .mobile-ascii-logo pre {
+        font-size: 0.28rem;
+        line-height: 0.6;
+    }
+    
+    .mobile-subtitle {
+        font-size: 0.7rem;
+    }
+    
+    .start-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .mobile-header {
+        padding: 0.25rem;
+    }
+    
+    .mobile-title {
+        font-size: 0.9rem;
+    }
+    
+    .mobile-game-log {
+        padding: 0.25rem;
+    }
+    
+    .mobile-market-inventory {
+        padding: 0.25rem;
+    }
+    
+    .log-content {
+        font-size: 0.8rem;
+    }
+    
+    .status-summary {
+        padding: 0.375rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .slide-menu {
+        width: 95%;
+    }
+    
+    .market-item, .inventory-item {
+        padding: 0.5rem;
+    }
+}
+
+/* Prevent zoom on input focus for iOS */
+input, select, textarea {
+    font-size: 16px;
+}
+
+/* Touch improvements */
+.action-button, .market-item, .inventory-item, .tab-button {
+    -webkit-tap-highlight-color: rgba(255, 0, 128, 0.3);
+    tap-highlight-color: rgba(255, 0, 128, 0.3);
+}
+
+/* Scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
