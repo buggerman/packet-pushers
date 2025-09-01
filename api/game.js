@@ -75,7 +75,7 @@ function validateAction(sessionData, action) {
     switch (type) {
         case 'buy':
             const { drugName, quantity, expectedCost } = data;
-            const actualCost = sessionData.currentPrices.find(d => d.name === drugName)?.price * quantity;
+            const actualCost = sessionData.current_prices.find(d => d.name === drugName)?.price * quantity;
             
             if (Math.abs(actualCost - expectedCost) > 1) {
                 return { valid: false, error: 'Price mismatch - possible tampering' };
@@ -117,13 +117,13 @@ function executeAction(sessionData, action) {
     
     switch (type) {
         case 'buy':
-            const cost = sessionData.currentPrices.find(d => d.name === data.drugName).price * data.quantity;
+            const cost = sessionData.current_prices.find(d => d.name === data.drugName).price * data.quantity;
             player.cash -= cost;
             player.inventory[data.drugName] = (player.inventory[data.drugName] || 0) + data.quantity;
             break;
             
         case 'sell':
-            const revenue = sessionData.currentPrices.find(d => d.name === data.drugName).price * data.quantity;
+            const revenue = sessionData.current_prices.find(d => d.name === data.drugName).price * data.quantity;
             player.cash += revenue;
             player.inventory[data.drugName] -= data.quantity;
             if (player.inventory[data.drugName] <= 0) {
@@ -139,7 +139,7 @@ function executeAction(sessionData, action) {
             player.debt = Math.floor(player.debt * (1 + GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE));
             
             // Generate new market prices
-            sessionData.currentPrices = generateMarketPrices(sessionData.day, player.location);
+            sessionData.current_prices = generateMarketPrices(sessionData.day, player.location);
             break;
     }
     
@@ -186,11 +186,9 @@ async function getGameSession(req, res) {
                 health: 100
             },
             day: 1,
-            gameRunning: true,
-            gameOver: false,
-            currentPrices: generateMarketPrices(1, 'New York - John F. Kennedy'),
-            createdAt: new Date().toISOString(),
-            lastActivity: new Date().toISOString()
+            game_running: true,
+            game_over: false,
+            current_prices: generateMarketPrices(1, 'New York - John F. Kennedy')
         };
         
         // Save session to database
@@ -256,7 +254,7 @@ async function handleGameAction(req, res) {
         .from('game_sessions')
         .update({
             ...result.sessionData,
-            lastActivity: new Date().toISOString()
+            last_activity: new Date().toISOString()
         })
         .eq('id', sessionId);
         
