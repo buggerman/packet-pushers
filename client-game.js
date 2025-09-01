@@ -256,10 +256,10 @@ class GameClient {
 const gameClient = new GameClient();
 
 // Replace existing game functions with client calls
-function startNewGame() {
+window.startNewGameClient = function() {
     const playerName = prompt('Enter your dealer name:') || 'Anonymous Dealer';
     gameClient.startNewGame(playerName);
-}
+};
 
 function showMobileModal(title, content) {
     document.getElementById('modalTitle').textContent = title;
