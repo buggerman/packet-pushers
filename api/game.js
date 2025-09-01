@@ -202,7 +202,11 @@ async function getGameSession(req, res) {
             
         if (error) {
             console.error('Failed to create session:', error);
-            return res.status(500).json({ error: 'Failed to create game session' });
+            return res.status(500).json({ 
+                error: 'Failed to create game session',
+                details: error.message,
+                code: error.code 
+            });
         }
         
         res.json({ success: true, session: data });
