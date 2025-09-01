@@ -1,5 +1,21 @@
 // Packet Pushers Game Logic
 // Complete implementation of the classic drug dealing game
+// Global leaderboard edition with anti-cheat validation
+
+// Global leaderboard configuration
+const GLOBAL_LEADERBOARD_CONFIG = {
+    enabled: true,
+    apiEndpoint: '/api/leaderboard',
+    version: '2.5.1'
+};
+
+// Game session tracking for anti-cheat
+let gameSession = {
+    startTime: null,
+    gameEvents: [],
+    criticalActions: [],
+    initialized: false
+};
 
 // Loading screen management
 function hideLoadingScreen() {
@@ -8331,9 +8347,13 @@ function endGame() {
     
     addMessage('='.repeat(50), 'event');
     
-    // Check for high score
+    // Check for high score and show global leaderboard submission
     setTimeout(() => {
-        checkHighScore(finalNetWorth);
+        if (GLOBAL_LEADERBOARD_CONFIG.enabled) {
+            showScoreSubmissionModal(finalNetWorth);
+        } else {
+            checkHighScore(finalNetWorth);
+        }
     }, 2000);
 }
 
@@ -8378,6 +8398,9 @@ function newGame() {
     
     // Store player name globally for high scores
     localStorage.setItem('packetPushersPlayerName', finalName);
+    
+    // Initialize global leaderboard session tracking
+    initializeGameSession();
     
     // Reset only the player state, keeping the game data intact
     gameState.player = {
@@ -9009,8 +9032,241 @@ window.testDay30 = function() {
     console.log('Game set to day 29. Next travel will trigger day 30 and game end.');
 };
 
+// ===== GLOBAL LEADERBOARD SYSTEM =====
+
+// Initialize game session tracking
+function initializeGameSession() {
+    gameSession = {
+        startTime: Date.now(),
+        gameEvents: [],
+        criticalActions: [],
+        initialized: true
+    };
+}
+
+// Log game events for anti-cheat validation
+function logGameEvent(eventType, data) {
+    if (!gameSession.initialized) return;
+    
+    gameSession.gameEvents.push({
+        type: eventType,
+        timestamp: Date.now(),
+        data: data
+    });
+    
+    // Keep only last 100 events
+    if (gameSession.gameEvents.length > 100) {
+        gameSession.gameEvents = gameSession.gameEvents.slice(-100);
+    }
+}
+
+// Calculate hash for score verification
+function calculateScoreHash(gameData) {
+    const criticalData = {
+        score: gameData.score,
+        day: gameData.day,
+        startTime: gameData.startTime,
+        endTime: gameData.endTime,
+        playerStats: gameData.playerStats
+    };
+    
+    let hash = 0;
+    const str = JSON.stringify(criticalData);
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).substring(0, 16);
+}
+
+// Submit score to global leaderboard
+async function submitToGlobalLeaderboard(playerName, score) {
+    if (!GLOBAL_LEADERBOARD_CONFIG.enabled) return null;
+    
+    try {
+        const endTime = Date.now();
+        const gameData = {
+            score: score,
+            day: gameState.player.day,
+            startTime: gameSession.startTime,
+            endTime: endTime,
+            version: GLOBAL_LEADERBOARD_CONFIG.version,
+            playerStats: {
+                cash: gameState.player.cash,
+                debt: gameState.player.debt,
+                bankBalance: gameState.player.bankBalance || 0
+            }
+        };
+        
+        const clientHash = calculateScoreHash(gameData);
+        
+        const response = await fetch(GLOBAL_LEADERBOARD_CONFIG.apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                playerName: playerName,
+                gameData: gameData,
+                clientHash: clientHash
+            })
+        });
+        
+        return await response.json();
+        
+    } catch (error) {
+        console.error('Global leaderboard error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
+
+// Fetch global leaderboard
+async function fetchGlobalLeaderboard(timeframe = 'all', limit = 10) {
+    if (!GLOBAL_LEADERBOARD_CONFIG.enabled) return null;
+    
+    try {
+        const response = await fetch(`${GLOBAL_LEADERBOARD_CONFIG.apiEndpoint}?timeframe=${timeframe}&limit=${limit}`);
+        const result = await response.json();
+        return result.leaderboard;
+    } catch (error) {
+        console.error('Fetch leaderboard error:', error);
+        return null;
+    }
+}
+
+// Show global leaderboard
+async function showGlobalLeaderboard() {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '🌍 GLOBAL LEADERBOARD';
+    modalBody.innerHTML = '<p>Loading global scores...</p>';
+    modal.style.display = 'flex';
+    
+    const globalScores = await fetchGlobalLeaderboard('all', 20);
+    
+    let content = '';
+    if (globalScores && globalScores.length > 0) {
+        content += '<div class="global-leaderboard"><h3>🏆 TOP GLOBAL SCORES</h3><div class="leaderboard-list">';
+        
+        globalScores.slice(0, 10).forEach((entry, index) => {
+            const rank = index + 1;
+            const medal = rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : `${rank}.`;
+            const date = new Date(entry.created_at).toLocaleDateString();
+            
+            content += `
+                <div class="leaderboard-entry">
+                    <span class="rank">${medal}</span>
+                    <span class="player-name">${entry.player_name}</span>
+                    <span class="score">$${entry.score.toLocaleString()}</span>
+                    <span class="date">${date}</span>
+                </div>
+            `;
+        });
+        
+        content += '</div></div>';
+    } else {
+        content = '<div class="no-scores"><p>🌍 No global scores yet!</p><p>Be the first to submit!</p></div>';
+    }
+    
+    content += '<button class="mobile-action-btn" onclick="closeMobileModal()">Close</button>';
+    modalBody.innerHTML = content;
+}
+
+// Enhanced game ending with global leaderboard
+function endGameWithGlobalScore() {
+    const finalScore = calculateFinalScore();
+    showScoreSubmissionModal(finalScore);
+}
+
+// Score submission modal
+function showScoreSubmissionModal(finalScore) {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '🏁 GAME COMPLETE!';
+    
+    const content = `
+        <div class="game-complete">
+            <h3>Final Score: $${finalScore.toLocaleString()}</h3>
+            <p><strong>Day:</strong> ${gameState.player.day}/30</p>
+            <p><strong>Net Worth:</strong> $${(gameState.player.cash + gameState.player.bankBalance - gameState.player.debt).toLocaleString()}</p>
+            
+            <div class="score-submission">
+                <h4>🌍 Submit to Global Leaderboard</h4>
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="50" style="width: 100%; margin: 10px 0; padding: 10px;">
+                <button class="mobile-action-btn primary" onclick="handleScoreSubmission(${finalScore})">Submit Score</button>
+                <button class="mobile-action-btn secondary" onclick="skipScoreSubmission(${finalScore})">Skip</button>
+            </div>
+            
+            <div class="local-actions">
+                <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Global Scores</button>
+                <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = content;
+    modal.style.display = 'flex';
+}
+
+// Handle score submission
+async function handleScoreSubmission(finalScore) {
+    const nameInput = document.getElementById('playerNameInput');
+    const playerName = nameInput.value.trim();
+    
+    if (!playerName) {
+        alert('Please enter your name!');
+        return;
+    }
+    
+    const modalBody = document.getElementById('modalBody');
+    modalBody.innerHTML = '<p>Submitting your score...</p><div class="loading-spinner"></div>';
+    
+    const globalResult = await submitToGlobalLeaderboard(playerName, finalScore);
+    saveHighScore(playerName, finalScore);
+    
+    let resultContent = '';
+    if (globalResult && globalResult.success) {
+        resultContent = `
+            <div class="submission-success">
+                <h3>🎉 Score Submitted Successfully!</h3>
+                <p><strong>Player:</strong> ${playerName}</p>
+                <p><strong>Score:</strong> $${finalScore.toLocaleString()}</p>
+                <p><strong>Global Ranking:</strong> #${globalResult.ranking}</p>
+            </div>
+        `;
+    } else {
+        resultContent = `
+            <div class="submission-error">
+                <h3>⚠️ Global Submission Failed</h3>
+                <p>Your score was saved locally.</p>
+            </div>
+        `;
+    }
+    
+    resultContent += `
+        <div class="result-actions">
+            <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Global Scores</button>
+            <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
+        </div>
+    `;
+    
+    modalBody.innerHTML = resultContent;
+}
+
+function skipScoreSubmission(finalScore) {
+    saveHighScore('Anonymous', finalScore);
+    const modalBody = document.getElementById('modalBody');
+    modalBody.innerHTML = `
+        <h3>Score Saved Locally</h3>
+        <p>Your score: $${finalScore.toLocaleString()}</p>
+        <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
+    `;
+}
+
 // Initialize game on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Show start screen first
     initStartScreen();
 });

@@ -1,0 +1,26 @@
+{
+  "name": "packet-pushers-global",
+  "version": "2.5.1",
+  "description": "Packet Pushers - Global leaderboard edition",
+  "main": "script.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static build'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "keywords": [
+    "game",
+    "terminal",
+    "trading",
+    "dope-wars",
+    "leaderboard"
+  ],
+  "author": "Packet Pushers",
+  "license": "MIT"
+}
