@@ -17,9 +17,16 @@ class GameClient {
         this.updateLoadingState('Creating new game...');
         
         try {
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await fetch('/api/game', {
-                method: 'GET'
+                method: 'GET',
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             const result = await response.json();
             
@@ -27,6 +34,9 @@ class GameClient {
                 this.sessionId = result.session.id;
                 this.gameState = result.session;
                 this.gameState.player.name = playerName;
+                
+                // Hide start screen and show game interface
+                this.showGameInterface();
                 
                 this.updateDisplay();
                 this.addMessage(`Welcome ${playerName}! Your criminal enterprise begins...`, 'success');
@@ -38,11 +48,16 @@ class GameClient {
                 return false;
             }
         } catch (error) {
-            this.addMessage('Network error: Could not start game', 'error');
+            if (error.name === 'AbortError') {
+                this.addMessage('Game start timed out. Please try again.', 'error');
+            } else {
+                this.addMessage('Network error: Could not start game', 'error');
+            }
             console.error('Start game error:', error);
             return false;
         } finally {
             this.isLoading = false;
+            clearTimeout(this.loadingTimeout);
         }
     }
 
@@ -270,8 +285,35 @@ class GameClient {
     }
 
     updateLoadingState(message) {
-        // Update any loading indicators
         console.log('Loading:', message);
+        
+        // Show loading message to user
+        const gameOutput = document.getElementById('gameOutput');
+        if (gameOutput && this.isLoading) {
+            // Only show loading if it's taking more than 1 second
+            this.loadingTimeout = setTimeout(() => {
+                this.addMessage(`⏳ ${message}`, 'info');
+            }, 1000);
+        }
+    }
+
+    showGameInterface() {
+        // Hide start screen
+        const startScreen = document.getElementById('startScreen');
+        if (startScreen) startScreen.style.display = 'none';
+        
+        // Show game layout
+        const gameLayout = document.getElementById('gameLayout');
+        if (gameLayout) gameLayout.style.display = 'block';
+        
+        // For mobile - show game elements
+        const gameHeader = document.getElementById('gameHeader');
+        const mobileGameLog = document.getElementById('mobileGameLog');
+        const mobileMarketInventory = document.getElementById('mobileMarketInventory');
+        
+        if (gameHeader) gameHeader.style.display = 'flex';
+        if (mobileGameLog) mobileGameLog.style.display = 'block';
+        if (mobileMarketInventory) mobileMarketInventory.style.display = 'flex';
     }
 
     addMessage(message, type = 'info') {
