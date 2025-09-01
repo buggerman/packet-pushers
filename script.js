@@ -8412,8 +8412,8 @@ function newGame() {
     // Store player name globally for high scores
     localStorage.setItem('packetPushersPlayerName', finalName);
     
-    // Initialize server-side game session
-    initializeServerGame(finalName);
+    // Initialize client-side game (keep original working)
+    initializeClientGame(finalName);
     
     // Update header subtitle with player name  
     updateHeaderSubtitle(finalName);
