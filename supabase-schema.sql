@@ -1,6 +1,34 @@
 -- Packet Pushers Global Leaderboard Database Schema
 -- Run this in your Supabase SQL editor
 
+-- Create the game sessions table for server-side game logic
+CREATE TABLE IF NOT EXISTS game_sessions (
+    id VARCHAR(50) PRIMARY KEY,
+    player JSONB NOT NULL,
+    day INTEGER NOT NULL DEFAULT 1,
+    game_running BOOLEAN NOT NULL DEFAULT true,
+    game_over BOOLEAN NOT NULL DEFAULT false,
+    current_prices JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Constraints
+    CONSTRAINT valid_day CHECK (day >= 1 AND day <= 30)
+);
+
+-- Create indexes for game sessions
+CREATE INDEX IF NOT EXISTS idx_game_sessions_last_activity ON game_sessions(last_activity);
+CREATE INDEX IF NOT EXISTS idx_game_sessions_created_at ON game_sessions(created_at);
+
+-- Auto-cleanup old sessions (older than 24 hours)
+CREATE OR REPLACE FUNCTION cleanup_old_sessions()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM game_sessions 
+    WHERE last_activity < NOW() - INTERVAL '24 hours';
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create the leaderboard table
 CREATE TABLE IF NOT EXISTS leaderboard (
     id BIGSERIAL PRIMARY KEY,
