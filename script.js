@@ -5595,8 +5595,13 @@ function mobileModalEscapeHandler(e) {
     }
 }
 
-function showBuyModal(drugName, price, currentlyOwned) {
+async function showBuyModal(drugName, price, currentlyOwned) {
     console.log('showBuyModal called with:', drugName, price, currentlyOwned);
+    
+    // If we have a server session, use server-side validation
+    if (window.serverSessionId) {
+        return showServerBuyModal(drugName, price);
+    }
     
     const modal = document.getElementById('mobileModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -5609,18 +5614,20 @@ function showBuyModal(drugName, price, currentlyOwned) {
     
     modalTitle.textContent = `💰 BUY ${drugName}`;
     
-    // Calculate affordability and inventory space
-    const maxAffordable = Math.floor(gameState.player.cash / price);
+    // Calculate affordability and inventory space using server prices
+    const serverPrice = getServerPrice(drugName);
+    const actualPrice = serverPrice || price;
+    
+    const maxAffordable = Math.floor(gameState.player.cash / actualPrice);
     const maxInventorySpace = getCurrentMaxInventory() - getCurrentInventorySize();
     const maxCanBuy = Math.min(maxAffordable, maxInventorySpace);
     
     console.log('Buy modal calculations:', {
         cash: gameState.player.cash,
-        price: price,
+        displayPrice: price,
+        serverPrice: serverPrice,
+        actualPrice: actualPrice,
         maxAffordable: maxAffordable,
-        maxInventory: getCurrentMaxInventory(),
-        currentInventory: getCurrentInventorySize(),
-        maxInventorySpace: maxInventorySpace,
         maxCanBuy: maxCanBuy
     });
     
@@ -6164,6 +6171,12 @@ function startDesktopSell(drugName, quantity) {
 
 // Market price generation
 function generateMarketPrices() {
+    // Skip client-side price generation if using server
+    if (window.useServerPrices || window.serverSessionId) {
+        console.log('Skipping client price generation - using server prices');
+        return;
+    }
+    
     // Store previous prices for comparison
     gameState.previousPrices = { ...gameState.currentPrices };
     
@@ -9253,6 +9266,178 @@ function skipScoreSubmission(finalScore) {
     `;
 }
 
+// Get server-side price for a drug
+function getServerPrice(drugName) {
+    if (!window.serverSessionId || !window.serverPrices) return null;
+    const drug = window.serverPrices.find(d => d.name === drugName);
+    return drug ? drug.price : null;
+}
+
+// Show server-side buy modal with correct prices
+async function showServerBuyModal(drugName, displayPrice) {
+    const modal = document.getElementById('mobileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = `💰 BUY ${drugName}`;
+    
+    // Use server prices for calculations
+    const serverPrice = getServerPrice(drugName);
+    const actualPrice = serverPrice || displayPrice;
+    
+    const maxAffordable = Math.floor(gameState.player.cash / actualPrice);
+    const maxInventorySpace = getCurrentMaxInventory() - getCurrentInventorySize();
+    const maxCanBuy = Math.min(maxAffordable, maxInventorySpace);
+    
+    if (maxCanBuy <= 0) {
+        modalBody.innerHTML = `
+            <div class="buy-error">
+                <p>${maxAffordable <= 0 ? 
+                    `💸 Not enough cash! Need $${actualPrice} but only have $${gameState.player.cash}` : 
+                    "📦 Not enough inventory space!"}</p>
+                <button class="mobile-action-btn" onclick="closeMobileModal()">OK</button>
+            </div>
+        `;
+        modal.style.display = 'flex';
+        return;
+    }
+
+    const content = `
+        <div class="buy-interface">
+            <p><strong>${drugName}</strong></p>
+            <p><strong>Server Price:</strong> $${actualPrice.toLocaleString()} each</p>
+            <p><strong>Max affordable:</strong> ${maxCanBuy}</p>
+            <div style="margin-top: 1rem;">
+                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 1, ${actualPrice}); closeMobileModal();">Buy 1</button>
+                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 5, ${actualPrice}); closeMobileModal();">Buy 5</button>
+                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 10, ${actualPrice}); closeMobileModal();">Buy 10</button>
+                <button class="mobile-action-btn primary" onclick="buyDrugServer('${drugName}', ${maxCanBuy}, ${actualPrice}); closeMobileModal();">Buy Max (${maxCanBuy})</button>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = content;
+    modal.style.display = 'flex';
+}
+
+// Server-side sell drug function  
+async function sellDrugServer(drugName, quantity, expectedPrice) {
+    if (!window.serverSessionId) {
+        addMessage('❌ No server session! Please restart the game.', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId: window.serverSessionId,
+                action: {
+                    type: 'sell',
+                    data: {
+                        drugName: drugName,
+                        quantity: quantity
+                    }
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update local game state with server response
+            updateGameStateFromServer(result.session);
+            
+            // Display server-generated messages
+            if (result.messages) {
+                result.messages.forEach(msg => addMessage(msg.text, msg.type));
+            }
+            
+            // Display server-generated events
+            if (result.events) {
+                result.events.forEach(event => addMessage(event.text, event.type));
+            }
+            
+            updateDisplay();
+        } else {
+            addMessage(`❌ ${result.error}`, 'error');
+        }
+    } catch (error) {
+        addMessage('❌ Network error during sale', 'error');
+        console.error('Sell error:', error);
+    }
+}
+
+// Server-side buy drug function
+async function buyDrugServer(drugName, quantity, expectedPrice) {
+    if (!window.serverSessionId) {
+        addMessage('❌ No server session! Please restart the game.', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId: window.serverSessionId,
+                action: {
+                    type: 'buy',
+                    data: {
+                        drugName: drugName,
+                        quantity: quantity,
+                        expectedCost: expectedPrice * quantity
+                    }
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update local game state with server response
+            updateGameStateFromServer(result.session);
+            
+            // Display server-generated messages
+            if (result.messages) {
+                result.messages.forEach(msg => addMessage(msg.text, msg.type));
+            }
+            
+            // Display server-generated events
+            if (result.events) {
+                result.events.forEach(event => addMessage(event.text, event.type));
+            }
+            
+            updateDisplay();
+        } else {
+            addMessage(`❌ ${result.error}`, 'error');
+        }
+    } catch (error) {
+        addMessage('❌ Network error during purchase', 'error');
+        console.error('Buy error:', error);
+    }
+}
+
+// Update local game state from server response
+function updateGameStateFromServer(serverSession) {
+    gameState.player = serverSession.player;
+    gameState.player.day = serverSession.day;
+    
+    // Update prices
+    gameState.currentPrices = {};
+    serverSession.current_prices.forEach(drug => {
+        gameState.currentPrices[drug.name] = drug.price;
+    });
+    
+    // Store server data globally
+    window.serverPrices = serverSession.current_prices;
+    window.serverSessionId = serverSession.id;
+    
+    gameState.gameRunning = serverSession.game_running;
+    gameState.gameOver = serverSession.game_over;
+}
+
 // Initialize server-side game session
 async function initializeServerGame(playerName) {
     try {
@@ -9265,27 +9450,16 @@ async function initializeServerGame(playerName) {
         if (result.success) {
             // Use server session data
             const session = result.session;
+            session.player.name = playerName; // Set player name
             
-            // Update client gameState to match server
-            gameState.player = {
-                ...session.player,
-                name: playerName
-            };
-            gameState.player.day = session.day;
-            gameState.currentPrices = {};
+            // Update game state from server
+            updateGameStateFromServer(session);
             
-            // Convert server prices to client format
-            session.current_prices.forEach(drug => {
-                gameState.currentPrices[drug.name] = drug.price;
-            });
-            
-            gameState.gameRunning = session.game_running;
-            gameState.gameOver = session.game_over;
-            
-            // Store session ID globally
-            window.serverSessionId = session.id;
+            // Enable server mode
+            window.useServerPrices = true;
             
             console.log('Server game session initialized:', session.id);
+            console.log('Server prices:', session.current_prices);
             
         } else {
             console.error('Failed to create server session:', result.error);

@@ -114,12 +114,27 @@ function executeAction(sessionData, action) {
     
     const { type, data } = action;
     const { player } = sessionData;
+    const messages = [];
+    const events = [];
     
     switch (type) {
         case 'buy':
             const cost = sessionData.current_prices.find(d => d.name === data.drugName).price * data.quantity;
             player.cash -= cost;
             player.inventory[data.drugName] = (player.inventory[data.drugName] || 0) + data.quantity;
+            
+            messages.push({
+                text: `Bought ${data.quantity} ${data.drugName} for $${cost.toLocaleString()}`,
+                type: 'success'
+            });
+            
+            // Random buy events
+            if (Math.random() < 0.1) {
+                events.push({
+                    text: `The dealer whispers: "That's some good stuff, friend."`,
+                    type: 'event'
+                });
+            }
             break;
             
         case 'sell':
@@ -128,6 +143,19 @@ function executeAction(sessionData, action) {
             player.inventory[data.drugName] -= data.quantity;
             if (player.inventory[data.drugName] <= 0) {
                 delete player.inventory[data.drugName];
+            }
+            
+            messages.push({
+                text: `Sold ${data.quantity} ${data.drugName} for $${revenue.toLocaleString()}`,
+                type: 'success'
+            });
+            
+            // Random sell events  
+            if (Math.random() < 0.15) {
+                events.push({
+                    text: `Your buyer nods approvingly and walks away quickly.`,
+                    type: 'event'
+                });
             }
             break;
             
@@ -138,12 +166,40 @@ function executeAction(sessionData, action) {
             // Apply daily interest
             player.debt = Math.floor(player.debt * (1 + GAME_CONSTANTS.TRAVEL.DAILY_INTEREST_RATE));
             
+            messages.push({
+                text: `Traveled to ${data.destination}. Day ${sessionData.day}`,
+                type: 'info'
+            });
+            
             // Generate new market prices
             sessionData.current_prices = generateMarketPrices(sessionData.day, player.location);
+            
+            // Random travel events
+            if (Math.random() < 0.3) {
+                events.push(generateRandomTravelEvent());
+            }
             break;
     }
     
-    return { success: true, sessionData };
+    return { 
+        success: true, 
+        sessionData: sessionData,
+        messages: messages,
+        events: events
+    };
+}
+
+// Generate random travel events
+function generateRandomTravelEvent() {
+    const events = [
+        { text: "You spot some suspicious activity in the shadows...", type: 'warning' },
+        { text: "The streets are unusually quiet today.", type: 'event' },
+        { text: "You hear sirens in the distance.", type: 'warning' },
+        { text: "A fellow dealer nods in recognition.", type: 'event' },
+        { text: "The market buzz suggests something big is happening.", type: 'info' }
+    ];
+    
+    return events[Math.floor(Math.random() * events.length)];
 }
 
 module.exports = async function handler(req, res) {
@@ -266,7 +322,8 @@ async function handleGameAction(req, res) {
     res.json({ 
         success: true, 
         session: result.sessionData,
-        message: `${action.type} completed successfully`
+        messages: result.messages || [],
+        events: result.events || []
     });
 }
 
