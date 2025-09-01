@@ -800,9 +800,15 @@ function getLocationServices(city, district) {
         : [];
 }
 
-function travelToDirect(fullLocationName) {
+async function travelToDirect(fullLocationName) {
     if (!isActionAllowed('travel')) return;
     
+    // Use server-side travel if available
+    if (window.serverSessionId) {
+        return await travelToServer(fullLocationName);
+    }
+    
+    // Fallback to original client-side travel
     const currentLocation = gameState.player.location;
     const [currentCity] = currentLocation.split(' - ');
     const [destCity] = fullLocationName.split(' - ');
@@ -8412,8 +8418,8 @@ function newGame() {
     // Store player name globally for high scores
     localStorage.setItem('packetPushersPlayerName', finalName);
     
-    // Initialize client-side game (keep original working)
-    initializeClientGame(finalName);
+    // Initialize server-side game with complete feature set
+    initializeServerGame(finalName);
     
     // Update header subtitle with player name  
     updateHeaderSubtitle(finalName);
@@ -9320,6 +9326,78 @@ async function showServerBuyModal(drugName, displayPrice) {
     modal.style.display = 'flex';
 }
 
+// Server-side travel function
+async function travelToServer(destination) {
+    if (!window.serverSessionId) {
+        addMessage('❌ No server session! Please restart the game.', 'error');
+        return;
+    }
+    
+    try {
+        addMessage(`🚶 Traveling to ${destination}...`, 'info');
+        
+        const response = await fetch('/api/game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId: window.serverSessionId,
+                action: {
+                    type: 'travel',
+                    data: {
+                        destination: destination
+                    }
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update local game state with server response
+            updateGameStateFromServer(result.session);
+            
+            // Display server-generated messages
+            if (result.messages) {
+                result.messages.forEach(msg => {
+                    addMessage(msg.text, msg.type);
+                    if (msg.sound) playSound(msg.sound);
+                });
+            }
+            
+            // Display server-generated events with full functionality
+            if (result.events) {
+                result.events.forEach(event => {
+                    addMessage(event.text, event.type);
+                    if (event.sound) playSound(event.sound);
+                    
+                    // Handle encounters (police, muggers)  
+                    if (event.encounter === 'police') {
+                        setTimeout(() => {
+                            const officer = getRandomCharacter('officers');
+                            showPoliceEncounterModal(officer);
+                        }, 1000);
+                    } else if (event.encounter === 'mugger') {
+                        setTimeout(() => {
+                            showMuggerEncounterModal(event.encounterData);
+                        }, 1000);
+                    }
+                });
+            }
+            
+            updateDisplay();
+            
+            // Close travel mode
+            exitTravelMode();
+            
+        } else {
+            addMessage(`❌ Travel failed: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        addMessage('❌ Network error during travel', 'error');
+        console.error('Travel error:', error);
+    }
+}
+
 // Server-side sell drug function  
 async function sellDrugServer(drugName, quantity, expectedPrice) {
     if (!window.serverSessionId) {
@@ -9351,12 +9429,32 @@ async function sellDrugServer(drugName, quantity, expectedPrice) {
             
             // Display server-generated messages
             if (result.messages) {
-                result.messages.forEach(msg => addMessage(msg.text, msg.type));
+                result.messages.forEach(msg => {
+                    addMessage(msg.text, msg.type);
+                    if (msg.sound) playSound(msg.sound);
+                });
             }
             
-            // Display server-generated events
+            // Display server-generated events with full functionality
             if (result.events) {
-                result.events.forEach(event => addMessage(event.text, event.type));
+                result.events.forEach(event => {
+                    addMessage(event.text, event.type);
+                    if (event.sound) playSound(event.sound);
+                    
+                    // Handle encounters (police, muggers)
+                    if (event.encounter === 'police') {
+                        // Trigger police encounter modal
+                        setTimeout(() => {
+                            const officer = getRandomCharacter('officers');
+                            showPoliceEncounterModal(officer);
+                        }, 1000);
+                    } else if (event.encounter === 'mugger') {
+                        // Trigger mugger encounter modal
+                        setTimeout(() => {
+                            showMuggerEncounterModal(event.encounterData);
+                        }, 1000);
+                    }
+                });
             }
             
             updateDisplay();
@@ -9401,12 +9499,32 @@ async function buyDrugServer(drugName, quantity, expectedPrice) {
             
             // Display server-generated messages
             if (result.messages) {
-                result.messages.forEach(msg => addMessage(msg.text, msg.type));
+                result.messages.forEach(msg => {
+                    addMessage(msg.text, msg.type);
+                    if (msg.sound) playSound(msg.sound);
+                });
             }
             
-            // Display server-generated events
+            // Display server-generated events with full functionality
             if (result.events) {
-                result.events.forEach(event => addMessage(event.text, event.type));
+                result.events.forEach(event => {
+                    addMessage(event.text, event.type);
+                    if (event.sound) playSound(event.sound);
+                    
+                    // Handle encounters (police, muggers)
+                    if (event.encounter === 'police') {
+                        // Trigger police encounter modal
+                        setTimeout(() => {
+                            const officer = getRandomCharacter('officers');
+                            showPoliceEncounterModal(officer);
+                        }, 1000);
+                    } else if (event.encounter === 'mugger') {
+                        // Trigger mugger encounter modal
+                        setTimeout(() => {
+                            showMuggerEncounterModal(event.encounterData);
+                        }, 1000);
+                    }
+                });
             }
             
             updateDisplay();

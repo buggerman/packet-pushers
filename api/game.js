@@ -174,9 +174,15 @@ function executeAction(sessionData, action) {
             // Generate new market prices
             sessionData.current_prices = generateMarketPrices(sessionData.day, player.location);
             
-            // Random travel events
-            if (Math.random() < 0.3) {
-                events.push(generateRandomTravelEvent());
+            // Complete original random event system on travel
+            const randomEvent = generateRandomEvent();
+            if (randomEvent) {
+                events.push(randomEvent);
+                
+                // Some events affect game state
+                if (randomEvent.action) {
+                    randomEvent.action(sessionData);
+                }
             }
             break;
     }
@@ -189,17 +195,199 @@ function executeAction(sessionData, action) {
     };
 }
 
-// Generate random travel events
-function generateRandomTravelEvent() {
+// Complete original random event system (server-side)
+function generateRandomEvent() {
+    // All events with original weights from main branch
     const events = [
-        { text: "You spot some suspicious activity in the shadows...", type: 'warning' },
-        { text: "The streets are unusually quiet today.", type: 'event' },
-        { text: "You hear sirens in the distance.", type: 'warning' },
-        { text: "A fellow dealer nods in recognition.", type: 'event' },
-        { text: "The market buzz suggests something big is happening.", type: 'info' }
+        { type: 'old_lady', weight: 22 },
+        { type: 'police', weight: 18 },
+        { type: 'mugging', weight: 15 },
+        { type: 'market_surge', weight: 15 },
+        { type: 'market_crash', weight: 15 },
+        { type: 'drug_bust', weight: 12 },
+        { type: 'police_raid', weight: 8 },
+        { type: 'supply_shortage', weight: 10 },
+        { type: 'addicts', weight: 8 },
+        { type: 'police_dog', weight: 12 },
+        { type: 'loan_shark', weight: 8 },
+        { type: 'find_cash', weight: 10 },
+        { type: 'health_issue', weight: 4 },
+        { type: 'dealer_encounter', weight: 6 },
+        { type: 'informant_tip', weight: 5 },
+        { type: 'nothing', weight: 2 }
     ];
     
-    return events[Math.floor(Math.random() * events.length)];
+    const totalWeight = events.reduce((sum, event) => sum + event.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (let event of events) {
+        random -= event.weight;
+        if (random <= 0) {
+            return executeServerRandomEvent(event.type);
+        }
+    }
+    
+    return null;
+}
+
+// Execute random events server-side with original game logic
+function executeServerRandomEvent(eventType) {
+    switch (eventType) {
+        case 'old_lady':
+            return {
+                text: "👵 An old lady in tattered clothes approaches you with knowing eyes.",
+                type: 'event',
+                sound: 'oldlady',
+                action: (sessionData) => {
+                    // Old lady predictions and effects
+                    if (Math.random() < 0.7) {
+                        const predictions = [
+                            "I see great fortune in cocaine futures, child...",
+                            "The heroin market whispers of change...", 
+                            "Acid will flow like rivers soon...",
+                            "The streets will hunger for speed..."
+                        ];
+                        return {
+                            text: predictions[Math.floor(Math.random() * predictions.length)],
+                            type: 'event'
+                        };
+                    }
+                    
+                    // Cash bonus
+                    if (Math.random() < 0.3) {
+                        const bonus = 100 + Math.floor(Math.random() * 200);
+                        sessionData.player.cash += bonus;
+                        return {
+                            text: `The old lady presses $${bonus} into your hand and vanishes.`,
+                            type: 'success'
+                        };
+                    }
+                }
+            };
+            
+        case 'police':
+            return {
+                text: "🚔 Police spotted you! You need to make a choice...",
+                type: 'warning',
+                sound: 'siren',
+                encounter: 'police',
+                action: (sessionData) => {
+                    // This will trigger police encounter modal on client
+                    return { requiresUserAction: true, encounterType: 'police' };
+                }
+            };
+            
+        case 'mugging':
+            const muggerNames = ['Sticky Pete', 'Knife Eddie', 'Mad Dog Mike', 'Crazy Joe'];
+            const muggerName = muggerNames[Math.floor(Math.random() * muggerNames.length)];
+            const demandAmount = 100 + Math.floor(Math.random() * 300);
+            
+            return {
+                text: `🔪 ${muggerName} blocks your path demanding $${demandAmount}!`,
+                type: 'warning',
+                sound: 'mugger',
+                encounter: 'mugger',
+                encounterData: { name: muggerName, demand: demandAmount },
+                action: (sessionData) => {
+                    return { requiresUserAction: true, encounterType: 'mugger', encounterData: { name: muggerName, demand: demandAmount } };
+                }
+            };
+            
+        case 'find_cash':
+            const foundAmount = 50 + Math.floor(Math.random() * 200);
+            return {
+                text: `💰 You found $${foundAmount} dropped on the street!`,
+                type: 'success',
+                sound: 'cashreg',
+                action: (sessionData) => {
+                    sessionData.player.cash += foundAmount;
+                }
+            };
+            
+        case 'drug_bust':
+            const bustTypes = [
+                'Police raid local dealers!',
+                'SWAT team hits drug house!', 
+                'Narcotics unit sweeps the area!',
+                'Task force targets street dealers!'
+            ];
+            
+            return {
+                text: `🚔 ${bustTypes[Math.floor(Math.random() * bustTypes.length)]} Supply is tight!`,
+                type: 'event',
+                sound: 'headlines',
+                action: (sessionData) => {
+                    // Increase random drug prices
+                    const numDrugs = 2 + Math.floor(Math.random() * 2);
+                    for (let i = 0; i < numDrugs; i++) {
+                        const drugIndex = Math.floor(Math.random() * sessionData.current_prices.length);
+                        sessionData.current_prices[drugIndex].price *= (2.0 + Math.random() * 2.0);
+                        sessionData.current_prices[drugIndex].price = Math.floor(sessionData.current_prices[drugIndex].price);
+                    }
+                }
+            };
+            
+        case 'market_surge':
+            return {
+                text: "📈 Market surge! Demand is through the roof!",
+                type: 'success',
+                sound: 'headlines',
+                action: (sessionData) => {
+                    // Increase all prices by 50-150%
+                    sessionData.current_prices.forEach(drug => {
+                        drug.price *= (1.5 + Math.random());
+                        drug.price = Math.floor(drug.price);
+                    });
+                }
+            };
+            
+        case 'market_crash':
+            return {
+                text: "📉 Market crash! Prices are falling fast!",
+                type: 'warning',
+                sound: 'headlines',
+                action: (sessionData) => {
+                    // Decrease all prices by 30-70%
+                    sessionData.current_prices.forEach(drug => {
+                        drug.price *= (0.3 + Math.random() * 0.4);
+                        drug.price = Math.floor(drug.price);
+                    });
+                }
+            };
+            
+        case 'health_issue':
+            const healthCost = 100 + Math.floor(Math.random() * 100);
+            return {
+                text: `🏥 You feel sick and need medical attention. Cost: $${healthCost}`,
+                type: 'warning',
+                sound: 'uhoh',
+                action: (sessionData) => {
+                    if (sessionData.player.cash >= healthCost) {
+                        sessionData.player.cash -= healthCost;
+                        sessionData.player.health = Math.min(100, (sessionData.player.health || 100) + 20);
+                        return {
+                            text: `💊 Feeling better after treatment. Health: ${sessionData.player.health}%`,
+                            type: 'success'
+                        };
+                    } else {
+                        sessionData.player.health = Math.max(10, (sessionData.player.health || 100) - 15);
+                        return {
+                            text: `😷 Couldn't afford treatment. Health: ${sessionData.player.health}%`,
+                            type: 'error'
+                        };
+                    }
+                }
+            };
+            
+        case 'nothing':
+            return null;
+            
+        default:
+            return {
+                text: "The streets are quiet today...",
+                type: 'event'
+            };
+    }
 }
 
 module.exports = async function handler(req, res) {
