@@ -6584,7 +6584,8 @@ function showPoliceEncounterModal(officer) {
         modalTitle.textContent = '🚔 POLICE ENCOUNTER';
     
     const playerWeapons = gameState.player.weapons || [];
-    const hasWeapons = playerWeapons.length > 0;
+    const legacyWeapon = gameState.player.weapon;
+    const hasWeapons = playerWeapons.length > 0 || legacyWeapon !== null;
     const inventoryValue = calculateInventoryValue();
     const bribeAmount = Math.floor(gameState.player.cash * 0.3);
     const canBribe = gameState.player.cash >= bribeAmount && officer.type !== 'by_the_book';
@@ -6645,7 +6646,8 @@ function showK9EncounterModal(dogName, officerName, hasInventory) {
         
         const inventoryValue = hasInventory ? calculateInventoryValue() : 0;
         const playerWeapons = gameState.player.weapons || [];
-        const hasWeapons = playerWeapons.length > 0;
+        const legacyWeapon = gameState.player.weapon;
+        const hasWeapons = playerWeapons.length > 0 || legacyWeapon !== null;
         
         let encounterHtml = `
             <div class="police-encounter">
@@ -6684,7 +6686,10 @@ function showK9EncounterModal(dogName, officerName, hasInventory) {
         encounterHtml += `
                 </div>
                 
-                ${hasWeapons ? '<div class="weapon-selection"><p><em>Available weapons: ' + playerWeapons.map(w => `${w.name} (${w.damage} damage)`).join(', ') + '</em></p></div>' : ''}
+                ${hasWeapons ? '<div class="weapon-selection"><p><em>Available weapons: ' + 
+                    [...playerWeapons.map(w => `${w.name} (${w.damage} damage)`), 
+                     ...(legacyWeapon ? [`${legacyWeapon.name} (${legacyWeapon.damage} damage)`] : [])
+                    ].join(', ') + '</em></p></div>' : ''}
             </div>
         `;
         
@@ -6728,11 +6733,16 @@ function policeChoice(choice, officerName, officerType) {
             break;
         case 'fight':
             const fightPlayerWeapons = gameState.player.weapons || [];
-            const fightHasWeapons = fightPlayerWeapons.length > 0;
+            const fightLegacyWeapon = gameState.player.weapon;
+            const fightHasWeapons = fightPlayerWeapons.length > 0 || fightLegacyWeapon !== null;
             
             if (fightHasWeapons) {
+                // Combine all available weapons
+                const allWeapons = [...fightPlayerWeapons];
+                if (fightLegacyWeapon) allWeapons.push(fightLegacyWeapon);
+                
                 // Use the best weapon (highest damage)
-                const bestWeapon = fightPlayerWeapons.reduce((best, weapon) => 
+                const bestWeapon = allWeapons.reduce((best, weapon) => 
                     weapon.damage > best.damage ? weapon : best
                 );
                 
