@@ -9139,7 +9139,7 @@ async function showGlobalLeaderboard() {
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
-    modalTitle.textContent = '🌍 GLOBAL LEADERBOARD';
+    modalTitle.textContent = '🏆 LEADERBOARD';
     modalBody.innerHTML = '<p>Loading global scores...</p>';
     modal.style.display = 'flex';
     
@@ -9147,7 +9147,7 @@ async function showGlobalLeaderboard() {
     
     let content = '';
     if (globalScores && globalScores.length > 0) {
-        content += '<div class="global-leaderboard"><h3>🏆 TOP GLOBAL SCORES</h3><div class="leaderboard-list">';
+        content += '<div class="global-leaderboard"><h3>🏆 TOP SCORES</h3><div class="leaderboard-list">';
         
         globalScores.slice(0, 10).forEach((entry, index) => {
             const rank = index + 1;
@@ -9166,7 +9166,7 @@ async function showGlobalLeaderboard() {
         
         content += '</div></div>';
     } else {
-        content = '<div class="no-scores"><p>🌍 No global scores yet!</p><p>Be the first to submit!</p></div>';
+        content = '<div class="no-scores"><p>🏆 No scores yet!</p><p>Be the first to submit!</p></div>';
     }
     
     content += '<button class="mobile-action-btn" onclick="closeMobileModal()">Close</button>';
@@ -9194,14 +9194,14 @@ function showScoreSubmissionModal(finalScore) {
             <p><strong>Net Worth:</strong> $${(gameState.player.cash + gameState.player.bankBalance - gameState.player.debt).toLocaleString()}</p>
             
             <div class="score-submission">
-                <h4>🌍 Submit to Global Leaderboard</h4>
+                <h4>🏆 Submit to Leaderboard</h4>
                 <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="50" style="width: 100%; margin: 10px 0; padding: 10px;">
                 <button class="mobile-action-btn primary" onclick="handleScoreSubmission(${finalScore})">Submit Score</button>
                 <button class="mobile-action-btn secondary" onclick="skipScoreSubmission(${finalScore})">Skip</button>
             </div>
             
-            <div class="local-actions">
-                <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Global Scores</button>
+            <div class="game-actions">
+                <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Leaderboard</button>
                 <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
             </div>
         </div>
@@ -9225,7 +9225,6 @@ async function handleScoreSubmission(finalScore) {
     modalBody.innerHTML = '<p>Submitting your score...</p><div class="loading-spinner"></div>';
     
     const globalResult = await submitToGlobalLeaderboard(playerName, finalScore);
-    saveHighScore(playerName, finalScore);
     
     let resultContent = '';
     if (globalResult && globalResult.success) {
@@ -9241,14 +9240,15 @@ async function handleScoreSubmission(finalScore) {
         resultContent = `
             <div class="submission-error">
                 <h3>⚠️ Global Submission Failed</h3>
-                <p>Your score was saved locally.</p>
+                <p><strong>Error:</strong> ${globalResult ? globalResult.error : 'Network error'}</p>
+                <p>Please try again or check your connection.</p>
             </div>
         `;
     }
     
     resultContent += `
         <div class="result-actions">
-            <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Global Scores</button>
+            <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Leaderboard</button>
             <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
         </div>
     `;
@@ -9257,12 +9257,17 @@ async function handleScoreSubmission(finalScore) {
 }
 
 function skipScoreSubmission(finalScore) {
-    saveHighScore('Anonymous', finalScore);
     const modalBody = document.getElementById('modalBody');
     modalBody.innerHTML = `
-        <h3>Score Saved Locally</h3>
-        <p>Your score: $${finalScore.toLocaleString()}</p>
-        <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
+        <div class="skip-submission">
+            <h3>🏁 Game Complete</h3>
+            <p><strong>Final Score:</strong> $${finalScore.toLocaleString()}</p>
+            <p>Score not submitted to global leaderboard.</p>
+            <div class="result-actions">
+                <button class="mobile-action-btn" onclick="showGlobalLeaderboard()">View Leaderboard</button>
+                <button class="mobile-action-btn" onclick="newGame(); closeMobileModal();">New Game</button>
+            </div>
+        </div>
     `;
 }
 
