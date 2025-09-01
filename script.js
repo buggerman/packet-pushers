@@ -6609,7 +6609,6 @@ function showPoliceEncounterModal(officer) {
                     <small>${canBribe ? `Surrender (bribe: $${bribeAmount.toLocaleString()})` : 'Surrender (arrest likely)'}</small>
                 </button>`;
                 
-        if (hasWeapons) {</                
         if (hasWeapons) {
             encounterHtml += `
                 <button class="encounter-btn" onclick="policeChoice('fight', '${officer.name}', '${officer.type}')">
