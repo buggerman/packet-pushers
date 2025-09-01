@@ -8418,65 +8418,8 @@ async function newGame() {
     // Store player name globally for high scores
     localStorage.setItem('packetPushersPlayerName', finalName);
     
-    // Initialize server-side game with complete feature set
+    // Initialize server-side game (handles all setup)
     await initializeServerGame(finalName);
-    
-    // Update header subtitle with player name  
-    updateHeaderSubtitle(finalName);
-    
-    // Also update it in the updateDisplay function cache
-    domCache.gameSubtitle = document.getElementById('gameSubtitle');
-    
-    // Reset game state flags
-    gameState.currentPrices = {};
-    gameState.previousPrices = {};
-    gameState.priceHistory = {}; // Track day-wise price history for graphs
-    gameState.gameRunning = true;
-    gameState.gameOver = false;
-    
-    // Schedule guaranteed price surges for Cocaine and Heroin
-    gameState.guaranteedSurges = {
-        cocaine: {
-            day: Math.floor(Math.random() * 15) + 5, // Days 5-19
-            triggered: false
-        },
-        heroin: {
-            day: Math.floor(Math.random() * 15) + 10, // Days 10-24
-            triggered: false
-        }
-    };
-    
-    // Clear any existing game output
-    document.getElementById('gameOutput').innerHTML = '';
-    
-    // Close any open menus
-    closeMenu();
-    
-    // Show game interface if starting from menu
-    if (document.getElementById('startScreen').style.display !== 'none') {
-        showGameInterface();
-    }
-    
-    // Initialize game
-    initGame();
-    
-    addMessage('🎮 New game started', 'success');
-    playSound('slidein'); // Game start sound
-    
-    // Cryptic opening message (15% chance)
-    if (Math.random() < 0.15) {
-        const openingCryptic = [
-            "🔮 The game was rigged from the start... but rigged for whom?",
-            "🎭 Welcome to the theater. You think you're the audience, but you're on stage...",
-            "🕳️ Some say there are only 10 types of dealers: those who understand binary and those who don't...",
-            "⚡ Reality.exe has encountered an error. Continue anyway?",
-            "🌀 Loading alternate timeline... Error 404: Original reality not found.",
-            "🎪 Step right up! The greatest show in the underground!"
-        ];
-        setTimeout(() => {
-            addMessage(openingCryptic[Math.floor(Math.random() * openingCryptic.length)], 'info');
-        }, 3000);
-    }
 }
 
 // Alias for backwards compatibility
@@ -9660,16 +9603,66 @@ async function initializeServerGame(playerName) {
             console.log('Server game session initialized:', session.id);
             console.log('Server prices:', session.current_prices);
             
+            // Complete game initialization
+            completeGameInitialization(playerName);
+            
         } else {
             console.error('Failed to create server session:', result.error);
             // Fall back to client-side game
             initializeClientGame(playerName);
+            completeGameInitialization(playerName);
         }
     } catch (error) {
         console.error('Server game initialization failed:', error);
         // Fall back to client-side game  
         initializeClientGame(playerName);
+        completeGameInitialization(playerName);
     }
+}
+
+// Complete game initialization (after server or client setup)
+function completeGameInitialization(playerName) {
+    // Setup client-side game state for UI compatibility
+    if (!gameState.gameRunning) {
+        gameState.gameRunning = true;
+        gameState.gameOver = false;
+        gameState.priceHistory = {};
+        gameState.guaranteedSurges = {
+            cocaine: { day: Math.floor(Math.random() * 15) + 5, triggered: false },
+            heroin: { day: Math.floor(Math.random() * 15) + 10, triggered: false }
+        };
+    }
+    
+    // Update header subtitle with player name  
+    updateHeaderSubtitle(playerName);
+    
+    // Also update it in the updateDisplay function cache
+    domCache.gameSubtitle = document.getElementById('gameSubtitle');
+    
+    // Clear any existing game output
+    document.getElementById('gameOutput').innerHTML = '';
+    
+    // Close any open menus
+    closeMenu();
+    
+    // Show game interface if starting from menu
+    if (document.getElementById('startScreen').style.display !== 'none') {
+        showGameInterface();
+    }
+    
+    // Initialize game display
+    initGame();
+    
+    // Initial welcome messages
+    addMessage(`Welcome ${playerName}! Your criminal enterprise begins...`, 'success');
+    addMessage('You have $2,000 cash and $5,000 debt. Make it count!', 'info');
+    addMessage('Click drugs to buy, click inventory to sell, click TRAVEL to move.', 'info');
+    
+    // Play intro sound
+    playSound('startup');
+    
+    // Update display with current game state
+    updateDisplay();
 }
 
 // Fallback to original client-side game
