@@ -6,6 +6,9 @@ class GameClient {
         this.sessionId = null;
         this.gameState = null;
         this.isLoading = false;
+        this.requestQueue = [];
+        this.lastUpdate = 0;
+        this.updateThrottle = 100; // Max update frequency in ms
     }
 
     // Initialize new game session
@@ -43,9 +46,13 @@ class GameClient {
         }
     }
 
-    // Send action to server
+    // Send action to server with debouncing
     async performAction(actionType, actionData) {
-        if (this.isLoading) return false;
+        if (this.isLoading) {
+            // Queue action if currently processing
+            this.requestQueue.push({ actionType, actionData });
+            return false;
+        }
         
         this.isLoading = true;
         this.updateLoadingState(`Processing ${actionType}...`);
@@ -92,6 +99,14 @@ class GameClient {
             return false;
         } finally {
             this.isLoading = false;
+            
+            // Process queued actions
+            if (this.requestQueue.length > 0) {
+                const nextAction = this.requestQueue.shift();
+                setTimeout(() => {
+                    this.performAction(nextAction.actionType, nextAction.actionData);
+                }, 50); // Small delay for Chrome
+            }
         }
     }
 
@@ -124,11 +139,20 @@ class GameClient {
         });
     }
 
-    // Update display elements
+    // Throttled update display elements
     updateDisplay() {
         if (!this.gameState) return;
         
-        const { player, day, currentPrices } = this.gameState;
+        const now = Date.now();
+        if (now - this.lastUpdate < this.updateThrottle) {
+            // Throttle updates for better Chrome performance
+            clearTimeout(this.updateTimer);
+            this.updateTimer = setTimeout(() => this.updateDisplay(), this.updateThrottle);
+            return;
+        }
+        this.lastUpdate = now;
+        
+        const { player, day, current_prices } = this.gameState;
         
         // Update stats
         document.getElementById('currentDay').textContent = `${day}/${GAME_CONSTANTS.PLAYER.MAX_DAYS}`;
@@ -140,7 +164,7 @@ class GameClient {
         document.getElementById('inventorySpace').textContent = `${inventoryCount}/${player.maxInventory}`;
         
         // Update market
-        this.updateMarketDisplay(currentPrices);
+        this.updateMarketDisplay(current_prices);
         
         // Update inventory
         this.updateInventoryDisplay(player.inventory);
@@ -150,7 +174,9 @@ class GameClient {
         const marketList = document.getElementById('marketList') || document.getElementById('marketPrices');
         if (!marketList) return;
         
-        marketList.innerHTML = '';
+        // Use DocumentFragment for better Chrome performance
+        const fragment = document.createDocumentFragment();
+        
         prices.forEach(drug => {
             const item = document.createElement('div');
             item.className = 'market-item';
@@ -159,15 +185,20 @@ class GameClient {
                 <div class="item-name">${drug.name}</div>
                 <div class="item-price">$${drug.price.toLocaleString()}</div>
             `;
-            marketList.appendChild(item);
+            fragment.appendChild(item);
         });
+        
+        // Single DOM update
+        marketList.innerHTML = '';
+        marketList.appendChild(fragment);
     }
 
     updateInventoryDisplay(inventory) {
         const inventoryList = document.getElementById('inventoryList');
         if (!inventoryList) return;
         
-        inventoryList.innerHTML = '';
+        // Use DocumentFragment for better performance
+        const fragment = document.createDocumentFragment();
         
         if (Object.keys(inventory).length === 0) {
             inventoryList.innerHTML = '<div class="empty-message">No items in inventory</div>';
@@ -176,7 +207,7 @@ class GameClient {
         
         Object.entries(inventory).forEach(([drugName, quantity]) => {
             if (quantity > 0) {
-                const currentPrice = this.gameState.currentPrices.find(d => d.name === drugName)?.price || 0;
+                const currentPrice = this.gameState.current_prices.find(d => d.name === drugName)?.price || 0;
                 const item = document.createElement('div');
                 item.className = 'inventory-item';
                 item.onclick = () => this.showSellModal(drugName, quantity);
@@ -185,9 +216,13 @@ class GameClient {
                     <div class="item-quantity">${quantity} units</div>
                     <div class="item-price">$${currentPrice.toLocaleString()} each</div>
                 `;
-                inventoryList.appendChild(item);
+                fragment.appendChild(item);
             }
         });
+        
+        // Single DOM update
+        inventoryList.innerHTML = '';
+        inventoryList.appendChild(fragment);
     }
 
     // Show buy modal
@@ -218,7 +253,7 @@ class GameClient {
 
     // Show sell modal
     showSellModal(drugName, quantity) {
-        const currentPrice = this.gameState.currentPrices.find(d => d.name === drugName)?.price || 0;
+        const currentPrice = this.gameState.current_prices.find(d => d.name === drugName)?.price || 0;
         
         const content = `
             <p><strong>${drugName}</strong></p>
