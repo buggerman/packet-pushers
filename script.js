@@ -6492,6 +6492,85 @@ function handlePoliceEvent() {
     showPoliceEncounterModal(officer);
 }
 
+function k9Choice(choice, dogName, officerName, hasInventory) {
+    closeMobileModal();
+    
+    const playerWeapons = gameState.player.weapons || [];
+    const hasWeapons = playerWeapons.length > 0;
+    
+    switch (choice) {
+        case 'run':
+            if (hasInventory) {
+                // Running with inventory may cause drops
+                const inventoryItems = Object.keys(gameState.player.inventory);
+                const totalDrugs = inventoryItems.reduce((sum, drug) => sum + gameState.player.inventory[drug], 0);
+                
+                let dropChance = totalDrugs > 50 ? 0.7 : totalDrugs > 20 ? 0.5 : 0.3;
+                let escapeChance = totalDrugs > 50 ? 0.4 : totalDrugs > 20 ? 0.6 : 0.8;
+                
+                if (Math.random() < escapeChance) {
+                    addMessage(`🏃 You outran ${dogName} and ${officerName}!`, 'success');
+                    if (Math.random() < dropChance) {
+                        handleDogChaseEscape(dogName, 1.0); // Force drop something
+                    }
+                    playSound('whew');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 5);
+                } else {
+                    addMessage(`🐕 ${dogName} caught up to you! Arrested!`, 'error');
+                    gameState.player.inventory = {};
+                    gameState.player.day += 4;
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 15);
+                    playSound('jaildoor');
+                }
+            } else {
+                // Running without inventory is suspicious but often works
+                if (Math.random() < 0.7) {
+                    addMessage(`🏃 You got away, but ${officerName} thinks you're suspicious!`, 'success');
+                    playSound('whew');
+                } else {
+                    addMessage(`🚫 ${officerName} detained you for suspicious behavior!`, 'error');
+                    gameState.player.day += 1; // Just detained, not arrested
+                    playSound('uhoh');
+                }
+            }
+            break;
+            
+        case 'comply':
+            if (hasInventory) {
+                addMessage(`🐕 ${dogName} found everything! Arrested and charged!`, 'error');
+                gameState.player.inventory = {};
+                gameState.player.day += 5; // Longer sentence for cooperation
+                playSound('jaildoor');
+            } else {
+                addMessage(`🤚 ${officerName} searched you and found nothing. You're free to go.`, 'success');
+                playSound('whew');
+            }
+            break;
+            
+        case 'fight':
+            if (hasWeapons) {
+                // Combat with K9 unit is very dangerous
+                const combatSuccess = Math.random() < 0.3; // Lower success rate vs K9 unit
+                
+                if (combatSuccess) {
+                    addMessage(`⚔️ You fought ${dogName} and ${officerName} with your weapon and escaped!`, 'success');
+                    addMessage(`🔫 The situation was intense and dangerous!`, 'warning');
+                    playSound('gun');
+                    gameState.player.health = Math.max(10, (gameState.player.health || 100) - 20);
+                } else {
+                    addMessage(`⚔️ The K9 unit overwhelmed you! Severely injured and arrested!`, 'error');
+                    gameState.player.inventory = {};
+                    gameState.player.day += 7; // Long sentence for attacking police
+                    gameState.player.health = Math.max(5, (gameState.player.health || 100) - 40);
+                    playSound('jaildoor');
+                }
+            }
+            break;
+    }
+    
+    updateDisplay();
+}
+
 function showPoliceEncounterModal(officer) {
     // Ensure any existing modal is closed first
     closeMobileModal();
@@ -6504,7 +6583,8 @@ function showPoliceEncounterModal(officer) {
         
         modalTitle.textContent = '🚔 POLICE ENCOUNTER';
     
-    const hasWeapon = gameState.player.weapon;
+    const playerWeapons = gameState.player.weapons || [];
+    const hasWeapons = playerWeapons.length > 0;
     const inventoryValue = calculateInventoryValue();
     const bribeAmount = Math.floor(gameState.player.cash * 0.3);
     const canBribe = gameState.player.cash >= bribeAmount && officer.type !== 'by_the_book';
@@ -6521,18 +6601,30 @@ function showPoliceEncounterModal(officer) {
             <div class="encounter-choices">
                 <button class="encounter-btn" onclick="policeChoice('run', '${officer.name}', '${officer.type}')">
                     🏃 <strong>RUN</strong><br>
-                    <small>Try to escape (${hasWeapon ? 'moderate' : 'low'} chance)</small>
+                    <small>Try to escape (${hasWeapons ? 'moderate' : 'low'} chance)</small>
                 </button>
                 
                 <button class="encounter-btn" onclick="policeChoice('stay', '${officer.name}', '${officer.type}')">
                     🤚 <strong>STAY</strong><br>
                     <small>${canBribe ? `Surrender (bribe: $${bribeAmount.toLocaleString()})` : 'Surrender (arrest likely)'}</small>
-                </button>
+                </button>`;
                 
+        if (hasWeapons) {</                
+        if (hasWeapons) {
+            encounterHtml += `
                 <button class="encounter-btn" onclick="policeChoice('fight', '${officer.name}', '${officer.type}')">
-                    ${hasWeapon ? '🔫' : '👊'} <strong>FIGHT</strong><br>
-                    <small>${hasWeapon ? `Use weapon` : 'Bare hands (very risky)'}</small>
-                </button>
+                    ⚔️ <strong>FIGHT</strong><br>
+                    <small>Use weapon (dangerous!)</small>
+                </button>`;
+        } else {
+            encounterHtml += `
+                <button class="encounter-btn disabled">
+                    👊 <strong>FIGHT</strong><br>
+                    <small>No weapons available</small>
+                </button>`;
+        }
+        
+        encounterHtml += `
             </div>
         </div>
     `;
@@ -6542,12 +6634,74 @@ function showPoliceEncounterModal(officer) {
     }, 100); // 100ms delay to ensure modal transitions work
 }
 
+function showK9EncounterModal(dogName, officerName, hasInventory) {
+    closeMobileModal();
+    
+    setTimeout(() => {
+        const modal = document.getElementById('mobileModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        modalTitle.textContent = '🐕 K-9 UNIT ENCOUNTER';
+        
+        const inventoryValue = hasInventory ? calculateInventoryValue() : 0;
+        const playerWeapons = gameState.player.weapons || [];
+        const hasWeapons = playerWeapons.length > 0;
+        
+        let encounterHtml = `
+            <div class="police-encounter">
+                <div class="encounter-situation">
+                    <h3>🐕 ${dogName} & ${officerName}</h3>
+                    <p><strong>"${hasInventory ? `${dogName} is alerting! You're carrying something illegal!` : `Routine K-9 search. Stay calm and cooperate.`}"</strong></p>
+                    ${hasInventory ? `<p>You have $${inventoryValue.toLocaleString()} worth of contraband!</p>` : '<p>You appear clean, but they want to search anyway.</p>'}
+                    <p><em>The K-9 unit is ${hasInventory ? 'aggressive' : 'cautious'}. Choose your action!</em></p>
+                </div>
+                
+                <div class="encounter-choices">
+                    <button class="encounter-btn" onclick="k9Choice('run', '${dogName}', '${officerName}', ${hasInventory})">
+                        🏃 <strong>RUN</strong><br>
+                        <small>Try to escape (${hasInventory ? 'may drop items' : 'suspicious but possible'})</small>
+                    </button>
+                    
+                    <button class="encounter-btn" onclick="k9Choice('comply', '${dogName}', '${officerName}', ${hasInventory})">
+                        🤚 <strong>COMPLY</strong><br>
+                        <small>${hasInventory ? 'Let them search (arrest likely)' : 'Cooperate with search'}</small>
+                    </button>`;
+                    
+        if (hasWeapons) {
+            encounterHtml += `
+                    <button class="encounter-btn" onclick="k9Choice('fight', '${dogName}', '${officerName}', ${hasInventory})">
+                        ⚔️ <strong>ATTACK</strong><br>
+                        <small>Use weapon (very dangerous!)</small>
+                    </button>`;
+        } else {
+            encounterHtml += `
+                    <button class="encounter-btn disabled">
+                        👊 <strong>FIGHT</strong><br>
+                        <small>No weapons available</small>
+                    </button>`;
+        }
+        
+        encounterHtml += `
+                </div>
+                
+                ${hasWeapons ? '<div class="weapon-selection"><p><em>Available weapons: ' + playerWeapons.map(w => `${w.name} (${w.damage} damage)`).join(', ') + '</em></p></div>' : ''}
+            </div>
+        `;
+        
+        modalBody.innerHTML = encounterHtml;
+        showMobileModalWithUtility(modal);
+    }, 100);
+}
+
 function policeChoice(choice, officerName, officerType) {
     closeMobileModal();
     
     switch (choice) {
         case 'run':
-            const runSuccess = gameState.player.weapon ? Math.random() < 0.6 : Math.random() < 0.3;
+            const playerWeapons = gameState.player.weapons || [];
+            const hasWeapons = playerWeapons.length > 0;
+            const runSuccess = hasWeapons ? Math.random() < 0.6 : Math.random() < 0.3;
             if (runSuccess) {
                 addMessage(`🏃 You escaped from ${officerName}!`, 'success');
                 playSound('whew');
@@ -6574,19 +6728,31 @@ function policeChoice(choice, officerName, officerType) {
             }
             break;
         case 'fight':
-            if (gameState.player.weapon) {
-                if (Math.random() < 0.7) {
-                    addMessage(`⚔️ You fought ${officerName} with your weapon and won!`, 'success');
-                    playSound('gun');
+            const fightPlayerWeapons = gameState.player.weapons || [];
+            const fightHasWeapons = fightPlayerWeapons.length > 0;
+            
+            if (fightHasWeapons) {
+                // Use the best weapon (highest damage)
+                const bestWeapon = fightPlayerWeapons.reduce((best, weapon) => 
+                    weapon.damage > best.damage ? weapon : best
+                );
+                
+                // Success rate based on weapon quality
+                const weaponSuccessRate = Math.min(0.8, 0.4 + (bestWeapon.damage * 0.05));
+                
+                if (Math.random() < weaponSuccessRate) {
+                    addMessage(`⚔️ You fought ${officerName} with your ${bestWeapon.name} and won!`, 'success');
+                    playSound(bestWeapon.hitSound || 'gun');
                     gameState.player.health = Math.max(10, (gameState.player.health || 100) - 10);
                 } else {
-                    addMessage(`⚔️ You lost the fight!`, 'error');
+                    addMessage(`⚔️ You lost the fight despite using your ${bestWeapon.name}!`, 'error');
                     gameState.player.inventory = {};
                     gameState.player.day += 5;
                     gameState.player.health = Math.max(10, (gameState.player.health || 100) - 25);
                     playSound('jaildoor');
                 }
             } else {
+                // This case shouldn't happen with the new UI, but keeping for safety
                 if (Math.random() < 0.2) {
                     addMessage(`👊 You fought with bare hands and won!`, 'success');
                     playSound('hrdpunch');
@@ -7294,38 +7460,25 @@ function handleAddictsEvent(headlinesSoundPlayed) {
 
 // Police dog event - K-9 unit chases you, causing drug drops
 function handlePoliceDogEvent() {
-    const hasInventory = Object.keys(gameState.player.inventory).length > 0;
-    
-    if (!hasInventory) {
-        // No inventory, just a scary encounter
-        addMessage('🐕 A police dog sniffs around but finds nothing!', 'event');
-        addMessage('You nervously walk away as the K-9 unit moves on.', 'success');
-        playSound('policedog');
-        return;
-    }
-    
-    playSound('policedog'); // Police dog sound
+    playSound('policedog');
     
     const dogNames = ['Rex', 'Duke', 'Bruno', 'Max', 'Ace', 'Thor', 'Ranger'];
     const dogName = dogNames[Math.floor(Math.random() * dogNames.length)];
+    const officerNames = ['Officer Martinez', 'Officer Johnson', 'Officer Smith', 'Officer Davis'];
+    const officerName = officerNames[Math.floor(Math.random() * officerNames.length)];
     
-    addMessage(`🐕 Police dog ${dogName} catches your scent!`, 'event');
-    addMessage('The K-9 unit is closing in! You need to move fast!', 'error');
+    const hasInventory = Object.keys(gameState.player.inventory).length > 0;
     
-    // Determine outcome based on what you're carrying
-    const inventoryItems = Object.keys(gameState.player.inventory);
-    const totalDrugs = inventoryItems.reduce((sum, drug) => sum + gameState.player.inventory[drug], 0);
+    addMessage(`🐕 Police dog ${dogName} with ${officerName} approaches!`, 'event');
     
-    if (totalDrugs > 50) {
-        addMessage('You\'re carrying too much! The weight is slowing you down!', 'error');
-        handleDogChaseEscape(dogName, 0.7); // 70% chance to drop drugs
-    } else if (totalDrugs > 20) {
-        addMessage('The dog is getting closer! You need to run!', 'error');
-        handleDogChaseEscape(dogName, 0.5); // 50% chance to drop drugs
+    if (!hasInventory) {
+        addMessage('The K-9 unit wants to search you...', 'warning');
     } else {
-        addMessage('You\'re light on your feet! Time to get out of here!', 'event');
-        handleDogChaseEscape(dogName, 0.3); // 30% chance to drop drugs
+        addMessage(`${dogName} is getting excited! They smell something!`, 'error');
     }
+    
+    // Show K9 encounter modal
+    showK9EncounterModal(dogName, officerName, hasInventory);
 }
 
 // Handle the dog chase escape mechanics
