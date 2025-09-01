@@ -1,13 +1,6 @@
 // Packet Pushers Client - Server-Side Game Edition
 // Frontend only handles display and sends actions to server
 
-// Client constants (should match server)
-const GAME_CONSTANTS = {
-    PLAYER: {
-        MAX_DAYS: 30
-    }
-};
-
 class GameClient {
     constructor() {
         this.sessionId = null;
@@ -191,7 +184,7 @@ class GameClient {
         };
         
         // Update each element if it exists
-        if (elements.currentDay) elements.currentDay.textContent = `${day}/${GAME_CONSTANTS.PLAYER.MAX_DAYS}`;
+        if (elements.currentDay) elements.currentDay.textContent = `${day}/30`;
         if (elements.playerCash) elements.playerCash.textContent = `$${player.cash.toLocaleString()}`;
         if (elements.playerDebt) elements.playerDebt.textContent = `$${player.debt.toLocaleString()}`;
         if (elements.currentLocation) elements.currentLocation.textContent = player.location;
