@@ -8409,7 +8409,7 @@ function closeMenu() {
 }
 
 // Game management - consolidated newGame function
-function newGame() {
+async function newGame() {
     // Ask for player name with saved name as default
     const savedName = localStorage.getItem('packetPushersPlayerName') || 'Anonymous Dealer';
     const playerName = prompt('Enter your dealer name:', savedName);
@@ -8419,7 +8419,7 @@ function newGame() {
     localStorage.setItem('packetPushersPlayerName', finalName);
     
     // Initialize server-side game with complete feature set
-    initializeServerGame(finalName);
+    await initializeServerGame(finalName);
     
     // Update header subtitle with player name  
     updateHeaderSubtitle(finalName);
@@ -9290,6 +9290,7 @@ async function showServerBuyModal(drugName, displayPrice) {
     // Use server prices for calculations
     const serverPrice = getServerPrice(drugName);
     const actualPrice = serverPrice || displayPrice;
+    const currentlyOwned = gameState.player.inventory[drugName] || 0;
     
     const maxAffordable = Math.floor(gameState.player.cash / actualPrice);
     const maxInventorySpace = getCurrentMaxInventory() - getCurrentInventorySize();
@@ -9297,33 +9298,113 @@ async function showServerBuyModal(drugName, displayPrice) {
     
     if (maxCanBuy <= 0) {
         modalBody.innerHTML = `
-            <div class="buy-error">
-                <p>${maxAffordable <= 0 ? 
-                    `💸 Not enough cash! Need $${actualPrice} but only have $${gameState.player.cash}` : 
-                    "📦 Not enough inventory space!"}</p>
-                <button class="mobile-action-btn" onclick="closeMobileModal()">OK</button>
+            <div class="mobile-chart-error">
+                ${maxAffordable <= 0 ? 
+                    "💸 Not enough cash to buy any " + drugName + "!" : 
+                    "📦 Not enough inventory space!"}
+            </div>
+            <div class="mobile-item-actions" style="margin-top: 20px;">
+                <button class="mobile-action-btn" onclick="closeMobileModal()">Close</button>
             </div>
         `;
-        modal.style.display = 'flex';
+        showMobileModalWithUtility(modal);
         return;
     }
 
-    const content = `
-        <div class="buy-interface">
-            <p><strong>${drugName}</strong></p>
-            <p><strong>Server Price:</strong> $${actualPrice.toLocaleString()} each</p>
-            <p><strong>Max affordable:</strong> ${maxCanBuy}</p>
-            <div style="margin-top: 1rem;">
-                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 1, ${actualPrice}); closeMobileModal();">Buy 1</button>
-                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 5, ${actualPrice}); closeMobileModal();">Buy 5</button>
-                <button class="mobile-action-btn" onclick="buyDrugServer('${drugName}', 10, ${actualPrice}); closeMobileModal();">Buy 10</button>
-                <button class="mobile-action-btn primary" onclick="buyDrugServer('${drugName}', ${maxCanBuy}, ${actualPrice}); closeMobileModal();">Buy Max (${maxCanBuy})</button>
+    modalBody.innerHTML = `
+        <div class="buy-modal-content">
+            <div class="drug-info">
+                <div class="price-info">Price: $${actualPrice.toLocaleString()} each</div>
+                ${currentlyOwned > 0 ? `<div class="owned-info">Currently owned: ${currentlyOwned}</div>` : ''}
+                <div class="max-info">Max you can buy: ${maxCanBuy.toLocaleString()}</div>
+            </div>
+            
+            <div class="quantity-selector">
+                <label for="buyQuantity" class="quantity-label">Quantity:</label>
+                <div class="quantity-input-group">
+                    <button type="button" class="quantity-btn minus" onclick="adjustBuyQuantity(-1)">-</button>
+                    <input type="number" id="buyQuantity" class="quantity-input" value="1" min="1" max="${maxCanBuy}" onchange="validateBuyQuantity()">
+                    <button type="button" class="quantity-btn plus" onclick="adjustBuyQuantity(1)">+</button>
+                </div>
+                <div class="quick-quantities">
+                    <button class="quick-qty-btn" onclick="setBuyQuantity(1)">1</button>
+                    <button class="quick-qty-btn" onclick="setBuyQuantity(5)">5</button>
+                    <button class="quick-qty-btn" onclick="setBuyQuantity(10)">10</button>
+                    <button class="quick-qty-btn" onclick="setBuyQuantity(${maxCanBuy})">Max</button>
+                </div>
+            </div>
+            
+            <div class="cost-display">
+                <div id="totalCost">Total: $${actualPrice.toLocaleString()}</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="buy-btn primary" onclick="executeBuyServer('${drugName}', ${actualPrice})">
+                    💰 BUY
+                </button>
+                <button class="cancel-btn" onclick="closeMobileModal()">Cancel</button>
             </div>
         </div>
     `;
     
-    modalBody.innerHTML = content;
-    modal.style.display = 'flex';
+    // Store current drug info for quantity calculations
+    window.currentBuyDrug = { name: drugName, price: actualPrice, maxCanBuy: maxCanBuy };
+    
+    showMobileModalWithUtility(modal);
+}
+
+// Buy modal helper functions (original design)
+function adjustBuyQuantity(change) {
+    const input = document.getElementById('buyQuantity');
+    if (!input) return;
+    
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = Math.max(1, Math.min(currentValue + change, window.currentBuyDrug.maxCanBuy));
+    
+    input.value = newValue;
+    updateBuyTotalCost();
+}
+
+function setBuyQuantity(quantity) {
+    const input = document.getElementById('buyQuantity');
+    if (!input) return;
+    
+    input.value = Math.max(1, Math.min(quantity, window.currentBuyDrug.maxCanBuy));
+    updateBuyTotalCost();
+}
+
+function validateBuyQuantity() {
+    const input = document.getElementById('buyQuantity');
+    if (!input) return;
+    
+    const value = parseInt(input.value) || 1;
+    const correctedValue = Math.max(1, Math.min(value, window.currentBuyDrug.maxCanBuy));
+    
+    if (value !== correctedValue) {
+        input.value = correctedValue;
+    }
+    
+    updateBuyTotalCost();
+}
+
+function updateBuyTotalCost() {
+    const input = document.getElementById('buyQuantity');
+    const costDisplay = document.getElementById('totalCost');
+    
+    if (!input || !costDisplay || !window.currentBuyDrug) return;
+    
+    const quantity = parseInt(input.value) || 1;
+    const total = quantity * window.currentBuyDrug.price;
+    
+    costDisplay.textContent = `Total: $${total.toLocaleString()}`;
+}
+
+function executeBuyServer(drugName, price) {
+    const input = document.getElementById('buyQuantity');
+    const quantity = parseInt(input.value) || 1;
+    
+    buyDrugServer(drugName, quantity, price);
+    closeMobileModal();
 }
 
 // Server-side travel function
