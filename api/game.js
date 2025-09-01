@@ -67,9 +67,9 @@ function generateMarketPrices(day, location, events = []) {
 // Validate game action
 function validateAction(sessionData, action) {
     const { type, data } = action;
-    const { player, day, gameRunning } = sessionData;
+    const { player, day, game_running } = sessionData;
     
-    if (!gameRunning) return { valid: false, error: 'Game not running' };
+    if (!game_running) return { valid: false, error: 'Game not running' };
     if (day > GAME_CONSTANTS.PLAYER.MAX_DAYS) return { valid: false, error: 'Game ended' };
     
     switch (type) {
