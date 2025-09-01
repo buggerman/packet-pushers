@@ -1,7 +1,7 @@
 // Packet Pushers Global Leaderboard API
 // Vercel serverless function for managing global scores
 
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -70,7 +70,7 @@ function calculateScoreHash(gameData) {
     .substring(0, 16); // Use first 16 chars for brevity
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     res.status(200).end();
