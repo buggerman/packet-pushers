@@ -1,6 +1,13 @@
 // Packet Pushers Client - Server-Side Game Edition
 // Frontend only handles display and sends actions to server
 
+// Client constants (should match server)
+const GAME_CONSTANTS = {
+    PLAYER: {
+        MAX_DAYS: 30
+    }
+};
+
 class GameClient {
     constructor() {
         this.sessionId = null;
@@ -156,7 +163,10 @@ class GameClient {
 
     // Throttled update display elements
     updateDisplay() {
-        if (!this.gameState) return;
+        if (!this.gameState) {
+            console.log('No game state to display');
+            return;
+        }
         
         const now = Date.now();
         if (now - this.lastUpdate < this.updateThrottle) {
@@ -167,16 +177,34 @@ class GameClient {
         }
         this.lastUpdate = now;
         
+        console.log('Updating display with game state:', this.gameState);
+        
         const { player, day, current_prices } = this.gameState;
         
-        // Update stats
-        document.getElementById('currentDay').textContent = `${day}/${GAME_CONSTANTS.PLAYER.MAX_DAYS}`;
-        document.getElementById('playerCash').textContent = `$${player.cash.toLocaleString()}`;
-        document.getElementById('playerDebt').textContent = `$${player.debt.toLocaleString()}`;
-        document.getElementById('currentLocation').textContent = player.location;
+        // Update stats with error checking
+        const elements = {
+            currentDay: document.getElementById('currentDay'),
+            playerCash: document.getElementById('playerCash'),
+            playerDebt: document.getElementById('playerDebt'),
+            currentLocation: document.getElementById('currentLocation'),
+            inventorySpace: document.getElementById('inventorySpace')
+        };
         
-        const inventoryCount = Object.values(player.inventory).reduce((a, b) => a + b, 0);
-        document.getElementById('inventorySpace').textContent = `${inventoryCount}/${player.maxInventory}`;
+        // Update each element if it exists
+        if (elements.currentDay) elements.currentDay.textContent = `${day}/${GAME_CONSTANTS.PLAYER.MAX_DAYS}`;
+        if (elements.playerCash) elements.playerCash.textContent = `$${player.cash.toLocaleString()}`;
+        if (elements.playerDebt) elements.playerDebt.textContent = `$${player.debt.toLocaleString()}`;
+        if (elements.currentLocation) elements.currentLocation.textContent = player.location;
+        
+        if (elements.inventorySpace) {
+            const inventoryCount = Object.values(player.inventory).reduce((a, b) => a + b, 0);
+            elements.inventorySpace.textContent = `${inventoryCount}/${player.maxInventory}`;
+        }
+        
+        // Log missing elements
+        Object.entries(elements).forEach(([name, element]) => {
+            if (!element) console.warn(`Missing element: ${name}`);
+        });
         
         // Update market
         this.updateMarketDisplay(current_prices);

@@ -8399,26 +8399,8 @@ function newGame() {
     // Store player name globally for high scores
     localStorage.setItem('packetPushersPlayerName', finalName);
     
-    // Initialize global leaderboard session tracking
-    initializeGameSession();
-    
-    // Reset only the player state, keeping the game data intact
-    gameState.player = {
-        name: finalName,
-        cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
-        debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
-        bankBalance: 0,
-        health: 100, // Health system (0-100)
-        inventory: {},
-        location: 'New York - John F. Kennedy',
-        day: 1,
-        maxDays: GAME_CONSTANTS.PLAYER.MAX_DAYS,
-        maxInventory: GAME_CONSTANTS.PLAYER.BASE_INVENTORY,
-        weapon: null, // Deprecated - use weapons array
-        weapons: [], // Player can own up to 2 weapons
-        coat: null,
-        purchaseHistory: {} // Track purchase history for profit/loss calculations
-    };
+    // Initialize server-side game session
+    initializeServerGame(finalName);
     
     // Update header subtitle with player name  
     updateHeaderSubtitle(finalName);
@@ -9269,6 +9251,84 @@ function skipScoreSubmission(finalScore) {
             </div>
         </div>
     `;
+}
+
+// Initialize server-side game session
+async function initializeServerGame(playerName) {
+    try {
+        console.log('Initializing server game session...');
+        
+        // Create server session
+        const response = await fetch('/api/game', { method: 'GET' });
+        const result = await response.json();
+        
+        if (result.success) {
+            // Use server session data
+            const session = result.session;
+            
+            // Update client gameState to match server
+            gameState.player = {
+                ...session.player,
+                name: playerName
+            };
+            gameState.player.day = session.day;
+            gameState.currentPrices = {};
+            
+            // Convert server prices to client format
+            session.current_prices.forEach(drug => {
+                gameState.currentPrices[drug.name] = drug.price;
+            });
+            
+            gameState.gameRunning = session.game_running;
+            gameState.gameOver = session.game_over;
+            
+            // Store session ID globally
+            window.serverSessionId = session.id;
+            
+            console.log('Server game session initialized:', session.id);
+            
+        } else {
+            console.error('Failed to create server session:', result.error);
+            // Fall back to client-side game
+            initializeClientGame(playerName);
+        }
+    } catch (error) {
+        console.error('Server game initialization failed:', error);
+        // Fall back to client-side game  
+        initializeClientGame(playerName);
+    }
+}
+
+// Fallback to original client-side game
+function initializeClientGame(playerName) {
+    console.log('Falling back to client-side game');
+    
+    // Initialize global leaderboard session tracking
+    initializeGameSession();
+    
+    // Reset only the player state, keeping the game data intact
+    gameState.player = {
+        name: playerName,
+        cash: GAME_CONSTANTS.PLAYER.STARTING_CASH,
+        debt: GAME_CONSTANTS.PLAYER.STARTING_DEBT,
+        bankBalance: 0,
+        health: 100,
+        inventory: {},
+        location: 'New York - John F. Kennedy',
+        day: 1,
+        maxDays: GAME_CONSTANTS.PLAYER.MAX_DAYS,
+        maxInventory: GAME_CONSTANTS.PLAYER.BASE_INVENTORY,
+        weapon: null,
+        weapons: [],
+        coat: null,
+        purchaseHistory: {}
+    };
+    
+    gameState.currentPrices = {};
+    gameState.previousPrices = {};
+    gameState.priceHistory = {};
+    gameState.gameRunning = true;
+    gameState.gameOver = false;
 }
 
 // Initialize game on page load
